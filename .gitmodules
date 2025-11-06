@@ -1,0 +1,6 @@
+[submodule "PM-Application"]
+	path = PM-Application
+	url = https://github.com/Laundryman/PM-Application.git
+[submodule "PM-Infrastructure"]
+	path = PM-Infrastructure
+	url = https://github.com/Laundryman/PM-Infrastructure.git
