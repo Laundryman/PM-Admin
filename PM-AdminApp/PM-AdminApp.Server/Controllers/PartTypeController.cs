@@ -55,7 +55,7 @@ namespace LMXApi.Controllers
         {
             var selectList = new List<PartType>();
             var partTypeSelect = new PartType("Select Type", "Select Type");
-            partTypeSelect.Id = 0;
+            //partTypeSelect.Id = 0;
 
             selectList.Add(partTypeSelect);
 

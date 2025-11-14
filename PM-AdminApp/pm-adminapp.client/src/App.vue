@@ -1,47 +1,25 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+<script setup lang="ts">
+import { auth } from '@/stores/auth'
+import { RouterView } from 'vue-router'
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
+  <!-- menu -->
+  <!-- <nav>
+    <router-link to="/">Home</router-link>
+    <template v-if="auth.account">
+      <router-link to="/user">User</router-link>
+      <router-link to="/logout">Logout</router-link>
+    </template>
+  </nav> -->
 
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
+  <!-- view -->
   <main>
-    <TheWelcome />
+    <RouterView />
   </main>
+
+  <!-- error -->
+  <div id="error" v-if="auth.error">{{ auth.error }}</div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
-</style>
+<style scoped></style>

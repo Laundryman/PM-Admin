@@ -13,6 +13,7 @@ using PMApplication.Entities.PartAggregate;
 using PMApplication.Interfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
+using Page = PMApplication.Dtos.Page;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -41,7 +42,7 @@ namespace LMXApi.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetAllParts([FromQuery] PartFilterDto filterDto)
+        public async Task<IActionResult> GetAll([FromQuery] PartFilterDto filterDto)
         {
             try
             {
@@ -67,7 +68,7 @@ namespace LMXApi.Controllers
                 var response = new PagedPartsListDto();
                 response.Data = _mapper.Map<List<PartListDto>>(parts);
                 //update partTypenames here
-                response.Page = new ApplicationCore.Dtos.Page();
+                response.Page = new Page();
                 response.Page.PageNumber = filterDto.Page;
                 response.Page.TotalItems = totalItems;
                 response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);

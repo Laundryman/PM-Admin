@@ -50,7 +50,7 @@ namespace LMXApi.Controllers
                 var response = new PagedCountriesListDto();
                 response.Data = _mapper.Map<List<CountryDto>>(countries);
                 //update partTypenames here
-                response.Page = new ApplicationCore.Dtos.Page();
+                response.Page = new Page();
                 response.Page.PageNumber = filterDto.Page;
                 response.Page.TotalItems = totalItems;
                 response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);
@@ -141,7 +141,7 @@ namespace LMXApi.Controllers
                 var response = new PagedRegionListDto();
                 response.Data = _mapper.Map<List<RegionDto>>(regions);
                 //update partTypenames here
-                response.Page = new ApplicationCore.Dtos.Page();
+                response.Page = new Page();
                 response.Page.PageNumber = filterDto.Page;
                 response.Page.TotalItems = totalItems;
                 response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);

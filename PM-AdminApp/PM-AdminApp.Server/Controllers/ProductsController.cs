@@ -7,6 +7,7 @@ using PMApplication.Entities.CountriesAggregate;
 using PMApplication.Interfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
+using Page = PMApplication.Dtos.Page;
 
 namespace LMXApi.Controllers
 {
@@ -61,7 +62,7 @@ namespace LMXApi.Controllers
 
 
                 response.Data = _mapper.Map<List<ProductDto>>(products);
-                response.Page = new ApplicationCore.Dtos.Page();
+                response.Page = new Page();
                 response.Page.PageNumber = filterDto.Page;
                 response.Page.TotalItems = totalItems;
                 response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);
