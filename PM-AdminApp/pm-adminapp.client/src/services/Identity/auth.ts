@@ -1,13 +1,16 @@
-import { config, msal, scopes } from '@/config/auth'
+import { config, scopes } from '@/config/auth'
 import type {
   AccountInfo,
   AuthenticationResult,
-  BrowserAuthError,
-  NavigationClient,
   PopupRequest,
   SilentRequest,
 } from '@azure/msal-browser'
-import { InteractionRequiredAuthError } from '@azure/msal-browser'
+import {
+  BrowserAuthError,
+  InteractionRequiredAuthError,
+  NavigationClient,
+  PublicClientApplication,
+} from '@azure/msal-browser'
 
 // type
 export type MaybeAccount = AccountInfo | null
@@ -15,8 +18,8 @@ export type MaybeAccount = AccountInfo | null
 /**
  * MSAL instance
  */
-// export const msal = new PublicClientApplication(config);
-
+export const msal = new PublicClientApplication(config)
+// msal.initialize()
 /**
  * Auth service
  */
@@ -29,6 +32,7 @@ export const Auth = {
     if (!msal) {
       throw new Error('MSAL not initialized. Call initializeMSAL() before using MSAL API')
     }
+
     await msal.loginRedirect()
     await msal.handleRedirectPromise()
 

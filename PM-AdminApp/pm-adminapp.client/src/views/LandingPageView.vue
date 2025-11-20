@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { msal } from '@/config/auth'
+import { useAuthStore } from '@/stores/auth'
 import { onMounted } from 'vue'
 
 import FeaturesWidget from '@/components/landing/FeaturesWidget.vue'
@@ -9,7 +10,9 @@ import HighlightsWidget from '@/components/landing/HighlightsWidget.vue'
 import PricingWidget from '@/components/landing/PricingWidget.vue'
 import TopbarWidget from '@/components/landing/TopbarWidget.vue'
 
+const authStore = useAuthStore()
 const initialize = async () => {
+  let account = authStore.account
   try {
     await msal.initialize()
   } catch (error) {

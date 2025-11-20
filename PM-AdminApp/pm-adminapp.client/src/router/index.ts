@@ -1,6 +1,7 @@
 import AppLayout from '@/layout/AppLayout.vue'
-import { auth } from '@/stores/auth'
-import { createRouter, createWebHistory, type RouteRecordRaw, type Router } from 'vue-router'
+import { msal } from '@/services/Identity/auth'
+import { useAuthStore } from '@/stores/auth'
+import { createRouter, createWebHistory, type Router, type RouteRecordRaw } from 'vue-router'
 import { VueNavigationClient } from './helpers'
 // ---------------------------------------------------------------------------------------------------------------------
 // setup
@@ -9,7 +10,6 @@ import { VueNavigationClient } from './helpers'
 // special routes
 const unmatched = '/:pathMatch(.*)*'
 const unguarded = ['/', '/login', '/logout']
-
 // create router
 // const router = createRouter({
 //   history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,12 +24,18 @@ const unguarded = ['/', '/login', '/logout']
 
 const routes: RouteRecordRaw[] = [
   { path: '/', name: 'Welcome', component: () => import('@/views/LandingPageView.vue') },
-
+  // hook('/login', auth.login),
+  // hook('/logout', auth.logout),
   {
     path: '/home',
     component: AppLayout,
     children: [
-      // { path: '/', name: 'dashboard', component: () => import('@/views/Dashboard.vue'), meta: { requiresAuth: true } },
+      {
+        path: '/home',
+        name: 'dashboard',
+        component: () => import('@/views/Dashboard.vue'),
+        meta: { requiresAuth: true },
+      },
       // { path: '/uikit/formlayout', name: 'formlayout', component: () => import('@/views/uikit/FormLayout.vue') },
       // { path: '/uikit/input', name: 'input', component: () => import('@/views/uikit/InputDoc.vue') },
       // { path: '/uikit/button', name: 'button', component: () => import('@/views/uikit/ButtonDoc.vue') },
@@ -84,12 +90,14 @@ router.beforeEach(async (to, from, next) => {
 
   // guarded
   const guarded = unguarded.every((path) => path !== to.path)
-  if (guarded) {
-    // initialized
-    if (!auth.initialized) {
-      await auth.initialize(client)
-    }
+  const auth = useAuthStore()
 
+  // initialized
+  if (!auth.initialized) {
+    await msal.initialize()
+  }
+  if (guarded) {
+    await auth.initialize(client)
     // authorised
     if (auth.account) {
       return next()

@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { auth } from '@/stores/auth'
+import { useAuthStore } from '@/stores/auth'
 import { RouterView } from 'vue-router'
+
+const authStore = useAuthStore()
 </script>
 
 <template>
@@ -19,7 +21,7 @@ import { RouterView } from 'vue-router'
   </main>
 
   <!-- error -->
-  <div id="error" v-if="auth.error">{{ auth.error }}</div>
+  <div id="error" v-if="authStore.error">{{ authStore.error }}</div>
 </template>
 
 <style scoped></style>

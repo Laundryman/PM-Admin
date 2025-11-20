@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import { msal } from '@/config/auth'
-import { auth } from '@/stores/auth'
+import { useAuthStore } from '@/stores/auth'
 import { onMounted } from 'vue'
 
+const auth = useAuthStore()
 const initialize = async () => {
   try {
     await msal.initialize()

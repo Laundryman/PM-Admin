@@ -1,9 +1,10 @@
 <script lang="ts">
-import { auth } from '@/stores/auth'
+import { useAuthStore } from '@/stores/auth'
 import { user } from '@/stores/user'
 import { defineComponent } from 'vue'
 
 // using options api as setup script doesn't seem to support before route enter?
+const auth = useAuthStore()
 export default defineComponent({
   computed: {
     user: () => user,

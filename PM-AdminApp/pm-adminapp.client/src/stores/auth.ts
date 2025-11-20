@@ -1,46 +1,49 @@
-import type { MaybeAccount } from '@/services/auth'
-import { Auth } from '@/services/auth'
+import type { MaybeAccount } from '@/services/Identity/auth'
+import { Auth } from '@/services/Identity/auth'
 import type { NavigationClient } from '@azure/msal-browser'
-import { reactive, ref } from 'vue'
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
 export const initialized = ref(false)
 export const account = ref<MaybeAccount>(null)
 export const error = ref<string>()
 
-async function initialize(client?: NavigationClient) {
-  if (initialized.value === true) {
-    return account.value
-  }
-  return Auth.initialize(client).then((data) => {
-    account.value = data
-    return data
-  })
-}
+export const useAuthStore = defineStore('auth', () => {
+  const error = ref<string>()
+  const account = ref<MaybeAccount>(null)
+  const initialized = ref(false)
 
-async function login() {
-  error.value = ''
-  return Auth.login()
-    .then((data) => {
+  async function initialize(client?: NavigationClient) {
+    if (initialized.value === true) {
+      return account.value
+    }
+    return Auth.initialize(client).then((data) => {
       account.value = data
-      error.value = ''
+      initialized.value = true
+      return data
     })
-    .catch((err) => {
-      error.value = err.message
-      throw err
+  }
+
+  async function login() {
+    error.value = ''
+    return Auth.login()
+      .then((data) => {
+        account.value = data
+        initialized.value = true
+        error.value = ''
+      })
+      .catch((err) => {
+        error.value = err.message
+        throw err
+      })
+    // await Auth.login()
+  }
+
+  async function logout() {
+    return Auth.logout().then(() => {
+      account.value = null
     })
-}
+  }
 
-async function logout() {
-  return Auth.logout().then(() => {
-    account.value = null
-  })
-}
-
-export const auth = reactive({
-  error,
-  account,
-  initialized,
-  initialize,
-  login,
-  logout,
+  return { initialized, account, error, initialize, login, logout }
 })

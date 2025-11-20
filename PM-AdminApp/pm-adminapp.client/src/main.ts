@@ -7,7 +7,6 @@ import PrimeVue from 'primevue/config'
 import { createApp } from 'vue'
 
 import '@/assets/styles.scss'
-import { auth as Auth } from '@/stores/auth'
 import App from './App.vue'
 import router from './router'
 
@@ -17,8 +16,9 @@ import Divider from 'primevue/divider'
 import '@/assets/styles.scss'
 
 const app = createApp(App)
+const pinia = createPinia()
 
-app.use(createPinia())
+app.use(pinia)
 app.use(router)
 
 const PMAdmin = definePreset(Lara, {
@@ -52,4 +52,4 @@ app.component('Divider', Divider)
 app.mount('#app')
 
 // @ts-ignore
-window.Auth = Auth
+// window.Auth = Auth
