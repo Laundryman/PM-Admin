@@ -57,7 +57,7 @@ export const Auth = {
   async login(): Promise<MaybeAccount> {
     const request: PopupRequest = {
       redirectUri: config.auth.redirectUri,
-      scopes,
+      scopes: [],
     }
     return msal
       .loginPopup(request)

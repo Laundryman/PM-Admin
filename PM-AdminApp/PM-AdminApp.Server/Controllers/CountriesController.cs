@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using AutoMapper;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PMApplication.Dtos;
 using PMApplication.Dtos.Filters;
 using PMApplication.Dtos.PagedLists;
@@ -10,6 +11,7 @@ using PMApplication.Specifications.Filters;
 
 namespace LMXApi.Controllers
 {
+    [Authorize]
     [Route("api/countries/[action]")]
     [ApiController]
     public class CountriesController : ControllerBase

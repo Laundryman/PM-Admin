@@ -10,11 +10,25 @@ import '@/assets/styles.scss'
 import App from './App.vue'
 import router from './router'
 
-import Button from 'primevue/button'
-import Divider from 'primevue/divider'
-
 import '@/assets/styles.scss'
-
+import {
+  AnimateOnScroll,
+  BadgeDirective,
+  FocusTrap,
+  Ripple,
+  SelectButton,
+  StyleClass,
+  Tooltip,
+} from 'primevue'
+import Button from 'primevue/button'
+import Chart from 'primevue/chart'
+import Column from 'primevue/column'
+import DataTable from 'primevue/datatable'
+import Divider from 'primevue/divider'
+import Menu from 'primevue/menu'
+import Paginator from 'primevue/paginator'
+import Toast from 'primevue/toast'
+import ToastService from 'primevue/toastservice'
 const app = createApp(App)
 const pinia = createPinia()
 
@@ -48,6 +62,22 @@ app.use(PrimeVue, {
 
 app.component('Button', Button)
 app.component('Divider', Divider)
+app.component('SelectButton', SelectButton)
+app.component('Chart', Chart)
+app.component('DataTable', DataTable)
+app.component('Column', Column)
+app.component('Paginator', Paginator)
+app.component('Toast', Toast)
+app.component('Menu', Menu)
+
+app.directive('tooltip', Tooltip)
+app.directive('badge', BadgeDirective)
+app.directive('ripple', Ripple)
+app.directive('styleclass', StyleClass)
+app.directive('focustrap', FocusTrap)
+app.directive('animateonscroll', AnimateOnScroll)
+
+app.use(ToastService)
 
 app.mount('#app')
 

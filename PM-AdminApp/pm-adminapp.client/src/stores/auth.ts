@@ -45,5 +45,8 @@ export const useAuthStore = defineStore('auth', () => {
     })
   }
 
-  return { initialized, account, error, initialize, login, logout }
+  async function GetToken(): Promise<string> {
+    return Auth.getToken()
+  }
+  return { initialized, account, error, initialize, login, logout, GetToken }
 })

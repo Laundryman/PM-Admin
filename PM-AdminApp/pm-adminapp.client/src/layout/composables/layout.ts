@@ -1,6 +1,6 @@
+import { Brand } from '@/models/Brands/brand.model'
 import type { MenuItem } from 'primevue/menuitem'
 import { computed, reactive } from 'vue'
-
 interface LayoutConfig {
   preset: string
   primary: string
@@ -17,11 +17,12 @@ interface LayoutState {
   staticMenuMobileActive: boolean
   menuHoverActive: boolean
   activeMenuItem: MenuItem | null
+  activeBrand: Brand | null
 }
 
 const layoutConfig = reactive<LayoutConfig>({
-  preset: 'Aura',
-  primary: 'emerald',
+  preset: 'Lara',
+  primary: 'blue',
   surface: null,
   darkTheme: false,
   menuMode: 'static',
@@ -35,6 +36,7 @@ const layoutState = reactive<LayoutState>({
   staticMenuMobileActive: false,
   menuHoverActive: false,
   activeMenuItem: null,
+  activeBrand: null,
 })
 
 export function useLayout() {
@@ -55,7 +57,9 @@ export function useLayout() {
     layoutConfig.darkTheme = !layoutConfig.darkTheme
     document.documentElement.classList.toggle('app-dark')
   }
-
+  const setActiveBrand = (brand: Brand) => {
+    layoutState.activeBrand = brand
+  }
   const toggleMenu = () => {
     if (layoutConfig.menuMode === 'overlay') {
       layoutState.overlayMenuActive = !layoutState.overlayMenuActive
@@ -74,7 +78,7 @@ export function useLayout() {
   const isDarkTheme = computed(() => layoutConfig.darkTheme)
   const getPrimary = computed(() => layoutConfig.primary)
   const getSurface = computed(() => layoutConfig.surface)
-
+  const getActiveBrand = computed(() => layoutState.activeBrand)
   return {
     layoutConfig,
     layoutState,
@@ -85,5 +89,7 @@ export function useLayout() {
     getSurface,
     setActiveMenuItem,
     toggleDarkMode,
+    setActiveBrand,
+    getActiveBrand,
   }
 }

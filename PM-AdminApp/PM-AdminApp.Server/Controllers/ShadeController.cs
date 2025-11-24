@@ -1,5 +1,5 @@
-﻿using System;
-using AutoMapper;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PMApplication.Dtos;
@@ -10,11 +10,13 @@ using PMApplication.Entities.CountriesAggregate;
 using PMApplication.Interfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
+using System;
 using Page = PMApplication.Dtos.Page;
 
 
 namespace LMXApi.Controllers
 {
+    [Authorize]
     [Route("api/shades/[action]")]
     [ApiController]
     public class ShadeController : BaseController

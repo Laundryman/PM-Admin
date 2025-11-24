@@ -1,4 +1,3 @@
-import AppLayout from '@/layout/AppLayout.vue'
 import { msal } from '@/services/Identity/auth'
 import { useAuthStore } from '@/stores/auth'
 import { createRouter, createWebHistory, type Router, type RouteRecordRaw } from 'vue-router'
@@ -28,11 +27,14 @@ const routes: RouteRecordRaw[] = [
   // hook('/logout', auth.logout),
   {
     path: '/home',
-    component: AppLayout,
+    component: () => import('@/layout/AppLayout.vue'),
+    meta: {
+      layout: 'AppLayoutAdmin',
+    },
     children: [
       {
         path: '/home',
-        name: 'dashboard',
+        name: 'home',
         component: () => import('@/views/Dashboard.vue'),
         meta: { requiresAuth: true },
       },
@@ -91,6 +93,7 @@ router.beforeEach(async (to, from, next) => {
   // guarded
   const guarded = unguarded.every((path) => path !== to.path)
   const auth = useAuthStore()
+  const brands = await import('@/services/Brands/BrandService').then((m) => m.default)
 
   // initialized
   if (!auth.initialized) {
@@ -98,6 +101,7 @@ router.beforeEach(async (to, from, next) => {
   }
   if (guarded) {
     await auth.initialize(client)
+    await brands.initialise()
     // authorised
     if (auth.account) {
       return next()

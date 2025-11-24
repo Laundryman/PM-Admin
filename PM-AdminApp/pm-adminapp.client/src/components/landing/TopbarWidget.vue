@@ -62,25 +62,12 @@ function smoothScroll(id: string) {
       xmlns:svg="http://www.w3.org/2000/svg"
     >
       <defs id="defs11" />
-      <sodipodi:namedview
-        id="namedview11"
-        pagecolor="#ffffff"
-        bordercolor="#000000"
-        borderopacity="0.25"
-        inkscape:showpageshadow="2"
-        inkscape:pageopacity="0.0"
-        inkscape:pagecheckerboard="0"
-        inkscape:deskcolor="#d1d1d1"
-        inkscape:zoom="2.8609756"
-        inkscape:cx="275.08099"
-        inkscape:cy="205"
-        inkscape:window-width="2560"
-        inkscape:window-height="1369"
-        inkscape:window-x="3448"
-        inkscape:window-y="-8"
-        inkscape:window-maximized="1"
-        inkscape:current-layer="g9"
-      />
+      < id="namedview11" pagecolor="#ffffff" bordercolor="#000000" borderopacity="0.25"
+      inkscape:showpageshadow="2" inkscape:pageopacity="0.0" inkscape:pagecheckerboard="0"
+      inkscape:deskcolor="#d1d1d1" inkscape:zoom="2.8609756" inkscape:cx="275.08099"
+      inkscape:cy="205" inkscape:window-width="2560" inkscape:window-height="1369"
+      inkscape:window-x="3448" inkscape:window-y="-8" inkscape:window-maximized="1"
+      inkscape:current-layer="g9" />
       <g
         fill="#a2aaad"
         stroke="none"

@@ -1,16 +1,18 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PMApplication.Entities;
 using PMApplication.Entities.PartAggregate;
 using PMApplication.Interfaces;
 using PMApplication.Specifications;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace LMXApi.Controllers
 {
+    [Authorize]
     [Route("api/parttypes")]
     [ApiController]
     public class PartTypesController : ControllerBase

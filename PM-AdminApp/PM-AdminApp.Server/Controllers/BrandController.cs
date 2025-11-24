@@ -1,19 +1,21 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using PMApplication.Dtos;
+using PMApplication.Dtos.Filters;
+using PMApplication.Entities;
+using PMApplication.Interfaces;
+using PMApplication.Specifications;
+using PMApplication.Specifications.Filters;
+using PMInfrastructure.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using PMApplication.Interfaces;
-using PMApplication.Entities;
-using PMInfrastructure.Logging;
-using AutoMapper;
-using PMApplication.Dtos;
-using PMApplication.Specifications;
-using PMApplication.Specifications.Filters;
-using PMApplication.Dtos.Filters;
 
 namespace LMXApi.Controllers
 {
+    [Authorize]
     [Route("api/brands/[action]")]
     [ApiController]
     public class BrandController : ControllerBase

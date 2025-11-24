@@ -1,8 +1,27 @@
 <script setup lang="ts">
 import { useLayout } from '@/layout/composables/layout'
+import brandService from '@/services/Brands/BrandService'
+import { onMounted, ref } from 'vue'
 import AppConfigurator from './AppConfigurator.vue'
-
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout()
+const brands = ref()
+const layout = useLayout()
+function getBrands() {
+  brandService.initialise()
+  brandService
+    .getBrands()
+    .then((data) => {
+      brands.value = data
+
+      console.log('Brands:', data)
+    })
+    .catch((error) => {
+      console.error('Error fetching brands:', error)
+    })
+}
+onMounted(() => {
+  getBrands()
+})
 </script>
 
 <template>
@@ -41,10 +60,25 @@ const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout()
           </g>
         </svg>
 
-        <span>SAKAI</span>
+        <span>planMatr</span>
       </router-link>
     </div>
-
+    <div class="layout-topbar-menu hidden lg:block">
+      <div class="layout-topbar-menu-content">
+        <select
+          class="p-inputtext p-component p-filled"
+          style="min-width: 150px"
+          v-model="layout.layoutState.activeBrand"
+          @change="
+            layout.layoutState.activeBrand && layout.setActiveBrand(layout.layoutState.activeBrand)
+          "
+        >
+          <option v-for="brand in brands" :key="brand.id" :value="brand">
+            {{ brand.name }}
+          </option>
+        </select>
+      </div>
+    </div>
     <div class="layout-topbar-actions">
       <div class="layout-config-menu">
         <button type="button" class="layout-topbar-action" @click="toggleDarkMode">

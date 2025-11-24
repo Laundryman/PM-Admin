@@ -27,7 +27,7 @@
       <Button
         label="Get Started"
         as="router-link"
-        to="/Dashboard"
+        to="/home"
         rounded
         class="!text-xl mt-8 !px-4"
       ></Button>

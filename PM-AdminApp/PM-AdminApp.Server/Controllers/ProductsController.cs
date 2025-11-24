@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PMApplication.Dtos;
 using PMApplication.Dtos.Filters;
@@ -11,6 +12,7 @@ using Page = PMApplication.Dtos.Page;
 
 namespace LMXApi.Controllers
 {
+    [Authorize]
     [Route("api/products/[action]")]
     [ApiController]
     public class ProductsController : BaseController
