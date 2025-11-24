@@ -7,10 +7,22 @@ using PMApplication.Entities;
 using PMApplication.Interfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
+<<<<<<< HEAD
+=======
+using PMInfrastructure.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+>>>>>>> 02efb5c (working signin and api authorize)
 
 namespace PM_AdminApp.Server.Controllers
 {
+<<<<<<< HEAD
     //[Authorize]
+=======
+    [Authorize]
+>>>>>>> 02efb5c (working signin and api authorize)
     [Route("api/brands/[action]")]
     [ApiController]
     public class BrandController : ControllerBase

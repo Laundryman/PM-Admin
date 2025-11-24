@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import type { Country } from '@/models/Countries/country.model'
 import type { Region } from '@/models/Countries/region.model'
 import { Auth, msal } from '@/services/Identity/auth'
@@ -8,12 +9,16 @@ const token = ref()
 const initialized = ref(false)
 
 await msal.initialize()
+=======
+import axios from 'axios'
+>>>>>>> 02efb5c (working signin and api authorize)
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_APP_SERVER_URL + '/api/countries',
   withCredentials: false,
   headers: {
     Accept: 'application/json',
+<<<<<<< HEAD
     'Content-Type': 'application/json',
   },
 })
@@ -54,4 +59,19 @@ export default {
     console.log('PartService initialized with token:', token.value)
     initialized.value = true
   },
+=======
+    'Content-Type': 'application/json'
+  }
+})
+
+export default {
+  getCountries(searchText?: string, top?: number) {
+    return apiClient.get('/getall', {
+      params: {
+        searchText: searchText,
+        top: top
+      }
+    })
+  }
+>>>>>>> 02efb5c (working signin and api authorize)
 }

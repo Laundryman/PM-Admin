@@ -1,7 +1,12 @@
 import { Brand } from '@/models/Brands/brand.model'
+<<<<<<< HEAD
 import { defineStore } from 'pinia'
 import type { MenuItem } from 'primevue/menuitem'
 import { computed, reactive, ref } from 'vue'
+=======
+import type { MenuItem } from 'primevue/menuitem'
+import { computed, reactive } from 'vue'
+>>>>>>> 02efb5c (working signin and api authorize)
 interface LayoutConfig {
   preset: string
   primary: string
@@ -19,7 +24,10 @@ interface LayoutState {
   menuHoverActive: boolean
   activeMenuItem: MenuItem | null
   activeBrand: Brand | null
+<<<<<<< HEAD
   brandsLoaded?: boolean
+=======
+>>>>>>> 02efb5c (working signin and api authorize)
 }
 
 const layoutConfig = reactive<LayoutConfig>({
@@ -30,6 +38,7 @@ const layoutConfig = reactive<LayoutConfig>({
   menuMode: 'static',
 })
 
+<<<<<<< HEAD
 // const layoutState = reactive<LayoutState>({
 //   staticMenuDesktopInactive: false,
 //   overlayMenuActive: false,
@@ -41,6 +50,18 @@ const layoutConfig = reactive<LayoutConfig>({
 //   activeBrand: null,
 //   brandsLoaded: false,
 // })
+=======
+const layoutState = reactive<LayoutState>({
+  staticMenuDesktopInactive: false,
+  overlayMenuActive: false,
+  profileSidebarVisible: false,
+  configSidebarVisible: false,
+  staticMenuMobileActive: false,
+  menuHoverActive: false,
+  activeMenuItem: null,
+  activeBrand: null,
+})
+>>>>>>> 02efb5c (working signin and api authorize)
 
 export const useLayoutStore = defineStore('layout', () => {
   const layoutState = ref<LayoutState>({
@@ -72,6 +93,7 @@ export const useLayoutStore = defineStore('layout', () => {
     layoutConfig.darkTheme = !layoutConfig.darkTheme
     document.documentElement.classList.toggle('app-dark')
   }
+<<<<<<< HEAD
   function setActiveBrand(brand: Brand | null) {
     if (brand) {
       layoutState.value.activeBrand = brand
@@ -80,6 +102,12 @@ export const useLayoutStore = defineStore('layout', () => {
   }
 
   function toggleMenu() {
+=======
+  const setActiveBrand = (brand: Brand) => {
+    layoutState.activeBrand = brand
+  }
+  const toggleMenu = () => {
+>>>>>>> 02efb5c (working signin and api authorize)
     if (layoutConfig.menuMode === 'overlay') {
       layoutState.value.overlayMenuActive = !layoutState.value.overlayMenuActive
     }
@@ -97,8 +125,12 @@ export const useLayoutStore = defineStore('layout', () => {
   const isDarkTheme = computed(() => layoutConfig.darkTheme)
   const getPrimary = computed(() => layoutConfig.primary)
   const getSurface = computed(() => layoutConfig.surface)
+<<<<<<< HEAD
   const getActiveBrand = computed(() => layoutState.value.activeBrand)
 
+=======
+  const getActiveBrand = computed(() => layoutState.activeBrand)
+>>>>>>> 02efb5c (working signin and api authorize)
   return {
     layoutConfig,
     layoutState,

@@ -19,9 +19,12 @@ const apiClient = axios.create({
 })
 
 export default {
+<<<<<<< HEAD
   get isInitialised() {
     return initialized.value
   },
+=======
+>>>>>>> 02efb5c (working signin and api authorize)
   async getBrands(searchText?: string, top?: number) {
     if (initialized.value !== false) {
       if (token.value) {

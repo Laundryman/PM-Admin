@@ -99,7 +99,11 @@ router.beforeEach(async (to, from, next) => {
   // guarded
   const guarded = unguarded.every((path) => path !== to.path)
   const auth = useAuthStore()
+<<<<<<< HEAD
   const brands = await import('@/services/Brands/brandService').then((m) => m.default)
+=======
+  const brands = await import('@/services/Brands/BrandService').then((m) => m.default)
+>>>>>>> 02efb5c (working signin and api authorize)
 
   // initialized
   if (!auth.initialized) {
