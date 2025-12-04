@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using PMApplication.Interfaces.RepositoryInterfaces;
 using Page = PMApplication.Dtos.Page;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -21,21 +22,23 @@ using Page = PMApplication.Dtos.Page;
 namespace LMXApi.Controllers
 {
     [Authorize]
-    [Route("api/part")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class PartController : ControllerBase
     {
-        private readonly IAppLogger<PartController> _logger;
+        private readonly ILogger<PartController> _logger;
         private readonly IMapper _mapper;
-        private readonly IAsyncRepositoryLong<Part> _partRepository;
+        private readonly IAsyncRepositoryLong<Part> _partAsyncRepository;
+        private readonly IPartRepository _partRepository;
         private readonly IAsyncRepository<PartType> _partTypeRepository;
         private readonly IAsyncRepository<Category> _categoryRepository;
 
 
-        public PartController(IMapper mapper, IAsyncRepository<PartType> partTypeRepository, IAsyncRepositoryLong<Part> partRepository, IAsyncRepository<Category> categoryRepository, IAppLogger<PartController> logger)
+        public PartController(IMapper mapper, IAsyncRepository<PartType> partTypeRepository, IAsyncRepositoryLong<Part> partAsyncRepository, IAsyncRepository<Category> categoryRepository, ILogger<PartController> logger, IPartRepository partRepository)
         {
             _logger = logger;
             _partRepository = partRepository;
+            _partAsyncRepository = partAsyncRepository;
             _partTypeRepository = partTypeRepository;
             _categoryRepository = categoryRepository;
             _mapper = mapper;
@@ -43,7 +46,7 @@ namespace LMXApi.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] PartFilterDto filterDto)
+        public async Task<IActionResult> GetFilteredParts([FromQuery] PartFilterDto filterDto)
         {
             try
             {
@@ -56,11 +59,11 @@ namespace LMXApi.Controllers
                 var categories = await _categoryRepository.ListAsync(catSpec);
 
                 var spec = new PartSpecification(_mapper.Map<PartFilter>(filterDto));
-                var parts = await _partRepository.ListAsync(spec);
-                var countFilter = filterDto;
-                countFilter.IsPagingEnabled = false;
-                var countSpec = new PartSpecification(_mapper.Map<PartFilter>(countFilter));
-                int totalItems = await _partRepository.CountAsync(countSpec);
+                var parts = await _partAsyncRepository.ListAsync(spec);
+                //var countFilter = filterDto;
+                //countFilter.IsPagingEnabled = false;
+                //var countSpec = new PartSpecification(_mapper.Map<PartFilter>(countFilter));
+                //int totalItems = await _partRepository.CountAsync(countSpec);
 
                 _logger.LogInformation($"Returned all parts from database.");
                 //var ownersResult = _mapper.Map<IEnumerable<OwnerDto>>(owners);
@@ -68,12 +71,12 @@ namespace LMXApi.Controllers
 
                 var response = new PagedPartsListDto();
                 response.Data = _mapper.Map<List<PartListDto>>(parts);
-                //update partTypenames here
-                response.Page = new Page();
-                response.Page.PageNumber = filterDto.Page;
-                response.Page.TotalItems = totalItems;
-                response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);
-                response.Page.Size = filterDto.PageSize;
+                ////update partTypenames here
+                //response.Page = new Page();
+                //response.Page.PageNumber = filterDto.Page;
+                //response.Page.TotalItems = totalItems;
+                //response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);
+                //response.Page.Size = filterDto.PageSize;
                 return Ok(response);
             }
             catch (Exception ex)
@@ -83,12 +86,53 @@ namespace LMXApi.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> SearchParts(PartFilterDto filterDto)
+        {
+            try
+            {
+                //var ptSpec = new PartTypeSpecification();
+                //var partTypes = await _partTypeRepository.ListAsync(ptSpec);
+
+                //var categoryFilter = new CategoryFilter();
+                //categoryFilter.ParentCategory = 0;
+                //var catSpec = new CategorySpecification(categoryFilter);
+                //var categories = await _categoryRepository.ListAsync(catSpec);
+
+                //var spec = new PartSpecification(_mapper.Map<PartFilter>(filterDto));
+                var parts = await _partRepository.SearchParts(filterDto);
+                //var countFilter = filterDto;
+                //countFilter.IsPagingEnabled = false;
+                //var countSpec = new PartSpecification(_mapper.Map<PartFilter>(countFilter));
+                //int totalItems = await _partRepository.CountAsync(countSpec);
+
+                _logger.LogInformation($"Returned all parts from database.");
+                //var ownersResult = _mapper.Map<IEnumerable<OwnerDto>>(owners);
+                //return Ok(ownersResult);
+
+                
+                //var response = _mapper.Map<List<SearchPartListDto>>(parts);
+                //update partTypenames here
+                //response.Page = new Page();
+                //response.Page.PageNumber = filterDto.Page;
+                //response.Page.TotalItems = totalItems;
+                //response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);
+                //response.Page.Size = filterDto.PageSize;
+                return Ok(parts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Something went wrong inside SearchParts action: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("{id}", Name = "PartById")]
         public async Task<IActionResult> GetPartById(int id)
         {
             try
             {
-                var part = await _partRepository.GetByIdAsync(id);
+                var part = await _partAsyncRepository.GetByIdAsync(id);
 
                 if (part == null)
                 {
@@ -153,7 +197,7 @@ namespace LMXApi.Controllers
                     return BadRequest("Invalid model object");
                 }
 
-                var newPart = await _partRepository.AddAsync(part);
+                var newPart = await _partAsyncRepository.AddAsync(part);
 
                 return CreatedAtRoute("PartById", new { id = part.Id }, part);
             }
@@ -181,14 +225,14 @@ namespace LMXApi.Controllers
                     return BadRequest("Invalid model object");
                 }
 
-                var dbPart = await _partRepository.GetByIdAsync(id);
+                var dbPart = await _partAsyncRepository.GetByIdAsync(id);
                 if (dbPart == null)
                 {
                     _logger.LogError($"Part with id: {id}, hasn't been found in db.");
                     return NotFound();
                 }
 
-                await _partRepository.UpdateAsync(dbPart);
+                await _partAsyncRepository.UpdateAsync(dbPart);
 
                 return NoContent();
             }
@@ -204,7 +248,7 @@ namespace LMXApi.Controllers
         {
             try
             {
-                var part = await _partRepository.GetByIdAsync(id);
+                var part = await _partAsyncRepository.GetByIdAsync(id);
                 if (part == null)
                 {
                     _logger.LogError($"Part with id: {id}, hasn't been found in db.");
@@ -217,7 +261,7 @@ namespace LMXApi.Controllers
                 //    return BadRequest("Cannot delete part. It has related accounts. Delete those accounts first");
                 //}
 
-                await _partRepository.DeleteAsync(part);
+                await _partAsyncRepository.DeleteAsync(part);
 
                 return NoContent();
             }

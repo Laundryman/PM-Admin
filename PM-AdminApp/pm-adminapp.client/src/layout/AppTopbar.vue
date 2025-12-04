@@ -1,23 +1,58 @@
 <script setup lang="ts">
 import { useLayout } from '@/layout/composables/layout'
-import brandService from '@/services/Brands/BrandService'
+import brandService from '@/services/Brands/brandService'
+// import Select from 'primevue/select'
 import { onMounted, ref } from 'vue'
 import AppConfigurator from './AppConfigurator.vue'
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout()
+// interface BrandOption {
+//   name: string
+//   code: string
+// }
+
 const brands = ref()
+const brandOptions = ref()
 const layout = useLayout()
-function getBrands() {
-  brandService.initialise()
-  brandService
+const selectedBrand = ref()
+const loadingBrands = ref(true)
+const selectBrandPH = ref('Loading...')
+function changeBrand() {
+  const brand = brands.value.find((b: any) => b.id === selectedBrand.value)
+
+  layout.layoutState.activeBrand = brand
+  console.log('Active Brand changed to:', layout.layoutState.activeBrand)
+}
+
+async function getBrands() {
+  if (layout.layoutState.brandsLoaded) {
+    selectedBrand.value = layout.layoutState.activeBrand
+    return
+  }
+  if (!brandService.isInitialised) await brandService.initialise()
+  console.log('Fetching brands...')
+  await brandService
     .getBrands()
     .then((data) => {
-      brands.value = data
-
-      console.log('Brands:', data)
+      // create brandOptions array for select dropdown
+      brands.value = data.data
+      // let brandOptionsLocal: BrandOption[] = []
+      // for (const brand of brands.value) {
+      //   let brandOption = { name: brand.name, code: brand.id }
+      //   brandOptionsLocal.push(brandOption)
+      // }
+      // console.log('Brand Options:', brandOptionsLocal)
+      // brandOptions.value = brandOptionsLocal
+      layout.layoutState.activeBrand = brands.value[0]
+      selectedBrand.value = brands.value[0]
+      layout.layoutState.brandsLoaded = true
+      loadingBrands.value = false
+      selectBrandPH.value = 'Select a Brand'
+      console.log('Brands:', brands.value)
     })
     .catch((error) => {
       console.error('Error fetching brands:', error)
     })
+  console.log('Completed fetching brands.')
 }
 onMounted(() => {
   getBrands()
@@ -64,19 +99,18 @@ onMounted(() => {
       </router-link>
     </div>
     <div class="layout-topbar-menu hidden lg:block">
-      <div class="layout-topbar-menu-content">
-        <select
-          class="p-inputtext p-component p-filled"
+      <div class="layout-topbar-menu-content layout-topbar-brand-select">
+        <Select
+          class="p-inputtext p-component p-filled p-select"
           style="min-width: 150px"
-          v-model="layout.layoutState.activeBrand"
-          @change="
-            layout.layoutState.activeBrand && layout.setActiveBrand(layout.layoutState.activeBrand)
-          "
-        >
-          <option v-for="brand in brands" :key="brand.id" :value="brand">
-            {{ brand.name }}
-          </option>
-        </select>
+          :placeholder="selectBrandPH"
+          :loading="loadingBrands"
+          :options="brands"
+          option-label="name"
+          option-value="id"
+          v-model="selectedBrand"
+          @change="changeBrand"
+        ></Select>
       </div>
     </div>
     <div class="layout-topbar-actions">

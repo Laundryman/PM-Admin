@@ -6,11 +6,12 @@ import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import { createApp } from 'vue'
 
+//import '@/assets/styles.scss'
 import '@/assets/styles.scss'
 import App from './App.vue'
 import router from './router'
 
-import '@/assets/styles.scss'
+// import '@/assets/styles.scss'
 import {
   AnimateOnScroll,
   BadgeDirective,
@@ -20,21 +21,27 @@ import {
   StyleClass,
   Tooltip,
 } from 'primevue'
+
 import Button from 'primevue/button'
 import Chart from 'primevue/chart'
 import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
 import Divider from 'primevue/divider'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
+import InputText from 'primevue/inputtext'
 import Menu from 'primevue/menu'
 import Paginator from 'primevue/paginator'
+import Select from 'primevue/select'
 import Toast from 'primevue/toast'
 import ToastService from 'primevue/toastservice'
+import Toolbar from 'primevue/toolbar'
 const app = createApp(App)
 const pinia = createPinia()
 
 app.use(pinia)
 app.use(router)
-
+app.use(ToastService)
 const PMAdmin = definePreset(Lara, {
   //Your customizations, see the following sections for examples
   semantic: {
@@ -69,15 +76,17 @@ app.component('Column', Column)
 app.component('Paginator', Paginator)
 app.component('Toast', Toast)
 app.component('Menu', Menu)
-
+app.component('InputIcon', InputIcon)
+app.component('IconField', IconField)
+app.component('InputText', InputText)
+app.component('Select', Select)
+app.component('Toolbar', Toolbar)
 app.directive('tooltip', Tooltip)
 app.directive('badge', BadgeDirective)
 app.directive('ripple', Ripple)
 app.directive('styleclass', StyleClass)
 app.directive('focustrap', FocusTrap)
 app.directive('animateonscroll', AnimateOnScroll)
-
-app.use(ToastService)
 
 app.mount('#app')
 

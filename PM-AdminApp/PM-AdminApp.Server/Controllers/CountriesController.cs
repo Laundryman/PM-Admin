@@ -19,14 +19,14 @@ namespace LMXApi.Controllers
         //private ILoggerManager _logger;
         //private IRepositoryWrapper _repository;
         //private ILoggerManager _logger;
-        private readonly IAppLogger<PartTypesController> _logger;
+        private readonly ILogger<CountriesController> _logger;
         private readonly IMapper _mapper;
         //private readonly IReadRepository<Part> _partReadRepository;
         private readonly IAsyncRepository<Region> _regionRepository;
         private readonly IAsyncRepository<Country> _countryRepository;
 
 
-        public CountriesController(IMapper mapper, IAsyncRepository<Country> countryRepository, IAsyncRepository<Region> regionRepository, IAppLogger<PartTypesController> logger)
+        public CountriesController(IMapper mapper, IAsyncRepository<Country> countryRepository, IAsyncRepository<Region> regionRepository, ILogger<CountriesController> logger)
         {
             _logger = logger;
             _countryRepository = countryRepository;
@@ -37,27 +37,29 @@ namespace LMXApi.Controllers
         #region Countries
 
         [HttpGet(Name = "Countries")]
-        public async Task<IActionResult> GetAllCountries([FromQuery] CountriesFilterDto filterDto)
+        public async Task<IActionResult> GetAllCountries(int regionId, string? searchText = "")
         {
             try
             {
+                var filterDto = new CountryFilter();
+                filterDto.RegionId = regionId;
                 var spec = new CountrySpecification(_mapper.Map<CountryFilter>(filterDto));
                 var countries = await _countryRepository.ListAsync(spec);
-                var countFilter = filterDto;
-                countFilter.IsPagingEnabled = false;
-                var countSpec = new CountrySpecification(_mapper.Map<CountryFilter>(countFilter));
-                int totalItems = await _countryRepository.CountAsync(countSpec);
+                //var countFilter = filterDto;
+                //countFilter.IsPagingEnabled = false;
+                //var countSpec = new CountrySpecification(_mapper.Map<CountryFilter>(countFilter));
+                //int totalItems = await _countryRepository.CountAsync(countSpec);
                 _logger.LogInformation($"Returned all parts from database.");
 
-                var response = new PagedCountriesListDto();
-                response.Data = _mapper.Map<List<CountryDto>>(countries);
+                //var response = new PagedCountriesListDto();
+                //response.Data = _mapper.Map<List<CountryDto>>(countries);
                 //update partTypenames here
-                response.Page = new Page();
-                response.Page.PageNumber = filterDto.Page;
-                response.Page.TotalItems = totalItems;
-                response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);
-                response.Page.Size = filterDto.PageSize;
-                return Ok(response);
+                //response.Page = new Page();
+                //response.Page.PageNumber = filterDto.Page;
+                //response.Page.TotalItems = totalItems;
+                //response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);
+                //response.Page.Size = filterDto.PageSize;
+                return Ok(countries);
             }
             catch (Exception ex)
             {
@@ -128,27 +130,29 @@ namespace LMXApi.Controllers
         #region Regions
 
         [HttpGet(Name = "Regions")]
-        public async Task<IActionResult> GetAllRegions([FromQuery] RegionsFilterDto filterDto)
+        public async Task<IActionResult> GetAllRegions(int brandId, string? searchText = "")
         {
             try
             {
+                var filterDto = new RegionsFilterDto();
+                filterDto.BrandId = brandId;
                 var spec = new RegionSpecification(_mapper.Map<RegionFilter>(filterDto));
                 var regions = await _regionRepository.ListAsync(spec);
-                var countFilter = filterDto;
-                countFilter.IsPagingEnabled = false;
-                var countSpec = new RegionSpecification(_mapper.Map<RegionFilter>(countFilter));
-                int totalItems = await _regionRepository.CountAsync(countSpec);
+                //var countFilter = filterDto;
+                //countFilter.IsPagingEnabled = false;
+                //var countSpec = new RegionSpecification(_mapper.Map<RegionFilter>(countFilter));
+                //int totalItems = await _regionRepository.CountAsync(countSpec);
                 _logger.LogInformation($"Returned all parts from database.");
 
-                var response = new PagedRegionListDto();
-                response.Data = _mapper.Map<List<RegionDto>>(regions);
+                //var response = new PagedRegionListDto();
+                //response.Data = _mapper.Map<List<RegionDto>>(regions);
                 //update partTypenames here
-                response.Page = new Page();
-                response.Page.PageNumber = filterDto.Page;
-                response.Page.TotalItems = totalItems;
-                response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);
-                response.Page.Size = filterDto.PageSize;
-                return Ok(response);
+                //response.Page = new Page();
+                //response.Page.PageNumber = filterDto.Page;
+                //response.Page.TotalItems = totalItems;
+                //response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);
+                //response.Page.Size = filterDto.PageSize;
+                return Ok(regions);
             }
             catch (Exception ex)
             {

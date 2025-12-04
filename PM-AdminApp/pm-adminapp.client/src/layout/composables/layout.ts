@@ -18,6 +18,7 @@ interface LayoutState {
   menuHoverActive: boolean
   activeMenuItem: MenuItem | null
   activeBrand: Brand | null
+  brandsLoaded?: boolean
 }
 
 const layoutConfig = reactive<LayoutConfig>({
@@ -37,6 +38,7 @@ const layoutState = reactive<LayoutState>({
   menuHoverActive: false,
   activeMenuItem: null,
   activeBrand: null,
+  brandsLoaded: false,
 })
 
 export function useLayout() {
@@ -57,9 +59,13 @@ export function useLayout() {
     layoutConfig.darkTheme = !layoutConfig.darkTheme
     document.documentElement.classList.toggle('app-dark')
   }
-  const setActiveBrand = (brand: Brand) => {
-    layoutState.activeBrand = brand
+  const setActiveBrand = (brand: Brand | null) => {
+    if (brand) {
+      layoutState.activeBrand = brand
+      console.log('Active brand set to:', layoutState.activeBrand)
+    }
   }
+
   const toggleMenu = () => {
     if (layoutConfig.menuMode === 'overlay') {
       layoutState.overlayMenuActive = !layoutState.overlayMenuActive

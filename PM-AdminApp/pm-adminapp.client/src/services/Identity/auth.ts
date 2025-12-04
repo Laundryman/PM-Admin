@@ -33,22 +33,26 @@ export const Auth = {
       throw new Error('MSAL not initialized. Call initializeMSAL() before using MSAL API')
     }
 
-    await msal.loginRedirect()
-    await msal.handleRedirectPromise()
+    try {
+      // await msal.loginRedirect()
+      await msal.handleRedirectPromise()
 
-    // hook into application router
-    if (client) {
-      msal.setNavigationClient(client)
+      // hook into application router
+      if (client) {
+        msal.setNavigationClient(client)
+      }
+
+      // grab and set account if in session
+      const accounts = msal.getAllAccounts()
+      if (accounts?.length && accounts[0]) {
+        this.setAccount(accounts[0])
+      }
+
+      // return any active account
+      return msal.getActiveAccount()
+    } catch (error) {
+      throw error
     }
-
-    // grab and set account if in session
-    const accounts = msal.getAllAccounts()
-    if (accounts?.length && accounts[0]) {
-      this.setAccount(accounts[0])
-    }
-
-    // return any active account
-    return msal.getActiveAccount()
   },
 
   /**

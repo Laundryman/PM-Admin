@@ -38,6 +38,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/Dashboard.vue'),
         meta: { requiresAuth: true },
       },
+      {
+        path: '/parts',
+        name: 'parts',
+        component: () => import('@/views/Parts/PartList.vue'),
+        meta: { requiresAuth: true },
+      },
       // { path: '/uikit/formlayout', name: 'formlayout', component: () => import('@/views/uikit/FormLayout.vue') },
       // { path: '/uikit/input', name: 'input', component: () => import('@/views/uikit/InputDoc.vue') },
       // { path: '/uikit/button', name: 'button', component: () => import('@/views/uikit/ButtonDoc.vue') },
@@ -93,7 +99,7 @@ router.beforeEach(async (to, from, next) => {
   // guarded
   const guarded = unguarded.every((path) => path !== to.path)
   const auth = useAuthStore()
-  const brands = await import('@/services/Brands/BrandService').then((m) => m.default)
+  const brands = await import('@/services/Brands/brandService').then((m) => m.default)
 
   // initialized
   if (!auth.initialized) {

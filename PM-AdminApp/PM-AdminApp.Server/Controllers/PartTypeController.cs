@@ -20,14 +20,14 @@ namespace LMXApi.Controllers
         //private ILoggerManager _logger;
         //private IRepositoryWrapper _repository;
         //private ILoggerManager _logger;
-        private readonly IAppLogger<PartTypesController> _logger;
+        private readonly ILogger<PartTypesController> _logger;
         private readonly IMapper _mapper;
         //private readonly IReadRepository<Part> _partReadRepository;
         private readonly IAsyncRepository<PartType> _partTypeRepository;
         private readonly IAsyncRepository<Category> _categoryRepository;
 
 
-        public PartTypesController(IMapper mapper, IAsyncRepository<PartType> partTypeRepository, IAsyncRepository<Category> categoryRepository, IAppLogger<PartTypesController> logger)
+        public PartTypesController(IMapper mapper, IAsyncRepository<PartType> partTypeRepository, IAsyncRepository<Category> categoryRepository, ILogger<PartTypesController> logger)
         {
             _logger = logger;
             _partTypeRepository = partTypeRepository;

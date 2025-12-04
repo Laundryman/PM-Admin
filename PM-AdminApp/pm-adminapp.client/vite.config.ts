@@ -1,9 +1,11 @@
-import { fileURLToPath, URL } from 'node:url'
+/// <reference types="vitest" />
+/// <reference types="vite/client" />
 
 import tailwindcss from '@tailwindcss/vite'
 import plugin from '@vitejs/plugin-vue'
 import child_process from 'child_process'
 import fs from 'fs'
+import { fileURLToPath, URL } from 'node:url'
 import path from 'path'
 import { env } from 'process'
 import { defineConfig } from 'vite'
@@ -43,7 +45,6 @@ const target = env.ASPNETCORE_HTTPS_PORT
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [plugin(), tailwindcss()],
-
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

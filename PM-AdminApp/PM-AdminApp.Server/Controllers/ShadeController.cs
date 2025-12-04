@@ -21,7 +21,7 @@ namespace LMXApi.Controllers
     [ApiController]
     public class ShadeController : BaseController
     {
-        private readonly IAppLogger<ProductsController> _logger;
+        private readonly ILogger<ProductsController> _logger;
         private readonly IMapper _mapper;
         private readonly IAsyncRepositoryLong<Shade> _shadeRepository;
         private readonly IAsyncRepository<Country> _countryRepository;
@@ -29,7 +29,7 @@ namespace LMXApi.Controllers
 
         public ShadeController(IMapper mapper, IAsyncRepositoryLong<Shade> shadeRepository,
             IAsyncRepository<Country> countryRepository, IAsyncRepository<Category> categoryRepository,
-            IAppLogger<ProductsController> logger)
+                ILogger<ProductsController> logger)
         {
             _logger = logger;
             _shadeRepository = shadeRepository;

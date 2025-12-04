@@ -7,25 +7,21 @@ using PMApplication.Entities;
 using PMApplication.Interfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
-using PMInfrastructure.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace LMXApi.Controllers
+namespace PM_AdminApp.Server.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/brands/[action]")]
     [ApiController]
     public class BrandController : ControllerBase
     {
-        private readonly IAppLogger<BrandController> _logger;
+        private readonly ILogger<BrandController> _logger;
+
         private readonly IMapper _mapper;
         private readonly IAsyncRepository<Brand> _brandRepository;
 
 
-        public BrandController(IMapper mapper, IAsyncRepository<Brand> brandRepository, IAppLogger<BrandController> logger)
+        public BrandController(IMapper mapper, IAsyncRepository<Brand> brandRepository, ILogger<BrandController> logger)
         {
             _logger = logger;
             _brandRepository = brandRepository;

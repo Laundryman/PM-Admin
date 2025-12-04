@@ -17,7 +17,7 @@ namespace LMXApi.Controllers
     [ApiController]
     public class ProductsController : BaseController
     {
-        private readonly IAppLogger<ProductsController> _logger;
+        private readonly ILogger<ProductsController> _logger;
         private readonly IMapper _mapper;
         private readonly IAsyncRepositoryLong<Product> _productRepository;
         private readonly IAsyncRepository<Country> _countryRepository;
@@ -27,7 +27,7 @@ namespace LMXApi.Controllers
 
         public ProductsController(IMapper mapper, IAsyncRepositoryLong<Product> productRepository,
             IAsyncRepository<Country> countryRepository, IAsyncRepository<Category> categoryRepository,
-            IAppLogger<ProductsController> logger)
+            ILogger<ProductsController> logger)
         {
             _logger = logger;
             _productRepository = productRepository;

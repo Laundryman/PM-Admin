@@ -1,4 +1,6 @@
 // import { useAuthStore } from '@/stores/auth'
+import type { PartFilter } from '@/models/Parts/partFilter.model'
+import type { SearchPartInfo } from '@/models/Parts/searchPartInfo.model'
 import { Auth, msal } from '@/services/Identity/auth'
 import { useAuthStore } from '@/stores/auth'
 import axios from 'axios'
@@ -9,7 +11,7 @@ await msal.initialize()
 const token = ref()
 const initialized = ref(false)
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_APP_SERVER_URL + '/api/brands',
+  baseURL: import.meta.env.VITE_APP_SERVER_URL + '/api/part',
   withCredentials: false,
   headers: {
     Accept: 'application/json',
@@ -19,23 +21,16 @@ const apiClient = axios.create({
 })
 
 export default {
-  get isInitialised() {
-    return initialized.value
-  },
-  async getBrands(searchText?: string, top?: number) {
-    if (initialized.value !== false) {
-      if (token.value) {
-        apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
-      }
-      return apiClient.get('/getBrands', {
-        params: {
-          searchText: searchText,
-          top: top,
-        },
-      })
-    } else {
-      throw new Error('BrandService not initialized')
+  async searchParts(filter: PartFilter): Promise<SearchPartInfo[]> {
+    // if (initialized.value !== false) {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
+    let response = await apiClient.post('/searchParts', filter)
+    return response.data
+    // } else {
+    //   throw new Error('PartService not initialized')
+    // }
   },
 
   async initialise() {
@@ -45,7 +40,7 @@ export default {
     }
     const t = await Auth.getToken()
     token.value = t
-    console.log('BrandService initialized with token:', token.value)
+    console.log('PartService initialized with token:', token.value)
     initialized.value = true
   },
 }

@@ -88,6 +88,11 @@
     .layout-topbar-menu-content {
         display: flex;
         gap: 1rem;
+        align-items: center;
+    }
+    .layout-topbar-brand-select {
+        margin-left: 1rem;
+        border-width: 1px;
     }
 
     .layout-config-menu {
