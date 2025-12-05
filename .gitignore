@@ -230,3 +230,4 @@ _Pvt_Extensions
 # FAKE - F# Make
 .fake/
 /PM-AdminApp/PM-AdminApp.Server/appsettings.json
+/PM-AdminApp/PM-AdminApp.Server/Program.cs
