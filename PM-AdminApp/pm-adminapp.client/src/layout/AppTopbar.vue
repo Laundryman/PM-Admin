@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { useLayout } from '@/layout/composables/layout'
+import { useLayoutStore } from '@/layout/composables/layout'
 import brandService from '@/services/Brands/brandService'
 // import Select from 'primevue/select'
 import { onMounted, ref } from 'vue'
 import AppConfigurator from './AppConfigurator.vue'
-const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout()
+const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayoutStore()
 // interface BrandOption {
 //   name: string
 //   code: string
@@ -12,7 +12,7 @@ const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout()
 
 const brands = ref()
 const brandOptions = ref()
-const layout = useLayout()
+const layout = useLayoutStore()
 const selectedBrand = ref()
 const loadingBrands = ref(true)
 const selectBrandPH = ref('Loading...')

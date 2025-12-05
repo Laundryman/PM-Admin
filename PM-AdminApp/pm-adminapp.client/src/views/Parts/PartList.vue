@@ -1,8 +1,8 @@
 <script setup lang="ts">
 ;``
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 // import UserService from '@/services/UserService.js'
-import { useLayout } from '@/layout/composables/layout'
+import { useLayoutStore } from '@/layout/composables/layout'
 import { Country } from '@/models/Countries/country.model'
 import { Region } from '@/models/Countries/region.model'
 import { PartFilter } from '@/models/Parts/partFilter.model'
@@ -10,6 +10,7 @@ import { SearchPartInfo } from '@/models/Parts/searchPartInfo.model'
 import { default as countryService } from '@/services/Countries/countryService'
 import { default as partService } from '@/services/Parts/partService'
 import { FilterMatchMode } from '@primevue/core/api/'
+import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
 
 const regions = ref<Region[]>([])
@@ -20,11 +21,28 @@ const parts = ref<SearchPartInfo[]>([])
 const selectedParts = ref<SearchPartInfo[]>([])
 const toast = useToast()
 const loading = ref(true)
-const layout = useLayout()
+const layout = useLayoutStore()
+const brand = storeToRefs(layout).getActiveBrand
 const searchText = ref('')
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   categoryName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+})
+
+watch(brand, async (newBrand) => {
+  if (newBrand) {
+    let filter = new PartFilter()
+    filter.brandId = newBrand.id
+    await partService.searchParts(filter).then((response) => {
+      parts.value = response
+      console.log('Parts loaded for brand change', parts.value)
+    })
+
+    await countryService.getRegions(newBrand.id, '').then((response) => {
+      regions.value = response
+      console.log('Regions loaded', regions.value)
+    })
+  }
 })
 
 onMounted(async () => {
@@ -32,7 +50,7 @@ onMounted(async () => {
   await partService.initialise()
   await countryService.initialise()
 
-  let brandid = layout.getActiveBrand.value?.id ?? 0
+  let brandid = layout.getActiveBrand?.id ?? 0
 
   await countryService.getRegions(brandid, '').then((response) => {
     regions.value = response
@@ -66,7 +84,7 @@ async function onRegionChange() {
       console.log('Countries loaded for region', selectedRegion.value, countries.value)
     })
     let filter = new PartFilter()
-    filter.brandId = layout.getActiveBrand.value?.id ?? 0
+    filter.brandId = layout.getActiveBrand?.id ?? 0
     filter.regionId = selectedRegion.value
     await partService.searchParts(filter).then((response) => {
       parts.value = response
@@ -80,7 +98,7 @@ async function onRegionChange() {
 async function onCountryChange() {
   if (selectedCountry.value) {
     let filter = new PartFilter()
-    filter.brandId = layout.getActiveBrand.value?.id ?? 0
+    filter.brandId = layout.getActiveBrand?.id ?? 0
     filter.countryId = selectedCountry.value
     await partService.searchParts(filter).then((response) => {
       parts.value = response
@@ -89,6 +107,22 @@ async function onCountryChange() {
   } else {
     countries.value = []
   }
+}
+
+async function clearFilters() {
+  selectedRegion.value = null
+  selectedCountry.value = null
+  countries.value = []
+  let filter = new PartFilter()
+  filter.brandId = layout.getActiveBrand?.id ?? 0
+  await partService.searchParts(filter).then((response) => {
+    parts.value = response
+    console.log('Parts loaded', parts.value)
+  })
+  await countryService.getRegions(filter.brandId, '').then((response) => {
+    regions.value = response
+    console.log('Regions loaded', regions.value)
+  })
 }
 </script>
 
@@ -111,10 +145,20 @@ async function onCountryChange() {
         <Select
           v-model="selectedCountry"
           :options="countries"
+          @change="onCountryChange"
           option-label="name"
           option-value="id"
           placeholder="Select a country"
           class="mr-2"
+        />
+
+        <!-- <Button label="Clear" icon="pi pi-filter" @click="clearFilters" /> -->
+        <Button
+          type="button"
+          icon="pi pi-filter-slash"
+          label="Clear"
+          variant="outlined"
+          @click="clearFilters()"
         />
       </template>
 

@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { useLayout } from '@/layout/composables/layout'
+import { useLayoutStore } from '@/layout/composables/layout'
+import { storeToRefs } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import AppFooter from './AppFooter.vue'
 import AppSidebar from './AppSidebar.vue'
 import AppTopbar from './AppTopbar.vue'
 
-const { layoutConfig, layoutState, isSidebarActive } = useLayout()
+const layoutStore = useLayoutStore()
+const { layoutConfig, layoutState } = useLayoutStore()
+const { isSidebarActive } = storeToRefs(layoutStore)
 
 const outsideClickListener = ref()
 

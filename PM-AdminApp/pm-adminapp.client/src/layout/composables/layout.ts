@@ -1,6 +1,7 @@
 import { Brand } from '@/models/Brands/brand.model'
+import { defineStore } from 'pinia'
 import type { MenuItem } from 'primevue/menuitem'
-import { computed, reactive } from 'vue'
+import { computed, reactive, ref } from 'vue'
 interface LayoutConfig {
   preset: string
   primary: string
@@ -29,25 +30,37 @@ const layoutConfig = reactive<LayoutConfig>({
   menuMode: 'static',
 })
 
-const layoutState = reactive<LayoutState>({
-  staticMenuDesktopInactive: false,
-  overlayMenuActive: false,
-  profileSidebarVisible: false,
-  configSidebarVisible: false,
-  staticMenuMobileActive: false,
-  menuHoverActive: false,
-  activeMenuItem: null,
-  activeBrand: null,
-  brandsLoaded: false,
-})
+// const layoutState = reactive<LayoutState>({
+//   staticMenuDesktopInactive: false,
+//   overlayMenuActive: false,
+//   profileSidebarVisible: false,
+//   configSidebarVisible: false,
+//   staticMenuMobileActive: false,
+//   menuHoverActive: false,
+//   activeMenuItem: null,
+//   activeBrand: null,
+//   brandsLoaded: false,
+// })
 
-export function useLayout() {
-  const setActiveMenuItem = (item: MenuItem) => {
+export const useLayoutStore = defineStore('layout', () => {
+  const layoutState = ref<LayoutState>({
+    staticMenuDesktopInactive: false,
+    overlayMenuActive: false,
+    profileSidebarVisible: false,
+    configSidebarVisible: false,
+    staticMenuMobileActive: false,
+    menuHoverActive: false,
+    activeMenuItem: null,
+    activeBrand: null,
+    brandsLoaded: false,
+  })
+
+  function setActiveMenuItem(item: MenuItem) {
     const anyItem = item as { value?: MenuItem }
-    layoutState.activeMenuItem = anyItem?.value !== undefined ? anyItem.value : item
+    layoutState.value.activeMenuItem = anyItem?.value !== undefined ? anyItem.value : item
   }
 
-  const toggleDarkMode = () => {
+  function toggleDarkMode() {
     if (!document.startViewTransition) {
       executeDarkModeToggle()
       return
@@ -55,36 +68,37 @@ export function useLayout() {
     document.startViewTransition(() => executeDarkModeToggle())
   }
 
-  const executeDarkModeToggle = () => {
+  function executeDarkModeToggle() {
     layoutConfig.darkTheme = !layoutConfig.darkTheme
     document.documentElement.classList.toggle('app-dark')
   }
-  const setActiveBrand = (brand: Brand | null) => {
+  function setActiveBrand(brand: Brand | null) {
     if (brand) {
-      layoutState.activeBrand = brand
-      console.log('Active brand set to:', layoutState.activeBrand)
+      layoutState.value.activeBrand = brand
+      console.log('Active brand set to:', layoutState.value.activeBrand)
     }
   }
 
-  const toggleMenu = () => {
+  function toggleMenu() {
     if (layoutConfig.menuMode === 'overlay') {
-      layoutState.overlayMenuActive = !layoutState.overlayMenuActive
+      layoutState.value.overlayMenuActive = !layoutState.value.overlayMenuActive
     }
 
     if (window.innerWidth > 991) {
-      layoutState.staticMenuDesktopInactive = !layoutState.staticMenuDesktopInactive
+      layoutState.value.staticMenuDesktopInactive = !layoutState.value.staticMenuDesktopInactive
     } else {
-      layoutState.staticMenuMobileActive = !layoutState.staticMenuMobileActive
+      layoutState.value.staticMenuMobileActive = !layoutState.value.staticMenuMobileActive
     }
   }
 
   const isSidebarActive = computed(
-    () => layoutState.overlayMenuActive || layoutState.staticMenuMobileActive,
+    () => layoutState.value.overlayMenuActive || layoutState.value.staticMenuMobileActive,
   )
   const isDarkTheme = computed(() => layoutConfig.darkTheme)
   const getPrimary = computed(() => layoutConfig.primary)
   const getSurface = computed(() => layoutConfig.surface)
-  const getActiveBrand = computed(() => layoutState.activeBrand)
+  const getActiveBrand = computed(() => layoutState.value.activeBrand)
+
   return {
     layoutConfig,
     layoutState,
@@ -98,4 +112,63 @@ export function useLayout() {
     setActiveBrand,
     getActiveBrand,
   }
-}
+})
+
+// export function useLayout() {
+//   const setActiveMenuItem = (item: MenuItem) => {
+//     const anyItem = item as { value?: MenuItem }
+//     layoutState.activeMenuItem = anyItem?.value !== undefined ? anyItem.value : item
+//   }
+
+//   const toggleDarkMode = () => {
+//     if (!document.startViewTransition) {
+//       executeDarkModeToggle()
+//       return
+//     }
+//     document.startViewTransition(() => executeDarkModeToggle())
+//   }
+
+//   const executeDarkModeToggle = () => {
+//     layoutConfig.darkTheme = !layoutConfig.darkTheme
+//     document.documentElement.classList.toggle('app-dark')
+//   }
+//   const setActiveBrand = (brand: Brand | null) => {
+//     if (brand) {
+//       layoutState.activeBrand = brand
+//       console.log('Active brand set to:', layoutState.activeBrand)
+//     }
+//   }
+
+//   const toggleMenu = () => {
+//     if (layoutConfig.menuMode === 'overlay') {
+//       layoutState.overlayMenuActive = !layoutState.overlayMenuActive
+//     }
+
+//     if (window.innerWidth > 991) {
+//       layoutState.staticMenuDesktopInactive = !layoutState.staticMenuDesktopInactive
+//     } else {
+//       layoutState.staticMenuMobileActive = !layoutState.staticMenuMobileActive
+//     }
+//   }
+
+//   const isSidebarActive = computed(
+//     () => layoutState.overlayMenuActive || layoutState.staticMenuMobileActive,
+//   )
+//   const isDarkTheme = computed(() => layoutConfig.darkTheme)
+//   const getPrimary = computed(() => layoutConfig.primary)
+//   const getSurface = computed(() => layoutConfig.surface)
+//   const getActiveBrand = computed(() => layoutState.activeBrand)
+//   return {
+//     layoutConfig,
+//     layoutState,
+//     toggleMenu,
+//     isSidebarActive,
+//     isDarkTheme,
+//     getPrimary,
+//     getSurface,
+//     setActiveMenuItem,
+//     toggleDarkMode,
+//     setActiveBrand,
+//     getActiveBrand,
+//   }
+// }

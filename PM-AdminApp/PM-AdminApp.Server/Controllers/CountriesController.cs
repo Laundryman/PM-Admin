@@ -41,9 +41,9 @@ namespace LMXApi.Controllers
         {
             try
             {
-                var filterDto = new CountryFilter();
-                filterDto.RegionId = regionId;
-                var spec = new CountrySpecification(_mapper.Map<CountryFilter>(filterDto));
+                var filter = new CountryFilter();
+                filter.RegionId = regionId;
+                var spec = new CountrySpecification(filter);
                 var countries = await _countryRepository.ListAsync(spec);
                 //var countFilter = filterDto;
                 //countFilter.IsPagingEnabled = false;
@@ -59,7 +59,8 @@ namespace LMXApi.Controllers
                 //response.Page.TotalItems = totalItems;
                 //response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);
                 //response.Page.Size = filterDto.PageSize;
-                return Ok(countries);
+                var response = _mapper.Map<List<CountryDto>>(countries);
+                return Ok(response);
             }
             catch (Exception ex)
             {

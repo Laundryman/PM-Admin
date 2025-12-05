@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useLayout } from '@/layout/composables/layout'
+import { useLayoutStore } from '@/layout/composables/layout'
 import { onMounted, ref, watch } from 'vue'
 
-const { getPrimary, getSurface, isDarkTheme } = useLayout()
+const { getPrimary, getSurface, isDarkTheme } = useLayoutStore()
 
 const chartData = ref()
 const chartOptions = ref()

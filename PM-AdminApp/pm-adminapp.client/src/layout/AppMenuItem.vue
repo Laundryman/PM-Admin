@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { useLayout } from '@/layout/composables/layout'
+import { useLayoutStore } from '@/layout/composables/layout'
 import { onBeforeMount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-
-const { layoutState, setActiveMenuItem, toggleMenu } = useLayout()
+const layoutStore = useLayoutStore()
+const { layoutState, setActiveMenuItem, toggleMenu } = useLayoutStore()
 
 const props = defineProps({
   item: {
