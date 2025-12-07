@@ -11,11 +11,7 @@ import '@/assets/styles.scss'
 import App from './App.vue'
 import router from './router'
 
-<<<<<<< HEAD
-// import '@/assets/styles.scss'
-=======
 import '@/assets/styles.scss'
->>>>>>> 02efb5c (working signin and api authorize)
 import {
   AnimateOnScroll,
   BadgeDirective,
@@ -25,16 +21,11 @@ import {
   StyleClass,
   Tooltip,
 } from 'primevue'
-<<<<<<< HEAD
-
-=======
->>>>>>> 02efb5c (working signin and api authorize)
 import Button from 'primevue/button'
 import Chart from 'primevue/chart'
 import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
 import Divider from 'primevue/divider'
-<<<<<<< HEAD
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
@@ -44,12 +35,6 @@ import Select from 'primevue/select'
 import Toast from 'primevue/toast'
 import ToastService from 'primevue/toastservice'
 import Toolbar from 'primevue/toolbar'
-=======
-import Menu from 'primevue/menu'
-import Paginator from 'primevue/paginator'
-import Toast from 'primevue/toast'
-import ToastService from 'primevue/toastservice'
->>>>>>> 02efb5c (working signin and api authorize)
 const app = createApp(App)
 const pinia = createPinia()
 
@@ -90,26 +75,18 @@ app.component('Column', Column)
 app.component('Paginator', Paginator)
 app.component('Toast', Toast)
 app.component('Menu', Menu)
-<<<<<<< HEAD
 app.component('InputIcon', InputIcon)
 app.component('IconField', IconField)
 app.component('InputText', InputText)
 app.component('Select', Select)
 app.component('Toolbar', Toolbar)
-=======
-
->>>>>>> 02efb5c (working signin and api authorize)
 app.directive('tooltip', Tooltip)
 app.directive('badge', BadgeDirective)
 app.directive('ripple', Ripple)
 app.directive('styleclass', StyleClass)
 app.directive('focustrap', FocusTrap)
 app.directive('animateonscroll', AnimateOnScroll)
-<<<<<<< HEAD
-=======
-
 app.use(ToastService)
->>>>>>> 02efb5c (working signin and api authorize)
 
 app.mount('#app')
 

@@ -14,22 +14,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-<<<<<<< HEAD
 using PMApplication.Interfaces.RepositoryInterfaces;
-=======
->>>>>>> 02efb5c (working signin and api authorize)
-using Page = PMApplication.Dtos.Page;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace LMXApi.Controllers
 {
     [Authorize]
-<<<<<<< HEAD
     [Route("api/[controller]/[action]")]
-=======
-    [Route("api/part")]
->>>>>>> 02efb5c (working signin and api authorize)
     [ApiController]
     public class PartController : ControllerBase
     {
