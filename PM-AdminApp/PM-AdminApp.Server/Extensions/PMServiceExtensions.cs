@@ -34,6 +34,8 @@ namespace PM_AdminApp.Server.Extensions
 
         public static IServiceCollection AddRepositories(this IServiceCollection services)
         {
+            services.AddScoped(typeof(IAsyncRepository<>), typeof(EfRepository<>));
+            services.AddScoped(typeof(IAsyncRepositoryLong<>), typeof(EfRepositoryLong<>));
             services.AddTransient<PlanMatrContext>();
             services.AddTransient<IAuditRepository, AuditRepository>();
             services.AddTransient<IBrandRepository, BrandRepository>();

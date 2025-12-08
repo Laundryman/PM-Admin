@@ -10,6 +10,7 @@ using PMInfrastructure.Repositories;
 using Serilog;
 using System.Diagnostics;
 using System.Text;
+using PM_AdminApp.Server.Extensions;
 using static System.Net.WebRequestMethods;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -112,6 +113,8 @@ builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSch
     //.AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAdB2C"));
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddRepositories();
+builder.Services.AddPMServices();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddAutoMapper(typeof(Program));
