@@ -231,3 +231,5 @@ _Pvt_Extensions
 .fake/
 /PM-AdminApp/PM-AdminApp.Server/appsettings.json
 /PM-AdminApp/PM-AdminApp.Server/Program.cs
+/PM-AdminApp/PM-AdminApp.Server/Logs/log-planmatrApi20251207.txt
+/PM-AdminApp/PM-AdminApp.Server/Logs/log-planmatrApi20251208.txt
