@@ -29,36 +29,37 @@ const model = ref([
     ],
   },
   {
-    label: 'Stands',
+    label: 'Carcasses',
     icon: 'pi pi-fw pi-table',
     to: '/stands',
     items: [
       {
-        label: 'Carcasses',
+        label: 'Stands',
         icon: 'pi pi-fw pi-check-square',
         to: '/stands',
       },
       {
         label: 'Clusters',
         icon: 'pi pi-fw pi-briefcase',
-        // items: [
-        //   {
-        //     label: 'Login',
-        //     icon: 'pi pi-fw pi-sign-in',
-        //     to: '/auth/login',
-        //   },
-        //   {
-        //     label: 'Error',
-        //     icon: 'pi pi-fw pi-times-circle',
-        //     to: '/auth/error',
-        //   },
-        //   {
-        //     label: 'Access Denied',
-        //     icon: 'pi pi-fw pi-lock',
-        //     to: '/auth/access',
-        //   },
-        // ],
+        to: '/clusters',
       },
+      // items: [
+      //   {
+      //     label: 'Login',
+      //     icon: 'pi pi-fw pi-sign-in',
+      //     to: '/auth/login',
+      //   },
+      //   {
+      //     label: 'Error',
+      //     icon: 'pi pi-fw pi-times-circle',
+      //     to: '/auth/error',
+      //   },
+      //   {
+      //     label: 'Access Denied',
+      //     icon: 'pi pi-fw pi-lock',
+      //     to: '/auth/access',
+      //   },
+      // ],
       //   {
       //     label: 'Crud',
       //     icon: 'pi pi-fw pi-pencil',

@@ -5,7 +5,9 @@ using PMApplication.Dtos;
 using PMApplication.Dtos.Filters;
 using PMApplication.Entities;
 using PMApplication.Entities.CountriesAggregate;
+using PMApplication.Entities.ProductAggregate;
 using PMApplication.Interfaces;
+using PMApplication.Interfaces.RepositoryInterfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
 using Page = PMApplication.Dtos.Page;
@@ -19,58 +21,78 @@ namespace LMXApi.Controllers
     {
         private readonly ILogger<ProductsController> _logger;
         private readonly IMapper _mapper;
-        private readonly IAsyncRepositoryLong<Product> _productRepository;
+        private readonly IAsyncRepositoryLong<Product> _asyncProductRepository;
+        private readonly IProductRepository _productRepository;
         private readonly IAsyncRepository<Country> _countryRepository;
         private readonly IAsyncRepository<Category> _categoryRepository;
 
 
 
-        public ProductsController(IMapper mapper, IAsyncRepositoryLong<Product> productRepository,
+        public ProductsController(IMapper mapper, IAsyncRepositoryLong<Product> asyncProductRepository,
             IAsyncRepository<Country> countryRepository, IAsyncRepository<Category> categoryRepository,
-            ILogger<ProductsController> logger)
+            ILogger<ProductsController> logger, IProductRepository productRepository)
         {
             _logger = logger;
             _productRepository = productRepository;
+            _asyncProductRepository = asyncProductRepository;
             _countryRepository = countryRepository;
             _categoryRepository = categoryRepository;
             _mapper = mapper;
         }
 
 
+        [HttpPost]
+        public async Task<IActionResult> SearchProducts(ProductFilterDto filterDto)
+        {
+            try
+            {
+                //var spec = new ProductSpecification(_mapper.Map<ProductFilter>(filterDto));
+                var products = await _productRepository.SearchProducts(filterDto);
+                
+                return Ok(products);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Something went wrong inside SearchProducts action: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetProducts([FromQuery] ProductFilterDto filterDto)
         {
             try
             {
-                if (filterDto.CountryList != null)
-                {
-                    var allCountries = await IsAllCountries(filterDto.CountryList, _countryRepository, _mapper);
-                    if (allCountries)
-                    {
-                        filterDto.CountryList = null;
-                    }
-                }
+                //if (filterDto.CountriesList != null)
+                //{
+                //    var allCountries = await IsAllCountries(filterDto.CountriesList, _countryRepository, _mapper);
+                //    if (allCountries)
+                //    {
+                //        filterDto.CountriesList = null;
+                //    }
+                //}
 
-                var spec = new ProductSpecification(_mapper.Map<ProductFilter>(filterDto));
-                var products = await _productRepository.ListAsync(spec);
-                var countFilter = filterDto;
-                countFilter.IsPagingEnabled = false;
-                var countSpec = new ProductSpecification(_mapper.Map<ProductFilter>(countFilter));
-                int totalItems = await _productRepository.CountAsync(countSpec);
-                _logger.LogInformation($"Returned all products from database.");
-
-                
-                var response = new PagedProductsListDto();
+                //var spec = new ProductSpecification(_mapper.Map<ProductFilter>(filterDto));
+                //var products = await _asyncProductRepository.ListAsync(spec);
+                //var countFilter = filterDto;
+                //countFilter.IsPagingEnabled = false;
+                //var countSpec = new ProductSpecification(_mapper.Map<ProductFilter>(countFilter));
+                //int totalItems = await _asyncProductRepository.CountAsync(countSpec);
+                //_logger.LogInformation($"Returned all products from database.");
 
 
-                response.Data = _mapper.Map<List<ProductDto>>(products);
-                response.Page = new Page();
-                response.Page.PageNumber = filterDto.Page;
-                response.Page.TotalItems = totalItems;
-                response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);
-                response.Page.Size = filterDto.PageSize;
-                return Ok(response);
+                //var response = new PagedProductsListDto();
+
+
+                //response.Data = _mapper.Map<List<ProductDto>>(products);
+                //response.Page = new Page();
+                //response.Page.PageNumber = filterDto.Page;
+                //response.Page.TotalItems = totalItems;
+                //response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);
+                //response.Page.Size = filterDto.PageSize;
+                throw new NotImplementedException();
             }
+
             catch (Exception ex)
             {
                 _logger.LogWarning($"Something went wrong inside GetAllProducts action: {ex.Message}");
@@ -84,17 +106,17 @@ namespace LMXApi.Controllers
         {
             try
             {
-                if (filterDto.CountryList != null)
-                {
-                    var allCountries = await IsAllCountries(filterDto.CountryList, _countryRepository, _mapper);
-                    if (allCountries)
-                    {
-                        filterDto.CountryList = null;
-                    }
-                }
+                //if (filterDto.CountriesList != null)
+                //{
+                //    var allCountries = await IsAllCountries(filterDto.CountriesList, _countryRepository, _mapper);
+                //    if (allCountries)
+                //    {
+                //        filterDto.CountriesList = null;
+                //    }
+                //}
 
                 var spec = new ProductSpecification(_mapper.Map<ProductFilter>(filterDto));
-                var products = await _productRepository.ListAsync(spec);
+                var products = await _asyncProductRepository.ListAsync(spec);
 
                 var ProductSelectList = CreateSelectList(products);
                 return Ok(ProductSelectList);
@@ -111,7 +133,7 @@ namespace LMXApi.Controllers
         {
             try
             {
-                var product = await _productRepository.GetByIdAsync(id);
+                var product = await _asyncProductRepository.GetByIdAsync(id);
 
                 if (product == null)
                 {
@@ -156,9 +178,9 @@ namespace LMXApi.Controllers
 
             foreach (var product in products)
             {
-                if (product.CountryList != null)
+                if (product.CountriesList != null)
                 {
-                    var productCountryList = product.CountryList.Split(",");
+                    var productCountryList = product.CountriesList.Split(",");
 
                     foreach (var country in productCountryList)
                     {

@@ -9,6 +9,7 @@ using PMApplication.Entities.JobsAggregate;
 using PMApplication.Entities.OrderAggregate;
 using PMApplication.Entities.PartAggregate;
 using PMApplication.Entities.PlanogramAggregate;
+using PMApplication.Entities.ProductAggregate;
 using PMApplication.Entities.StandAggregate;
 using PMApplication.Specifications.Filters;
 

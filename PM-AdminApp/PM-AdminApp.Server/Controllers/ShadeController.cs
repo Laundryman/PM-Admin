@@ -7,6 +7,7 @@ using PMApplication.Dtos.Filters;
 using PMApplication.Dtos.PagedLists;
 using PMApplication.Entities;
 using PMApplication.Entities.CountriesAggregate;
+using PMApplication.Entities.ProductAggregate;
 using PMApplication.Interfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;

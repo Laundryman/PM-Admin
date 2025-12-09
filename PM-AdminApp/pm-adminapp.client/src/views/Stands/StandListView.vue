@@ -4,10 +4,10 @@ import { onMounted, ref, watch } from 'vue'
 import { useLayoutStore } from '@/layout/composables/layout'
 import { Country } from '@/models/Countries/country.model'
 import { Region } from '@/models/Countries/region.model'
-import { ProductFilter } from '@/models/Products/productFilter.model'
-import { searchProductInfo } from '@/models/Products/searchProductInfo.model'
+import { searchStandInfo } from '@/models/Stands/searchStandInfo.model'
+import { standFilter } from '@/models/Stands/standFilter.model'
 import { default as countryService } from '@/services/Countries/CountryService'
-import { default as productService } from '@/services/Products/ProductService'
+import { default as standService } from '@/services/Stands/StandService'
 import { FilterMatchMode } from '@primevue/core/api/'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
@@ -16,8 +16,8 @@ const regions = ref<Region[]>([])
 const selectedRegion = ref()
 const selectedCountry = ref()
 const countries = ref<Country[]>([])
-const products = ref<searchProductInfo[]>([])
-const selectedProducts = ref<searchProductInfo[]>([])
+const stands = ref<searchStandInfo[]>([])
+const selectedStands = ref<searchStandInfo[]>([])
 const toast = useToast()
 const loading = ref(true)
 const layout = useLayoutStore()
@@ -25,17 +25,17 @@ const brand = storeToRefs(layout).getActiveBrand
 const searchText = ref('')
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  categoryName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  parentCategoryName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  standTypeName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  parentStandTypeName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 })
 
 watch(brand, async (newBrand) => {
   if (newBrand) {
-    let filter = new ProductFilter()
+    let filter = new standFilter()
     filter.brandId = newBrand.id
-    await productService.searchProducts(filter).then((response) => {
-      products.value = response
-      console.log('Products loaded for brand change', products.value)
+    await standService.searchProducts(filter).then((response) => {
+      stands.value = response
+      console.log('Stands loaded for brand change', stands.value)
     })
 
     await countryService.getRegions(newBrand.id, '').then((response) => {
@@ -47,7 +47,7 @@ watch(brand, async (newBrand) => {
 
 onMounted(async () => {
   loading.value = true
-  await productService.initialise()
+  await standService.initialise()
   await countryService.initialise()
 
   let brandid = layout.getActiveBrand?.id ?? 0
@@ -57,11 +57,11 @@ onMounted(async () => {
     console.log('Regions loaded', regions.value)
   })
 
-  var filter = new ProductFilter()
+  var filter = new standFilter()
   filter.brandId = brandid
-  await productService.searchProducts(filter).then((response) => {
-    products.value = response
-    console.log('Products loaded', products.value)
+  await standService.searchProducts(filter).then((response) => {
+    stands.value = response
+    console.log('Stands loaded', stands.value)
   })
 
   //   FilterService.register(part_FILTER.value, (value: any, filter: any) => {
@@ -83,12 +83,12 @@ async function onRegionChange() {
       countries.value = response
       console.log('Countries loaded for region', selectedRegion.value, countries.value)
     })
-    let filter = new ProductFilter()
+    let filter = new standFilter()
     filter.brandId = layout.getActiveBrand?.id ?? 0
     filter.regionId = selectedRegion.value
-    await productService.searchProducts(filter).then((response) => {
-      products.value = response
-      console.log('Products loaded', products.value)
+    await standService.searchProducts(filter).then((response) => {
+      stands.value = response
+      console.log('Stands loaded', stands.value)
     })
   } else {
     countries.value = []
@@ -97,12 +97,12 @@ async function onRegionChange() {
 
 async function onCountryChange() {
   if (selectedCountry.value) {
-    let filter = new ProductFilter()
+    let filter = new standFilter()
     filter.brandId = layout.getActiveBrand?.id ?? 0
     filter.countryId = selectedCountry.value
-    await productService.searchProducts(filter).then((response) => {
-      products.value = response
-      console.log('Products loaded', products.value)
+    await standService.searchProducts(filter).then((response) => {
+      stands.value = response
+      console.log('Stands loaded', stands.value)
     })
   } else {
     countries.value = []
@@ -113,11 +113,11 @@ async function clearFilters() {
   selectedRegion.value = null
   selectedCountry.value = null
   countries.value = []
-  let filter = new ProductFilter()
+  let filter = new standFilter()
   filter.brandId = layout.getActiveBrand?.id ?? 0
-  await productService.searchProducts(filter).then((response) => {
-    products.value = response
-    console.log('Products loaded', products.value)
+  await standService.searchProducts(filter).then((response) => {
+    stands.value = response
+    console.log('Stands loaded', stands.value)
   })
   await countryService.getRegions(filter.brandId, '').then((response) => {
     regions.value = response
@@ -167,7 +167,7 @@ async function clearFilters() {
     <div class="card">
       <DataTable
         ref="dt"
-        v-model:selection="selectedProducts"
+        v-model:selection="selectedStands"
         v-model:filters="filters"
         :globalFilterFields="[
           //'categoryName',
@@ -179,7 +179,7 @@ async function clearFilters() {
           'stock',
         ]"
         filterDisplay="row"
-        :value="products"
+        :value="stands"
         dataKey="id"
         :paginator="true"
         :rows="10"
@@ -201,9 +201,9 @@ async function clearFilters() {
         <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
         <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
         <Column
-          field="parentCategoryName"
-          header="Parent Category"
-          filterField="parentCategoryName"
+          field="parentStandTypeName"
+          header="Parent StandType"
+          filterField="parentStandTypeName"
           style="min-width: 16rem"
         >
           <template #filter="{ filterModel, filterCallback }">
@@ -211,14 +211,14 @@ async function clearFilters() {
               v-model="filterModel.value"
               type="text"
               @input="filterCallback()"
-              placeholder="Search by parent category"
+              placeholder="Search by parent stand type"
             />
           </template>
         </Column>
         <Column
-          field="categoryName"
-          header="Category"
-          filterField="categoryName"
+          field="standTypeName"
+          header="StandType"
+          filterField="standTypeName"
           style="min-width: 16rem"
         >
           <template #filter="{ filterModel, filterCallback }">
@@ -226,10 +226,19 @@ async function clearFilters() {
               v-model="filterModel.value"
               type="text"
               @input="filterCallback()"
-              placeholder="Search by category"
+              placeholder="Search by stand type"
             />
           </template>
         </Column>
+        <Column
+          field="standAssembleyNumber"
+          header="Assembly Number"
+          sortable
+          style="min-width: 12rem"
+        ></Column>
+
+        <Column field="height" header="Height" sortable style="min-width: 16rem"></Column>
+        <Column field="width" header="Width" sortable style="min-width: 12rem"></Column>
       </DataTable>
     </div>
   </div>

@@ -44,6 +44,25 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/Parts/PartList.vue'),
         meta: { requiresAuth: true },
       },
+      {
+        path: '/products',
+        name: 'products',
+        component: () => import('@/views/Products/ProductListView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/stands',
+        name: 'stands',
+        component: () => import('@/views/Stands/StandListView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/clusters',
+        name: 'clusters',
+        component: () => import('@/views/Clusters/ClusterListView.vue'),
+        meta: { requiresAuth: true },
+      },
+
       // { path: '/uikit/formlayout', name: 'formlayout', component: () => import('@/views/uikit/FormLayout.vue') },
       // { path: '/uikit/input', name: 'input', component: () => import('@/views/uikit/InputDoc.vue') },
       // { path: '/uikit/button', name: 'button', component: () => import('@/views/uikit/ButtonDoc.vue') },
