@@ -232,3 +232,4 @@ _Pvt_Extensions
 /PM-AdminApp/PM-AdminApp.Server/appsettings.json
 #/PM-AdminApp/PM-AdminApp.Server/Program.cs
 /PM-AdminApp/PM-AdminApp.Server/Logs/*
+/PM-AdminApp/PM-AdminApp.Server/Properties/launchSettings.json
