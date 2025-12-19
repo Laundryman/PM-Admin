@@ -8,7 +8,9 @@
       "applicationUrl": "http://localhost:5151",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy"
+        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy",
+        "AZURE_CLIENT_ID": "886ea1f2-cb39-42a0-a712-292b2fe06661",
+        "AZURE_TENANT_ID": "aa779afa-e9ea-461b-b395-d2a7c17e5fa6",
       }
     },
     "https": {
@@ -18,7 +20,10 @@
       "applicationUrl": "https://localhost:7134;http://localhost:5151",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy"
+        "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy",
+        "AZURE_CLIENT_ID": "886ea1f2-cb39-42a0-a712-292b2fe06661",
+        "AZURE_TENANT_ID": "aa779afa-e9ea-461b-b395-d2a7c17e5fa6",
+
       }
     }
   }

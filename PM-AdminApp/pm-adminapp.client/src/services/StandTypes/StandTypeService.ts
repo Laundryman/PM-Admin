@@ -1,4 +1,5 @@
 // import { useAuthStore } from '@/stores/auth'
+import { standTypeFilter } from '@/models/StandTypes/standTypeFilter.model'
 import { Auth, msal } from '@/services/Identity/auth'
 import { useAuthStore } from '@/stores/auth'
 import axios from 'axios'
@@ -9,7 +10,7 @@ await msal.initialize()
 const token = ref()
 const initialized = ref(false)
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_APP_SERVER_URL + '/api/brands',
+  baseURL: import.meta.env.VITE_APP_SERVER_URL + '/api/standTypes',
   withCredentials: false,
   headers: {
     Accept: 'application/json',
@@ -22,45 +23,68 @@ export default {
   get isInitialised() {
     return initialized.value
   },
-  async getBrands(searchText?: string, top?: number) {
+
+  async getAllStandTypes() {
     if (initialized.value !== false) {
       if (token.value) {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
       }
-      return apiClient.get('/getBrands', {
-        params: {
-          searchText: searchText,
-          top: top,
-        },
-      })
+      let catFilter = new standTypeFilter()
+      // catFilter.GetParents = true
+      return apiClient.post('/getStandTypes', catFilter)
     } else {
-      throw new Error('BrandService not initialized')
+      throw new Error('StandTypeService not initialized')
+    }
+  },
+  async getParentStandTypes() {
+    if (initialized.value !== false) {
+      if (token.value) {
+        apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+      }
+      let catFilter = new standTypeFilter()
+      catFilter.GetParents = true
+      return apiClient.post('/getStandTypes', catFilter)
+    } else {
+      throw new Error('StandTypeService not initialized')
     }
   },
 
-  async getBrand(id: number) {
+  async getChildStandTypes(parentId: number) {
     if (initialized.value !== false) {
       if (token.value) {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
       }
-      return apiClient.get('/getBrand', {
+      let catFilter = new standTypeFilter()
+      catFilter.ParentStandTypeId = parentId
+      return apiClient.post('/getStandTypes', catFilter)
+    } else {
+      throw new Error('StandTypeService not initialized')
+    }
+  },
+
+  async getStandType(id: number) {
+    if (initialized.value !== false) {
+      if (token.value) {
+        apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+      }
+      return apiClient.get('/getStandType', {
         params: {
           id: id,
         },
       })
     } else {
-      throw new Error('BrandService not initialized')
+      throw new Error('StandTypeService not initialized')
     }
   },
 
-  async updateBrand(formData: FormData): Promise<any> {
+  async updateStandType(formData: FormData): Promise<any> {
     if (initialized.value !== false) {
       if (token.value) {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
       }
       apiClient.defaults.headers['Content-Type'] = 'multipart/form-data'
       await apiClient
-        .post('/updateBrand', formData)
+        .post('/updateStandType', formData)
         .then((response) => {
           return response.data
         })
@@ -68,7 +92,7 @@ export default {
           throw error
         })
     } else {
-      throw new Error('BrandService not initialized')
+      throw new Error('StandTypeService not initialized')
     }
   },
 
@@ -79,7 +103,7 @@ export default {
     }
     const t = await Auth.getToken()
     token.value = t
-    console.log('BrandService initialized with token:', token.value)
+    console.log('StandTypeService initialized with token:', token.value)
     initialized.value = true
   },
 }

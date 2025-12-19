@@ -21,7 +21,7 @@ const apiClient = axios.create({
 })
 
 export default {
-  async searchProducts(filter: standFilter): Promise<searchStandInfo[]> {
+  async searchStands(filter: standFilter): Promise<searchStandInfo[]> {
     // if (initialized.value !== false) {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`

@@ -1,10 +1,9 @@
 import './assets/main.css'
 
-import { definePreset } from '@primeuix/themes'
-import Lara from '@primeuix/themes/aura'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import { createApp } from 'vue'
+import PMAdmin from './planmatrThemePreset'
 
 //import '@/assets/styles.scss'
 import '@/assets/styles.scss'
@@ -15,6 +14,7 @@ import '@/assets/styles.scss'
 import {
   AnimateOnScroll,
   BadgeDirective,
+  Dialog,
   FocusTrap,
   Ripple,
   SelectButton,
@@ -26,14 +26,17 @@ import Chart from 'primevue/chart'
 import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
 import Divider from 'primevue/divider'
+import FileUpload from 'primevue/fileupload'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
 import Menu from 'primevue/menu'
+import OverlayBadge from 'primevue/overlaybadge'
 import Paginator from 'primevue/paginator'
 import Select from 'primevue/select'
 import Toast from 'primevue/toast'
 import ToastService from 'primevue/toastservice'
+import ToggleSwitch from 'primevue/toggleswitch'
 import Toolbar from 'primevue/toolbar'
 const app = createApp(App)
 const pinia = createPinia()
@@ -41,24 +44,24 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 app.use(ToastService)
-const PMAdmin = definePreset(Lara, {
-  //Your customizations, see the following sections for examples
-  semantic: {
-    primary: {
-      50: '{sky.50}',
-      100: '{sky.100}',
-      200: '{sky.200}',
-      300: '{sky.300}',
-      400: '{sky.400}',
-      500: '{sky.500}',
-      600: '{sky.600}',
-      700: '{sky.700}',
-      800: '{sky.800}',
-      900: '{sky.900}',
-      950: '{sky.950}',
-    },
-  },
-})
+// const PMAdmin = definePreset(Lara, {
+//   //Your customizations, see the following sections for examples
+//   semantic: {
+//     primary: {
+//       50: '{sky.50}',
+//       100: '{sky.100}',
+//       200: '{sky.200}',
+//       300: '{sky.300}',
+//       400: '{sky.400}',
+//       500: '{sky.500}',
+//       600: '{sky.600}',
+//       700: '{sky.700}',
+//       800: '{sky.800}',
+//       900: '{sky.900}',
+//       950: '{sky.950}',
+//     },
+//   },
+// })
 
 app.use(PrimeVue, {
   theme: {
@@ -71,15 +74,19 @@ app.component('Divider', Divider)
 app.component('SelectButton', SelectButton)
 app.component('Chart', Chart)
 app.component('DataTable', DataTable)
+app.component('Dialog', Dialog)
 app.component('Column', Column)
+app.component('OverlayBadge', OverlayBadge)
 app.component('Paginator', Paginator)
 app.component('Toast', Toast)
 app.component('Menu', Menu)
 app.component('InputIcon', InputIcon)
 app.component('IconField', IconField)
 app.component('InputText', InputText)
+app.component('ToggleSwitch', ToggleSwitch)
 app.component('Select', Select)
 app.component('Toolbar', Toolbar)
+app.component('FileUpload', FileUpload)
 app.directive('tooltip', Tooltip)
 app.directive('badge', BadgeDirective)
 app.directive('ripple', Ripple)

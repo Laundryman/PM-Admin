@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using PMApplication.Dtos;
+using PMApplication.Dtos.Categories;
 using PMApplication.Dtos.Filters;
 using PMApplication.Dtos.PlanModels;
+using PMApplication.Dtos.StandTypes;
 using PMApplication.Entities;
 using PMApplication.Entities.ClusterAggregate;
 using PMApplication.Entities.CountriesAggregate;
@@ -26,7 +28,7 @@ namespace PM_AdminApp.Server.Mappings
             CreateMap<Category, CategoryDto>();
 
             CreateMap<CategoryFilterDto, CategoryFilter>();
-            CreateMap<Category, CategoryDto>();
+            CreateMap<Category, ParentCategoryDto>();
             CreateMap<Category, CategoryMenuDto>();
             CreateMap<Cluster, PlanmClusterDto>();
             CreateMap<CountriesFilterDto, CountryFilter>();
@@ -68,6 +70,9 @@ namespace PM_AdminApp.Server.Mappings
             CreateMap<StandRow, PlanmStandRowDto>();
             CreateMap<StandColumn, PlanmStandColumnDto>();
             CreateMap<StandRow, PlanmStandRowDto>();
+            CreateMap<StandType, ParentStandTypeDto>();
+            CreateMap<StandType, StandTypeDto>();
+            CreateMap<StandTypeFilterDto, StandTypeFilter>();
             CreateMap<Sku, ExportSkuDto>();
 
 

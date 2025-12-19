@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PMApplication.Dtos;
+using PMApplication.Dtos.Categories;
 using PMApplication.Dtos.Filters;
 using PMApplication.Entities;
 using PMApplication.Interfaces;
@@ -37,14 +37,28 @@ namespace LMXApi.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet(Name = "Categories")]
-        public async Task<IActionResult> GetCategories([FromQuery] CategoryFilterDto filterDto)
+        [HttpPost(Name = "Categories")]
+        public async Task<IActionResult> GetCategories(CategoryFilterDto filterDto)
         {
             try
             {
                 var spec = new CategorySpecification(_mapper.Map<CategoryFilter>(filterDto));
                 var categories = await _categoryRepository.ListAsync(spec);
 
+                foreach (var cat in categories)
+                {
+                    // Do something with each category
+                    if (cat.ParentCategoryId == 0)
+                    {
+                        cat.ParentCategoryName = "1 PARENT CATEGORIES";
+                    }
+                }
+                if (filterDto.GetParents)
+                {
+                    var mappedCats = _mapper.Map<List<ParentCategoryDto>>(categories);
+                    return Ok(mappedCats);
+                }
+                //var mappedCats = _mapper.Map<List<>>()
                 return Ok(categories);
             }
             catch (Exception ex)
@@ -53,6 +67,7 @@ namespace LMXApi.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
 
 
         [HttpGet(Name = "CategorySelectList")]

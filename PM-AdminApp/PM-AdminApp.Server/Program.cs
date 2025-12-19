@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Tokens;
+using PM_AdminApp.Server.Extensions;
 //using PlanMatr_API.Extensions;
 using PMApplication.Interfaces;
 using PMInfrastructure.Data;
@@ -10,7 +12,7 @@ using PMInfrastructure.Repositories;
 using Serilog;
 using System.Diagnostics;
 using System.Text;
-using PM_AdminApp.Server.Extensions;
+using Azure.Identity;
 using static System.Net.WebRequestMethods;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -56,6 +58,18 @@ builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSch
         };
 
     });
+
+builder.Services.AddAzureClients(clientBuilder =>
+{
+    var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
+    var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
+    var clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET");
+
+    clientBuilder.AddBlobServiceClient(
+        new Uri("https://planmatrstore.blob.core.windows.net"));
+
+    clientBuilder.UseCredential(new ClientSecretCredential(tenantId, clientId, clientSecret));
+});
 
 // Add services to the container.
 builder.Services.AddControllers();

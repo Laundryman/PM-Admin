@@ -43,40 +43,41 @@ const model = ref([
         icon: 'pi pi-fw pi-briefcase',
         to: '/clusters',
       },
-      // items: [
-      //   {
-      //     label: 'Login',
-      //     icon: 'pi pi-fw pi-sign-in',
-      //     to: '/auth/login',
-      //   },
-      //   {
-      //     label: 'Error',
-      //     icon: 'pi pi-fw pi-times-circle',
-      //     to: '/auth/error',
-      //   },
-      //   {
-      //     label: 'Access Denied',
-      //     icon: 'pi pi-fw pi-lock',
-      //     to: '/auth/access',
-      //   },
-      // ],
-      //   {
-      //     label: 'Crud',
-      //     icon: 'pi pi-fw pi-pencil',
-      //     to: '/pages/crud',
-      //   },
-      //   {
-      //     label: 'Not Found',
-      //     icon: 'pi pi-fw pi-exclamation-circle',
-      //     to: '/pages/notfound',
-      //   },
-      //   {
-      //     label: 'Empty',
-      //     icon: 'pi pi-fw pi-circle-off',
-      //     to: '/pages/empty',
-      //   },
     ],
   },
+  {
+    label: 'Settings',
+    icon: 'pi pi-fw pi-table',
+    to: '/Brands',
+    items: [
+      {
+        label: 'Brands',
+        icon: 'pi pi-fw pi-check-square',
+        to: '/brands',
+      },
+      {
+        label: 'Categories',
+        icon: 'pi pi-fw pi-briefcase',
+        to: '/categories',
+      },
+      {
+        label: 'Stand Types',
+        icon: 'pi pi-fw pi-briefcase',
+        to: '/standtypes',
+      },
+      {
+        label: 'Regions',
+        icon: 'pi pi-fw pi-briefcase',
+        to: '/regions',
+      },
+      {
+        label: 'Countries',
+        icon: 'pi pi-fw pi-briefcase',
+        to: '/countries',
+      },
+    ],
+  },
+
   // {
   //   label: 'Hierarchy',
   //   items: [

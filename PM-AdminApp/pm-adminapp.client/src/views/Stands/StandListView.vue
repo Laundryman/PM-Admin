@@ -33,7 +33,7 @@ watch(brand, async (newBrand) => {
   if (newBrand) {
     let filter = new standFilter()
     filter.brandId = newBrand.id
-    await standService.searchProducts(filter).then((response) => {
+    await standService.searchStands(filter).then((response) => {
       stands.value = response
       console.log('Stands loaded for brand change', stands.value)
     })
@@ -59,7 +59,7 @@ onMounted(async () => {
 
   var filter = new standFilter()
   filter.brandId = brandid
-  await standService.searchProducts(filter).then((response) => {
+  await standService.searchStands(filter).then((response) => {
     stands.value = response
     console.log('Stands loaded', stands.value)
   })
@@ -86,7 +86,7 @@ async function onRegionChange() {
     let filter = new standFilter()
     filter.brandId = layout.getActiveBrand?.id ?? 0
     filter.regionId = selectedRegion.value
-    await standService.searchProducts(filter).then((response) => {
+    await standService.searchStands(filter).then((response) => {
       stands.value = response
       console.log('Stands loaded', stands.value)
     })
@@ -100,7 +100,7 @@ async function onCountryChange() {
     let filter = new standFilter()
     filter.brandId = layout.getActiveBrand?.id ?? 0
     filter.countryId = selectedCountry.value
-    await standService.searchProducts(filter).then((response) => {
+    await standService.searchStands(filter).then((response) => {
       stands.value = response
       console.log('Stands loaded', stands.value)
     })
@@ -115,7 +115,7 @@ async function clearFilters() {
   countries.value = []
   let filter = new standFilter()
   filter.brandId = layout.getActiveBrand?.id ?? 0
-  await standService.searchProducts(filter).then((response) => {
+  await standService.searchStands(filter).then((response) => {
     stands.value = response
     console.log('Stands loaded', stands.value)
   })
@@ -189,7 +189,7 @@ async function clearFilters() {
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
-            <h4 class="m-0">Manage Products</h4>
+            <h4 class="m-0">Manage Stands</h4>
             <IconField>
               <InputIcon>
                 <i class="pi pi-search" />
