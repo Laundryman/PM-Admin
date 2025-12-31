@@ -162,16 +162,16 @@ namespace LMXApi.Controllers
             }
         }
 
-        [HttpGet(Name = "RegionsSelectList")]
-        public async Task<IActionResult> GetRegions([FromQuery] RegionsFilterDto filterDto)
+        [HttpPost(Name = "RegionsSelectList")]
+        public async Task<IActionResult> GetRegions(RegionsFilterDto filterDto)
         {
             try
             {
                 var spec = new RegionSpecification(_mapper.Map<RegionFilter>(filterDto));
                 var regions = await _regionRepository.ListAsync(spec);
 
-                var regionsSelectList = CreateSelectList(regions);
-                return Ok(regionsSelectList);
+                //var regionsSelectList = CreateSelectList(regions);
+                return Ok(regions);
             }
             catch (Exception ex)
             {

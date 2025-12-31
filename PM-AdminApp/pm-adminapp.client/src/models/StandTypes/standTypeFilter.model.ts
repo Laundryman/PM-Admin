@@ -1,6 +1,6 @@
 export class standTypeFilter {
-  Id!: number
-  ParentStandTypeId!: number
-  BrandId!: number
-  GetParents: boolean = false
+  id!: number
+  parentStandTypeId!: number
+  brandId!: number
+  getParents: boolean = false
 }

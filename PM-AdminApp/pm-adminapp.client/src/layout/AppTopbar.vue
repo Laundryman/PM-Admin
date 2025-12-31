@@ -42,8 +42,8 @@ async function getBrands() {
       // }
       // console.log('Brand Options:', brandOptionsLocal)
       // brandOptions.value = brandOptionsLocal
-      layout.layoutState.activeBrand = brands.value[0]
-      selectedBrand.value = brands.value[0]
+      layout.layoutState.activeBrand = null //brands.value[0]
+      selectedBrand.value = null //brands.value[0]
       layout.layoutState.brandsLoaded = true
       loadingBrands.value = false
       selectBrandPH.value = 'Select a Brand'

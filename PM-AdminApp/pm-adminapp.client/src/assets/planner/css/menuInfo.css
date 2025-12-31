@@ -1,0 +1,39 @@
+﻿
+.joint-stencil .joint-element .fobj body .menu-info, .joint-stencil .joint-element .fobj .menu-info .menu-table {
+    width: 100px;
+    color: white;
+    min-height: 80px;
+}
+    .joint-stencil .joint-element .fobj .menu-info tr {
+        border-bottom: 1px solid white;
+    }
+    .joint-stencil .joint-element .fobj body .menu-info tr,
+    .joint-stencil .joint-element .fobj body .menu-info table,
+    .joint-stencil .joint-element .fobj body .menu-info tr,
+    .joint-stencil .joint-element .fobj body .menu-info td {
+        /* Enable interacting with inputs only. */
+        pointer-events: auto;
+        background-color: #333333;
+    }
+.joint-stencil .joint-element .fobj body .menu-info .menu-table .menu-info-title {
+    background-color: #5d5d5d;
+}
+
+    .joint-stencil .joint-element .fobj body .menu-info td.menu-info-label {
+        text-transform:uppercase;
+    }
+.joint-stencil .joint-element .fobj body .menu-info td {
+        color: #fff;
+        /*text-shadow: 1px 0 0 lightgray;*/
+        /*font-weight: bold;*/
+        font-size: 9px;
+        overflow-wrap: anywhere;
+    }
+
+.joint-stencil .joint-element .fobj body .menu-info span {
+        position: absolute;
+        top: 2px;
+        right: 9px;
+        color: white;
+        font-size: 10px;
+    }

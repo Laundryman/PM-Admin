@@ -22,15 +22,11 @@ const apiClient = axios.create({
 
 export default {
   async searchClusters(filter: clusterFilter): Promise<searchClusterInfo[]> {
-    // if (initialized.value !== false) {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
     let response = await apiClient.post('/searchClusters', filter)
     return response.data
-    // } else {
-    //   throw new Error('PartService not initialized')
-    // }
   },
 
   async initialise() {

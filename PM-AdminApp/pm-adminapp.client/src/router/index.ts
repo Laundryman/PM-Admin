@@ -63,6 +63,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true },
       },
       {
+        path: '/clusters/edit/:id',
+        name: 'editCluster',
+        component: () => import('@/views/Clusters/EditClusterView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
         path: '/brands',
         name: 'brands',
         component: () => import('@/views/Settings/BrandListView.vue'),
@@ -80,7 +86,18 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/Settings/StandTypeListView.vue'),
         meta: { requiresAuth: true },
       },
-
+      {
+        path: '/regions',
+        name: 'regions',
+        component: () => import('@/views/Settings/RegionsListView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/user',
+        name: 'user',
+        component: () => import('@/views/UserView.vue'),
+        meta: { requiresAuth: true },
+      },
       // { path: '/uikit/formlayout', name: 'formlayout', component: () => import('@/views/uikit/FormLayout.vue') },
       // { path: '/uikit/input', name: 'input', component: () => import('@/views/uikit/InputDoc.vue') },
       // { path: '/uikit/button', name: 'button', component: () => import('@/views/uikit/ButtonDoc.vue') },
@@ -101,7 +118,12 @@ const routes: RouteRecordRaw[] = [
       // { path: '/documentation', name: 'documentation', component: () => import('@/views/pages/Documentation.vue') }
     ],
   },
-  // {
+  {
+    path: '/testCluster/:id',
+    name: 'editCluster',
+    component: () => import('@/views/Clusters/EditClusterView.vue'),
+    meta: { requiresAuth: true },
+  }, // {
   //   path: '/pages/notfound',
   //   name: 'notfound',
   //   component: () => import('@/views/pages/NotFound.vue'),

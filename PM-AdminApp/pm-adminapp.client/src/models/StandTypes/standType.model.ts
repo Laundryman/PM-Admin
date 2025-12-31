@@ -11,4 +11,5 @@ export class StandType {
   standCount!: number
   standImage!: string
   hidePrices!: boolean
+  childStandTypes!: StandType[]
 }

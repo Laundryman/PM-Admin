@@ -5,6 +5,7 @@ import { onMounted, ref, watch } from 'vue'
 import { useLayoutStore } from '@/layout/composables/layout'
 import { Country } from '@/models/Countries/country.model'
 import { Region } from '@/models/Countries/region.model'
+import { regionFilter } from '@/models/Countries/regionFilter.model'
 import { PartFilter } from '@/models/Parts/partFilter.model'
 import { SearchPartInfo } from '@/models/Parts/searchPartInfo.model'
 import { default as countryService } from '@/services/Countries/CountryService'
@@ -37,8 +38,9 @@ watch(brand, async (newBrand) => {
       parts.value = response
       console.log('Parts loaded for brand change', parts.value)
     })
-
-    await countryService.getRegions(newBrand.id, '').then((response) => {
+    let rFilter = new regionFilter()
+    rFilter.brandId = newBrand.id
+    await countryService.getRegions(rFilter).then((response) => {
       regions.value = response
       console.log('Regions loaded', regions.value)
     })
@@ -51,8 +53,9 @@ onMounted(async () => {
   await countryService.initialise()
 
   let brandid = layout.getActiveBrand?.id ?? 0
-
-  await countryService.getRegions(brandid, '').then((response) => {
+  let rFilter = new regionFilter()
+  rFilter.brandId = brandid
+  await countryService.getRegions(rFilter).then((response) => {
     regions.value = response
     console.log('Regions loaded', regions.value)
   })
@@ -119,7 +122,9 @@ async function clearFilters() {
     parts.value = response
     console.log('Parts loaded', parts.value)
   })
-  await countryService.getRegions(filter.brandId, '').then((response) => {
+  let rFilter = new regionFilter()
+  rFilter.brandId = layout.getActiveBrand?.id ?? 0
+  await countryService.getRegions(rFilter).then((response) => {
     regions.value = response
     console.log('Regions loaded', regions.value)
   })

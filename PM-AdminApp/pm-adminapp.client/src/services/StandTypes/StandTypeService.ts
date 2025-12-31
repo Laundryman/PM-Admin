@@ -36,14 +36,13 @@ export default {
       throw new Error('StandTypeService not initialized')
     }
   },
-  async getParentStandTypes() {
+  async getParentStandTypes(filter: standTypeFilter) {
     if (initialized.value !== false) {
       if (token.value) {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
       }
-      let catFilter = new standTypeFilter()
-      catFilter.GetParents = true
-      return apiClient.post('/getStandTypes', catFilter)
+      filter.getParents = true
+      return apiClient.post('/getStandTypes', filter)
     } else {
       throw new Error('StandTypeService not initialized')
     }
@@ -55,7 +54,7 @@ export default {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
       }
       let catFilter = new standTypeFilter()
-      catFilter.ParentStandTypeId = parentId
+      catFilter.parentStandTypeId = parentId
       return apiClient.post('/getStandTypes', catFilter)
     } else {
       throw new Error('StandTypeService not initialized')

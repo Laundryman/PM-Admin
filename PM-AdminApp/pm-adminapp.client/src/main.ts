@@ -7,10 +7,6 @@ import PMAdmin from './planmatrThemePreset'
 
 //import '@/assets/styles.scss'
 import '@/assets/styles.scss'
-import App from './App.vue'
-import router from './router'
-
-import '@/assets/styles.scss'
 import {
   AnimateOnScroll,
   BadgeDirective,
@@ -38,6 +34,8 @@ import Toast from 'primevue/toast'
 import ToastService from 'primevue/toastservice'
 import ToggleSwitch from 'primevue/toggleswitch'
 import Toolbar from 'primevue/toolbar'
+import App from './App.vue'
+import router from './router'
 const app = createApp(App)
 const pinia = createPinia()
 
@@ -95,7 +93,13 @@ app.directive('focustrap', FocusTrap)
 app.directive('animateonscroll', AnimateOnScroll)
 app.use(ToastService)
 
-app.mount('#app')
+declare global {
+  interface Window {
+    rootInstance: any
+  }
+}
+// Mount the app and store the root component instance in window
+window.rootInstance = app.mount('#app')
 
 // @ts-ignore
 // window.Auth = Auth

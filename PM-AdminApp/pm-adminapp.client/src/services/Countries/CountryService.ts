@@ -1,5 +1,6 @@
 import type { Country } from '@/models/Countries/country.model'
 import type { Region } from '@/models/Countries/region.model'
+import type { regionFilter } from '@/models/Countries/regionFilter.model'
 import { Auth, msal } from '@/services/Identity/auth'
 import { useAuthStore } from '@/stores/auth'
 import axios from 'axios'
@@ -31,19 +32,21 @@ export default {
     })
     return response.data
   },
-  async getRegions(brandId: number, searchText?: string): Promise<Region[]> {
+  async getRegions(filter: regionFilter): Promise<Region[]> {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
-    let response = await apiClient.get('/getAllRegions', {
-      params: {
-        brandId: brandId,
-        searchText: searchText,
-      },
-    })
+    let response = await apiClient.post('/getRegions', filter)
     return response.data
   },
 
+  async updateRegion(formData: FormData): Promise<Region> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    let response = await apiClient.put('/updateRegion', formData)
+    return response.data
+  },
   async initialise() {
     const authStore = useAuthStore()
     if (!authStore.initialized) {

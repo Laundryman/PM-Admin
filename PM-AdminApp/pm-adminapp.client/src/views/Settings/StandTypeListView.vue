@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { useLayoutStore } from '@/layout/composables/layout'
 import { StandType } from '@/models/StandTypes/standType.model'
+import { standTypeFilter } from '@/models/StandTypes/standTypeFilter.model'
 import standTypeService from '@/services/StandTypes/StandTypeService'
 import { FilterMatchMode } from '@primevue/core/api'
+import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 
 const standTypes = ref()
 const selectedStandType = ref()
@@ -13,28 +15,21 @@ const submitted = ref(false)
 const standType = ref(new StandType())
 const expandedRows = ref()
 const toast = useToast()
-function onRowGroupExpand(event: any) {
-  toast.add({
-    severity: 'info',
-    summary: 'Row Group Expanded',
-    detail: 'Value: ' + event.data,
-    life: 3000,
-  })
-}
-function onRowGroupCollapse(event: any) {
-  toast.add({
-    severity: 'success',
-    summary: 'Row Group Collapsed',
-    detail: 'Value: ' + event.data,
-    life: 3000,
-  })
-}
+const layout = useLayoutStore()
+const brand = storeToRefs(layout).getActiveBrand
+
+watch(brand, async (newBrand) => {
+  if (newBrand) {
+    let filter = new standTypeFilter()
+    filter.brandId = newBrand.id
+    await standTypeService.getParentStandTypes(filter).then((response) => {
+      standTypes.value = response.data
+      console.log('StandTypes loaded for brand change', response)
+    })
+  }
+})
 
 async function onRowExpand(event: any) {
-  // await categoryService.getChildCategories(event.data.id).then((data) => {
-  //   childCategories.value = data.data
-  //   // event.data.children = childCategories.value
-  // })
   toast.add({
     severity: 'info',
     summary: 'StandType Expanded',
@@ -45,7 +40,7 @@ async function onRowExpand(event: any) {
 const onRowCollapse = (event: any) => {
   toast.add({
     severity: 'success',
-    summary: 'Category Collapsed',
+    summary: 'StandType Collapsed',
     detail: event.data.name,
     life: 3000,
   })
@@ -58,8 +53,11 @@ const file = ref()
 onMounted(async () => {
   const layout = useLayoutStore()
   await standTypeService.initialise()
+  var filter = new standTypeFilter()
+  let brandid = layout.getActiveBrand?.id ?? 0
 
-  await standTypeService.getParentStandTypes().then((data) => {
+  filter.brandId = brandid
+  await standTypeService.getParentStandTypes(filter).then((data) => {
     // create categoryOptions array for select dropdown
     standTypes.value = data.data
     console.log('StandTypes loaded:', standTypes.value)
@@ -145,18 +143,8 @@ function editStandType(cat: StandType) {
   standTypeDialog.value = true
 }
 
-function calculatePCatTotal(name: string) {
-  let total = 0
-
-  if (standTypes.value) {
-    for (let cat of standTypes.value) {
-      if (cat.parentStandTypeName === name) {
-        total++
-      }
-    }
-  }
-
-  return total
+const getLockIcon = (lock: boolean) => {
+  return lock ? 'pi pi-lock' : 'pi pi-lock-open'
 }
 </script>
 
@@ -182,7 +170,7 @@ function calculatePCatTotal(name: string) {
         @rowExpand="onRowExpand"
         @rowCollapse="onRowCollapse"
         sortMode="single"
-        sortField="parentCategoryName"
+        sortField="parentStandTypeName"
         :sortOrder="1"
       >
         <template #header>
@@ -198,7 +186,7 @@ function calculatePCatTotal(name: string) {
         </template>
         <template #groupheader="slotProps">
           <span class="align-middle ml-2 font-bold leading-normal">{{
-            slotProps.data.parentCategoryName
+            slotProps.data.ParentStandTypeName
           }}</span>
         </template>
         <!-- <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column> -->
@@ -220,7 +208,7 @@ function calculatePCatTotal(name: string) {
         <template #expansion="slotProps">
           <div class="p-4">
             <!-- <h5>{{ slotProps.data.name }}</h5> -->
-            <DataTable :value="slotProps.data.childTypes" tableStyle="min-width: 50rem">
+            <DataTable :value="slotProps.data.childStandTypes" tableStyle="min-width: 50rem">
               <Column
                 field="parentStandType.name"
                 header="Parent StandType"
@@ -228,8 +216,27 @@ function calculatePCatTotal(name: string) {
                 style="min-width: 16rem"
               ></Column>
               <Column field="name" header="Name" sortable></Column>
+              <Column field="brandName" header="Brand Name" sortable></Column>
               <Column field="description" header="Description" sortable></Column>
-              <Column field="locked" header="Locked" sortable></Column>
+              <Column field="locked" header="Locked" sortable>
+                <template #body="{ data }">
+                  <div class="card flex flex-wrap justify-center gap-6">
+                    <i :class="getLockIcon(data.locked)" style="font-size: 1rem" />
+                  </div>
+                </template>
+              </Column>
+              <Column field="standCount" header="No. Stands" sortable></Column>
+              <Column :exportable="false" style="min-width: 12rem">
+                <template #body="slotProps">
+                  <Button
+                    icon="pi pi-pencil"
+                    variant="outlined"
+                    rounded
+                    class="mr-2"
+                    @click="editStandType(slotProps.data)"
+                  />
+                </template>
+              </Column>
             </DataTable>
           </div>
         </template>

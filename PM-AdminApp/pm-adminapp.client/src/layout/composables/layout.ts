@@ -1,4 +1,5 @@
 import { Brand } from '@/models/Brands/brand.model'
+import type { searchClusterInfo } from '@/models/Clusters/searchClusterInfo.model'
 import { defineStore } from 'pinia'
 import type { MenuItem } from 'primevue/menuitem'
 import { computed, reactive, ref } from 'vue'
@@ -19,6 +20,7 @@ interface LayoutState {
   menuHoverActive: boolean
   activeMenuItem: MenuItem | null
   activeBrand: Brand | null
+  activeCluster: searchClusterInfo | null
   brandsLoaded?: boolean
 }
 
@@ -52,6 +54,7 @@ export const useLayoutStore = defineStore('layout', () => {
     menuHoverActive: false,
     activeMenuItem: null,
     activeBrand: null,
+    activeCluster: null,
     brandsLoaded: false,
   })
 
@@ -76,6 +79,12 @@ export const useLayoutStore = defineStore('layout', () => {
     if (brand) {
       layoutState.value.activeBrand = brand
       console.log('Active brand set to:', layoutState.value.activeBrand)
+    }
+  }
+  function setActiveCluster(cluster: searchClusterInfo | null) {
+    if (cluster) {
+      layoutState.value.activeCluster = cluster
+      console.log('Active cluster set to:', layoutState.value.activeCluster)
     }
   }
 
@@ -110,6 +119,7 @@ export const useLayoutStore = defineStore('layout', () => {
     setActiveMenuItem,
     toggleDarkMode,
     setActiveBrand,
+    setActiveCluster,
     getActiveBrand,
   }
 })

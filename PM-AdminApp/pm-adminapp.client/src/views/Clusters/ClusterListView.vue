@@ -6,11 +6,13 @@ import { clusterFilter } from '@/models/Clusters/clusterFilter.model'
 import { searchClusterInfo } from '@/models/Clusters/searchClusterInfo.model'
 import { Country } from '@/models/Countries/country.model'
 import { Region } from '@/models/Countries/region.model'
+import { regionFilter } from '@/models/Countries/regionFilter.model'
 import { default as clusterService } from '@/services/Clusters/ClusterService'
 import { default as countryService } from '@/services/Countries/CountryService'
 import { FilterMatchMode } from '@primevue/core/api/'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
+import { useRouter } from 'vue-router'
 
 const regions = ref<Region[]>([])
 const selectedRegion = ref()
@@ -23,6 +25,7 @@ const loading = ref(true)
 const layout = useLayoutStore()
 const brand = storeToRefs(layout).getActiveBrand
 const searchText = ref('')
+const router = useRouter()
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   standTypeName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
@@ -37,7 +40,9 @@ watch(brand, async (newBrand) => {
       console.log('Clusters loaded for brand change', clusters.value)
     })
 
-    await countryService.getRegions(newBrand.id, '').then((response) => {
+    let rFilter = new regionFilter()
+    rFilter.brandId = newBrand.id
+    await countryService.getRegions(rFilter).then((response) => {
       regions.value = response
       console.log('Regions loaded', regions.value)
     })
@@ -50,8 +55,9 @@ onMounted(async () => {
   await countryService.initialise()
 
   let brandid = layout.getActiveBrand?.id ?? 0
-
-  await countryService.getRegions(brandid, '').then((response) => {
+  let rFilter = new regionFilter()
+  rFilter.brandId = brandid
+  await countryService.getRegions(rFilter).then((response) => {
     regions.value = response
     console.log('Regions loaded', regions.value)
   })
@@ -118,10 +124,19 @@ async function clearFilters() {
     clusters.value = response
     console.log('Clusters loaded', clusters.value)
   })
-  await countryService.getRegions(filter.brandId, '').then((response) => {
+  let rFilter = new regionFilter()
+  rFilter.brandId = layout.getActiveBrand?.id ?? 0
+  await countryService.getRegions(rFilter).then((response) => {
     regions.value = response
     console.log('Regions loaded', regions.value)
   })
+}
+
+function editCluster(cluster: searchClusterInfo) {
+  console.log('Edit cluster', cluster)
+  layout.setActiveCluster(cluster)
+  // Navigate to edit page
+  router.push({ name: 'editCluster', params: { id: cluster.id } })
 }
 </script>
 
@@ -224,6 +239,17 @@ async function clearFilters() {
 
         <Column field="height" header="Height" sortable style="min-width: 16rem"></Column>
         <Column field="width" header="Width" sortable style="min-width: 12rem"></Column>
+        <Column :exportable="false" style="min-width: 12rem">
+          <template #body="slotProps">
+            <Button
+              icon="pi pi-pencil"
+              variant="outlined"
+              rounded
+              class="mr-2"
+              @click="editCluster(slotProps.data)"
+            />
+          </template>
+        </Column>
       </DataTable>
     </div>
   </div>

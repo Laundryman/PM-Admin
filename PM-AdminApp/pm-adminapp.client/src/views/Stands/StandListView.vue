@@ -4,6 +4,7 @@ import { onMounted, ref, watch } from 'vue'
 import { useLayoutStore } from '@/layout/composables/layout'
 import { Country } from '@/models/Countries/country.model'
 import { Region } from '@/models/Countries/region.model'
+import { regionFilter } from '@/models/Countries/regionFilter.model'
 import { searchStandInfo } from '@/models/Stands/searchStandInfo.model'
 import { standFilter } from '@/models/Stands/standFilter.model'
 import { default as countryService } from '@/services/Countries/CountryService'
@@ -37,8 +38,9 @@ watch(brand, async (newBrand) => {
       stands.value = response
       console.log('Stands loaded for brand change', stands.value)
     })
-
-    await countryService.getRegions(newBrand.id, '').then((response) => {
+    let rFilter = new regionFilter()
+    rFilter.brandId = newBrand.id
+    await countryService.getRegions(rFilter).then((response) => {
       regions.value = response
       console.log('Regions loaded', regions.value)
     })
@@ -52,7 +54,10 @@ onMounted(async () => {
 
   let brandid = layout.getActiveBrand?.id ?? 0
 
-  await countryService.getRegions(brandid, '').then((response) => {
+  let rFilter = new regionFilter()
+  rFilter.brandId = brandid
+
+  await countryService.getRegions(rFilter).then((response) => {
     regions.value = response
     console.log('Regions loaded', regions.value)
   })
@@ -119,7 +124,9 @@ async function clearFilters() {
     stands.value = response
     console.log('Stands loaded', stands.value)
   })
-  await countryService.getRegions(filter.brandId, '').then((response) => {
+  let rFilter = new regionFilter()
+  rFilter.brandId = filter.brandId
+  await countryService.getRegions(rFilter).then((response) => {
     regions.value = response
     console.log('Regions loaded', regions.value)
   })
