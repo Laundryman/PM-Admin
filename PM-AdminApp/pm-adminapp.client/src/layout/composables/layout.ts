@@ -22,6 +22,7 @@ interface LayoutState {
   activeBrand: Brand | null
   activeCluster: searchClusterInfo | null
   brandsLoaded?: boolean
+  plannerLoaded?: boolean
 }
 
 const layoutConfig = reactive<LayoutConfig>({
@@ -56,6 +57,7 @@ export const useLayoutStore = defineStore('layout', () => {
     activeBrand: null,
     activeCluster: null,
     brandsLoaded: false,
+    plannerLoaded: false,
   })
 
   function setActiveMenuItem(item: MenuItem) {
@@ -69,6 +71,10 @@ export const useLayoutStore = defineStore('layout', () => {
       return
     }
     document.startViewTransition(() => executeDarkModeToggle())
+  }
+
+  function togglePlannerLayout() {
+    layoutState.value.plannerLoaded = !layoutState.value.plannerLoaded
   }
 
   function executeDarkModeToggle() {
@@ -121,6 +127,7 @@ export const useLayoutStore = defineStore('layout', () => {
     setActiveBrand,
     setActiveCluster,
     getActiveBrand,
+    togglePlannerLayout,
   }
 })
 

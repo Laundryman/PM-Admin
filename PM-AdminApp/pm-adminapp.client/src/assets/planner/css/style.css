@@ -88,7 +88,7 @@ body {
     -moz-user-select: -moz-none;
     user-select: none;
     font-family: sans-serif, Arial;
-    overflow: hidden;
+    /* overflow: hidden; */
 }
 
 
@@ -541,7 +541,7 @@ new sticker green = 61ff65*/
 
 .typeahead-container {
     position: relative;
-    *z-index: 1;
+    z-index: 1;
     margin: 0 0 50px 0;
 }
 

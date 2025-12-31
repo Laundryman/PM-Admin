@@ -28,7 +28,12 @@ const containerClass = computed(() => {
       layoutState.staticMenuDesktopInactive && layoutConfig.menuMode === 'static',
     'layout-overlay-active': layoutState.overlayMenuActive,
     'layout-mobile-active': layoutState.staticMenuMobileActive,
+    'layout-planner-loaded': layoutState.plannerLoaded,
   }
+})
+
+const plannerLoaded = computed(() => {
+  return layoutState.plannerLoaded ? 'planner-loaded' : ''
 })
 
 function bindOutsideClickListener() {

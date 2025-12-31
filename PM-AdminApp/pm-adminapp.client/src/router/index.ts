@@ -120,10 +120,11 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/testCluster/:id',
-    name: 'editCluster',
+    name: 'testEditCluster',
     component: () => import('@/views/Clusters/EditClusterView.vue'),
     meta: { requiresAuth: true },
-  }, // {
+  },
+  // {
   //   path: '/pages/notfound',
   //   name: 'notfound',
   //   component: () => import('@/views/pages/NotFound.vue'),
