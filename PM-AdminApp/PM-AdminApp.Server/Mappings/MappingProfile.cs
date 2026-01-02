@@ -29,7 +29,7 @@ namespace PM_AdminApp.Server.Mappings
 
             CreateMap<CategoryFilterDto, CategoryFilter>();
             CreateMap<Category, ParentCategoryDto>();
-            CreateMap<Category, CategoryMenuDto>();
+            //CreateMap<Category, CategoryMenuDto>();
             CreateMap<Cluster, PlanmClusterDto>();
             //CreateMap<ClusterPart, PlanmPartInfo>();
             //CreateMap<ClusterShelf, PlanmPartInfo>();
@@ -67,11 +67,12 @@ namespace PM_AdminApp.Server.Mappings
             CreateMap<Shade, PlanmShadeDto>();
 
             CreateMap<PlanmStandDto, Stand>();
-            CreateMap<Stand, PlanmStandDto>();
+            //CreateMap<Stand, PlanmStandDto>();
             CreateMap<PlanmStandColumnDto, StandColumn>();
             CreateMap<PlanmStandRowDto, StandRow>();
-            CreateMap<StandRow, PlanmStandRowDto>();
+            //CreateMap<StandRow, PlanmStandRowDto>();
             CreateMap<StandColumn, PlanmStandColumnDto>();
+            CreateMap<StandColumnUpright, PlanmStandColumnUprightDto>();
             CreateMap<StandRow, PlanmStandRowDto>();
             CreateMap<StandType, ParentStandTypeDto>();
             //CreateMap<StandType, StandTypeDto>();

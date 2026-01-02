@@ -2,7 +2,7 @@
 
 Copyright (c) 2015 client IO
 
- 2018-08-03 
+ 2018-08-03
 
 
 This Source Code Form is subject to the terms of the Rappid License
@@ -124,7 +124,7 @@ body {
 
     .lm-planx-app.joint-theme-planx-mx-dark .app-title .plan-x-type {
         overflow:auto;
-        color: #B8B8B8; 
+        color: #B8B8B8;
         padding: 0 0 0 30px;#
         height: 30px;
     }
@@ -187,7 +187,7 @@ body {
 }
 
 .joint-widget.joint-theme-planx-mx-dark[data-name="redo"]:after {
-    background-position: -24px -42px; 
+    background-position: -24px -42px;
 }
 
 .joint-widget.joint-theme-planx-mx-dark[data-name="fullscreen"]:after {
@@ -204,7 +204,7 @@ body {
     content: ' ';
     background-color: transparent;
     background-repeat: no-repeat;
-    background-image: url(./../assets/toolbar-icons-planxd-dark.png);
+    background-image: url(/public/planner/assets/toolbar-icons-planxd-dark.png);
 }
 
 .joint-widget.joint-theme-planx-mx-dark[data-name="clear"]:after,
@@ -215,7 +215,7 @@ body {
     content: ' ';
     background-color: transparent;
     background-repeat: no-repeat;
-    background-image: url(./../assets/toolbar-icons-material.png);
+    background-image: url(/public/planner/assets/toolbar-icons-material.png);
 }
 
 .joint-type-planx-carcass.joint-theme-planx-mx-dark.render-view .body {
@@ -248,7 +248,7 @@ body {
     float: right;
     width: 100px;
     height: 40px;
-    background-image: url(./../assets/DIAM_pdf_logo.png);
+    background-image: url(/public/planner/assets/DIAM_pdf_logo.png);
     background-size:contain;
 }
 

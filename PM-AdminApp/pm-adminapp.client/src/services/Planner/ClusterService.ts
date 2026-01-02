@@ -109,6 +109,18 @@ export default {
     return response.data
   },
 
+  async loadPartProducts(partId: number, clusterId: number) {
+    let params: GetMenuParams = new GetMenuParams()
+    params.clusterId = clusterId
+    params.partId = partId
+
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    let response = await apiClient.post('/getpartproducts', params)
+    return response.data
+  },
+
   async initialise() {
     const authStore = useAuthStore()
     if (!authStore.initialized) {

@@ -2,13 +2,13 @@
 
 <template>
   <div class="layout-footer">
-    SAKAI by
+    planMatr by
     <a
-      href="https://primevue.org"
+      href="https://laundromat-media.co.uk"
       target="_blank"
       rel="noopener noreferrer"
       class="text-primary font-bold hover:underline"
-      >PrimeVue</a
+      >Laundromat Media</a
     >
   </div>
 </template>

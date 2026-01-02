@@ -105,18 +105,18 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 var currentCatId = 0;
                 foreach (var cat in catList)
                 {
-                    currentCatId = cat.CategoryId;
-                    if (!menuCats.Any(c => c.ParentCategoryId == cat.CategoryId))
+                    if (cat.ParentCategoryId != currentCatId)
                     {
-                        var pcat = await _categoryService.GetCategory(cat.CategoryId);
-                        menuCats.Add(pcat);
+                        currentCatId = cat.ParentCategoryId;
+                        if (!menuCats.Any(c => c.ParentCategoryId == cat.CategoryId))
+                        {
+                            var pcat = await _categoryService.GetCategory(cat.CategoryId);
+                            menuCats.Add(pcat);
+                        }
                     }
                 }
 
-                //Get Parent Categories
-                //var country = await _countryService.GetCountry(countryId);
-                var countryList = new List<Country>();
-                //countryList.Add(country);
+                //Get Parent Categoriesry);
                 var menuCategories = new List<CategoryMenuDto>();
                 //loop through each category to build menu
                 foreach (var cat in menuCats)
@@ -146,6 +146,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
         [HttpPost]
         public async Task<IActionResult> GetMenu(GetMenuParams menuParams)
         {
+            var menu = new PlanmMenuDto();
             var filter = new ClusterFilter
             {
                 Id = menuParams.ClusterId ?? 0,
@@ -158,7 +159,6 @@ namespace PM_AdminApp.Server.Controllers.Planner
             var brandId = cluster.BrandId;
             var clusterId = cluster.Id;
 
-            var menu = new MenuDto();
             try
             {
 
@@ -345,56 +345,33 @@ namespace PM_AdminApp.Server.Controllers.Planner
         }
 
         //[Route("api/v2/planx/get-part-products/{partId}/{planogramId}")]
-        [HttpGet]
-        public async Task<IActionResult> GetPartProducts(int partId, int clusterId)
+        [HttpPost]
+        public async Task<IActionResult> GetPartProducts(GetMenuParams menuParams)
         {
             try
             {
-
-                var plano = await _planogramService.GetPlanogram(clusterId);
-
-
-                int planoCountryId = (int)plano.CountryId;
-                var country = await _countryService.GetCountry(planoCountryId);
                 var partFilter = new PartFilter
                 {
-                    Id = partId
+                    Id = menuParams.PartId
                 };
                 var part = await _partService.GetPart(partFilter);
-                
-                var productFilter = new ProductFilter
-                {
-                    PartId = partId,
-                    CountryId = planoCountryId,
-                    IsPublished = true
-                };
+
                 var products = part.Products;
 
                 var planxPartProducts = new PartProductsDto();
-                planxPartProducts.PartId = partId;
+                planxPartProducts.PartId = (long)menuParams.PartId;
                 var pvmList = _mapper.Map<List<ProductDto>>(products);
-                    //products.Select(p => (ProductViewModel)p).ToList();
-                //var pvmList = pVMs.ToList();
-                //foreach (var product in pvmList)
-                //{
-                //    var shadeFilter = new ShadeFilter
-                //    {
-                //        ProductId = product.Id,
-                //        Country = country,
-                //        Published = true
-                //    };
-                //    var shades = product.Shades;
-                //    product.Shades = _mapper.Map<List<PlanmShadeDto>>(shades);
-                //}
+
 
                 planxPartProducts.Products = pvmList;
                 return Ok(planxPartProducts);
+
             }
             catch (Exception ex)
             {
 
                 //log an error
-                _logger.LogError("Error getting part products for partId " + partId + " and clusterId " + clusterId + "---- error message - " + ex.Message + " --- " + ex.StackTrace);
+                _logger.LogError("Error getting part products for partId " + menuParams.PartId + " and clusterId " + menuParams.ClusterId + "---- error message - " + ex.Message + " --- " + ex.StackTrace);
                 return BadRequest("Error getting part products");
 
             }

@@ -221,7 +221,7 @@
     content: ' ';
     background-color: transparent;
     background-repeat: no-repeat;
-    background-image: url(./../assets/toolbar-icons-planxd-dark.png);
+    background-image: url(/public/planner/assets/toolbar-icons-planxd-dark.png);
 }
 
 .joint-widget.joint-theme-planx-dark[data-name="clear"]:after,
@@ -232,7 +232,7 @@
     content: ' ';
     background-color: transparent;
     background-repeat: no-repeat;
-    background-image: url(./../assets/toolbar-icons-material.png);
+    background-image: url(/public/planner/assets/toolbar-icons-material.png);
 }
 
 .joint-type-planx-carcass.joint-theme-planx-dark.render-view .body, .joint-type-planx-carcass.joint-theme-planx-dark.render-view .header {

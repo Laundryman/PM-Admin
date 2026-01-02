@@ -45,6 +45,12 @@ async function loadClusterParts(clusterId: number) {
   return clusterData
 }
 
+async function loadPartProducts(partId: number, clusterId: number) {
+  await ClusterService.initialise()
+  const clusterData = await ClusterService.loadPartProducts(partId, clusterId)
+  return clusterData
+}
+
 defineExpose({
   loadClusterData,
   loadClusterMenuData,
@@ -53,6 +59,7 @@ defineExpose({
   loadClusterCategoryMenuData,
   loadClusterShelves,
   loadClusterParts,
+  loadPartProducts,
 })
 </script>
 

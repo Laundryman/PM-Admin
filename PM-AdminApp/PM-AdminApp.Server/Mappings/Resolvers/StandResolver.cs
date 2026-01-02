@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.Graph.Models;
 using PMApplication.Dtos.PlanModels;
 using PMApplication.Dtos.StandTypes;
 using PMApplication.Entities.PartAggregate;
@@ -21,6 +22,62 @@ namespace PM_AdminApp.Server.Mappings.Resolvers
             {
                 return 0;
             }
+        }
+    }
+
+    public class StandLayoutResolver : IValueResolver<Stand, PlanmStandDto, byte>
+    {
+        public byte Resolve(Stand source, PlanmStandDto destination, byte destMember, ResolutionContext context)
+        {
+            if (source.LayoutStyle == 0)
+            {
+                // Map the PartStatusId to a status string or enum as needed
+
+                return 1;
+            }
+            else
+            {
+                return (byte)source.LayoutStyle;
+            }
+        }
+    }
+
+    public class StandRowResolver : IValueResolver<Stand, PlanmStandDto, IEnumerable<PlanmStandRowDto>>
+    {
+        public IEnumerable<PlanmStandRowDto> Resolve(Stand source, PlanmStandDto destination, IEnumerable<PlanmStandRowDto> destMember, ResolutionContext context)
+        {
+            var planmList = new List<PlanmStandRowDto>();
+
+            if (source.EqualRows && source.Rows > 0)
+            {
+                for (int i = 0; i < source.Rows; i++)
+                {
+                    var newRow = new PlanmStandRowDto
+                    {
+                        Height = (int)source.DefaultRowHeight,
+                        RowId = i,
+                        Position = i,
+                        StandId = source.Id
+                    };
+                    planmList.Add(newRow);
+                }
+
+            }
+            else
+            {
+                foreach (var row in source.RowList)
+                {
+                    var newRow = new PlanmStandRowDto
+                    {
+                        Height = row.Height,
+                        RowId = row.RowId,
+                        Position = row.Position,
+                        StandId = row.StandId
+                    };
+                    planmList.Add(newRow);
+                }
+            }
+            return planmList;
         }
     }
 }
