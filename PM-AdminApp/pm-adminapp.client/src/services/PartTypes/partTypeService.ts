@@ -1,6 +1,5 @@
 // import { useAuthStore } from '@/stores/auth'
-import type { ProductFilter } from '@/models/Products/productFilter.model'
-import type { searchProductInfo } from '@/models/Products/searchProductInfo.model'
+import type { PartType } from '@/models/Parts/partType.model'
 import { Auth, msal } from '@/services/Identity/auth'
 import { useAuthStore } from '@/stores/auth'
 import axios from 'axios'
@@ -11,7 +10,7 @@ await msal.initialize()
 const token = ref()
 const initialized = ref(false)
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_APP_SERVER_URL + '/api/products',
+  baseURL: import.meta.env.VITE_APP_SERVER_URL + '/api/parttypes',
   withCredentials: false,
   headers: {
     Accept: 'application/json',
@@ -20,25 +19,25 @@ const apiClient = axios.create({
   },
 })
 
-export default {
-  async searchProducts(filter: ProductFilter): Promise<searchProductInfo[]> {
+export const PartTypeService = {
+  async getPartTypes(): Promise<PartType[]> {
     // if (initialized.value !== false) {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
-    let response = await apiClient.post('/searchProducts', filter)
+    let response = await apiClient.get('/getPartTypes', {})
     return response.data
     // } else {
     //   throw new Error('PartService not initialized')
     // }
   },
 
-  async getProductsByCategory(filter: ProductFilter): Promise<any[]> {
+  async getPartType(partTypeId: number): Promise<PartType> {
     // if (initialized.value !== false) {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
-    let response = await apiClient.post('/getProductsByCategory', filter)
+    let response = await apiClient.get('/getPartType', { params: { partTypeId: partTypeId } })
     return response.data
     // } else {
     //   throw new Error('PartService not initialized')
@@ -52,7 +51,7 @@ export default {
     }
     const t = await Auth.getToken()
     token.value = t
-    console.log('PartService initialized with token:', token.value)
+    console.log('PartType Service initialized with token:', token.value)
     initialized.value = true
   },
 }

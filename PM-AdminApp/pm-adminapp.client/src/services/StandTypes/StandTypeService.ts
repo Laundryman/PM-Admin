@@ -24,14 +24,14 @@ export default {
     return initialized.value
   },
 
-  async getAllStandTypes() {
+  async getAllStandTypes(filter: standTypeFilter) {
     if (initialized.value !== false) {
       if (token.value) {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
       }
-      let catFilter = new standTypeFilter()
+      // let catFilter = new standTypeFilter()
       // catFilter.GetParents = true
-      return apiClient.post('/getStandTypes', catFilter)
+      return apiClient.post('/getStandTypes', filter)
     } else {
       throw new Error('StandTypeService not initialized')
     }

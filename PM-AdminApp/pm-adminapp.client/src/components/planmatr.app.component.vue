@@ -28,10 +28,10 @@ import '@/assets/planner/css/lmplanx.css'
 import '@/assets/planner/css/style.css'
 import '@/assets/planner/css/style.planx-dark.css'
 import '@/assets/planner/css/theme-picker.css'
-import { useLayoutStore } from '@/layout/composables/layout'
+import { useSystemStore } from '@/stores/systemStore'
 import { onBeforeMount, onMounted, onUnmounted } from 'vue'
 
-const layoutStore = useLayoutStore()
+const layoutStore = useSystemStore()
 function data() {
   return {
     currentDate: '',

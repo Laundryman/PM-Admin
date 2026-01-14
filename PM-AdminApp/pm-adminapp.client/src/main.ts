@@ -4,9 +4,9 @@ import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import { createApp } from 'vue'
 import PMAdmin from './planmatrThemePreset'
-
 //import '@/assets/styles.scss'
 import '@/assets/styles.scss'
+import 'primeicons/primeicons.css'
 import {
   AnimateOnScroll,
   BadgeDirective,
@@ -15,23 +15,28 @@ import {
   Ripple,
   SelectButton,
   StyleClass,
+  Tag,
   Tooltip,
 } from 'primevue'
 import Button from 'primevue/button'
 import Chart from 'primevue/chart'
+import Chip from 'primevue/chip'
 import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
 import Divider from 'primevue/divider'
 import FileUpload from 'primevue/fileupload'
 import IconField from 'primevue/iconfield'
+import Image from 'primevue/image'
 import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
 import Menu from 'primevue/menu'
+import MultiSelect from 'primevue/multiselect'
 import OverlayBadge from 'primevue/overlaybadge'
 import Paginator from 'primevue/paginator'
 import Select from 'primevue/select'
 import Toast from 'primevue/toast'
 import ToastService from 'primevue/toastservice'
+import ToggleButton from 'primevue/togglebutton'
 import ToggleSwitch from 'primevue/toggleswitch'
 import Toolbar from 'primevue/toolbar'
 import App from './App.vue'
@@ -68,23 +73,28 @@ app.use(PrimeVue, {
 })
 
 app.component('Button', Button)
-app.component('Divider', Divider)
-app.component('SelectButton', SelectButton)
 app.component('Chart', Chart)
+app.component('Chip', Chip)
+app.component('Column', Column)
+app.component('Divider', Divider)
 app.component('DataTable', DataTable)
 app.component('Dialog', Dialog)
-app.component('Column', Column)
-app.component('OverlayBadge', OverlayBadge)
-app.component('Paginator', Paginator)
-app.component('Toast', Toast)
-app.component('Menu', Menu)
+app.component('FileUpload', FileUpload)
+app.component('Image', Image)
 app.component('InputIcon', InputIcon)
 app.component('IconField', IconField)
 app.component('InputText', InputText)
-app.component('ToggleSwitch', ToggleSwitch)
+app.component('Menu', Menu)
+app.component('MultiSelect', MultiSelect)
+app.component('OverlayBadge', OverlayBadge)
+app.component('Paginator', Paginator)
 app.component('Select', Select)
+app.component('SelectButton', SelectButton)
+app.component('Tag', Tag)
+app.component('Toast', Toast)
+app.component('ToggleSwitch', ToggleSwitch)
+app.component('ToggleButton', ToggleButton)
 app.component('Toolbar', Toolbar)
-app.component('FileUpload', FileUpload)
 app.directive('tooltip', Tooltip)
 app.directive('badge', BadgeDirective)
 app.directive('ripple', Ripple)

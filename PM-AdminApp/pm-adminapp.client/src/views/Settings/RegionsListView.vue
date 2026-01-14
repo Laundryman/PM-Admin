@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useLayoutStore } from '@/layout/composables/layout'
 import { Region } from '@/models/Countries/region.model'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
 import countryService from '@/services/Countries/CountryService'
+import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
@@ -20,7 +20,7 @@ const filters = ref({
 const src = ref()
 const file = ref()
 
-const layout = useLayoutStore()
+const layout = useSystemStore()
 const brand = storeToRefs(layout).getActiveBrand
 
 watch(brand, async (newBrand) => {
@@ -35,7 +35,7 @@ watch(brand, async (newBrand) => {
 })
 
 onMounted(async () => {
-  const layout = useLayoutStore()
+  const layout = useSystemStore()
   await countryService.initialise()
   let brandid = layout.getActiveBrand?.id ?? 0
   let filter = new regionFilter()

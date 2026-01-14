@@ -11,7 +11,7 @@ interface LayoutConfig {
   menuMode: 'static' | 'overlay'
 }
 
-interface LayoutState {
+interface SystemState {
   staticMenuDesktopInactive: boolean
   overlayMenuActive: boolean
   profileSidebarVisible: boolean
@@ -20,6 +20,7 @@ interface LayoutState {
   menuHoverActive: boolean
   activeMenuItem: MenuItem | null
   activeBrand: Brand | null
+  activePart: Brand | null
   activeCluster: searchClusterInfo | null
   brandsLoaded?: boolean
   plannerLoaded?: boolean
@@ -45,8 +46,8 @@ const layoutConfig = reactive<LayoutConfig>({
 //   brandsLoaded: false,
 // })
 
-export const useLayoutStore = defineStore('layout', () => {
-  const layoutState = ref<LayoutState>({
+export const useSystemStore = defineStore('layout', () => {
+  const systemState = ref<SystemState>({
     staticMenuDesktopInactive: false,
     overlayMenuActive: false,
     profileSidebarVisible: false,
@@ -55,6 +56,7 @@ export const useLayoutStore = defineStore('layout', () => {
     menuHoverActive: false,
     activeMenuItem: null,
     activeBrand: null,
+    activePart: null,
     activeCluster: null,
     brandsLoaded: false,
     plannerLoaded: false,
@@ -62,7 +64,7 @@ export const useLayoutStore = defineStore('layout', () => {
 
   function setActiveMenuItem(item: MenuItem) {
     const anyItem = item as { value?: MenuItem }
-    layoutState.value.activeMenuItem = anyItem?.value !== undefined ? anyItem.value : item
+    systemState.value.activeMenuItem = anyItem?.value !== undefined ? anyItem.value : item
   }
 
   function toggleDarkMode() {
@@ -74,7 +76,7 @@ export const useLayoutStore = defineStore('layout', () => {
   }
 
   function togglePlannerLayout() {
-    layoutState.value.plannerLoaded = !layoutState.value.plannerLoaded
+    systemState.value.plannerLoaded = !systemState.value.plannerLoaded
   }
 
   function executeDarkModeToggle() {
@@ -83,40 +85,40 @@ export const useLayoutStore = defineStore('layout', () => {
   }
   function setActiveBrand(brand: Brand | null) {
     if (brand) {
-      layoutState.value.activeBrand = brand
-      console.log('Active brand set to:', layoutState.value.activeBrand)
+      systemState.value.activeBrand = brand
+      console.log('Active brand set to:', systemState.value.activeBrand)
     }
   }
   function setActiveCluster(cluster: searchClusterInfo | null) {
     if (cluster) {
-      layoutState.value.activeCluster = cluster
-      console.log('Active cluster set to:', layoutState.value.activeCluster)
+      systemState.value.activeCluster = cluster
+      console.log('Active cluster set to:', systemState.value.activeCluster)
     }
   }
 
   function toggleMenu() {
     if (layoutConfig.menuMode === 'overlay') {
-      layoutState.value.overlayMenuActive = !layoutState.value.overlayMenuActive
+      systemState.value.overlayMenuActive = !systemState.value.overlayMenuActive
     }
 
     if (window.innerWidth > 991) {
-      layoutState.value.staticMenuDesktopInactive = !layoutState.value.staticMenuDesktopInactive
+      systemState.value.staticMenuDesktopInactive = !systemState.value.staticMenuDesktopInactive
     } else {
-      layoutState.value.staticMenuMobileActive = !layoutState.value.staticMenuMobileActive
+      systemState.value.staticMenuMobileActive = !systemState.value.staticMenuMobileActive
     }
   }
 
   const isSidebarActive = computed(
-    () => layoutState.value.overlayMenuActive || layoutState.value.staticMenuMobileActive,
+    () => systemState.value.overlayMenuActive || systemState.value.staticMenuMobileActive,
   )
   const isDarkTheme = computed(() => layoutConfig.darkTheme)
   const getPrimary = computed(() => layoutConfig.primary)
   const getSurface = computed(() => layoutConfig.surface)
-  const getActiveBrand = computed(() => layoutState.value.activeBrand)
+  const getActiveBrand = computed(() => systemState.value.activeBrand)
 
   return {
     layoutConfig,
-    layoutState,
+    layoutState: systemState,
     toggleMenu,
     isSidebarActive,
     isDarkTheme,

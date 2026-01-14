@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useLayoutStore } from '@/layout/composables/layout'
+import { useSystemStore } from '@/stores/systemStore'
 import { $t, updatePreset, updateSurfacePalette } from '@primeuix/themes'
 import Aura from '@primeuix/themes/aura'
 import Lara from '@primeuix/themes/lara'
 import Nora from '@primeuix/themes/nora'
 import { ref } from 'vue'
 
-const { layoutConfig, isDarkTheme } = useLayoutStore()
+const { layoutConfig, isDarkTheme } = useSystemStore()
 
 const presets = {
   Aura,

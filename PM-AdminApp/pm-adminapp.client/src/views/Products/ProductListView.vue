@@ -1,28 +1,28 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
 // import UserService from '@/services/UserService.js'
-import { useLayoutStore } from '@/layout/composables/layout'
-import { Country } from '@/models/Countries/country.model'
-import { Region } from '@/models/Countries/region.model'
+import { useLocationFilters } from '@/components/composables/locationFilters'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
 import { ProductFilter } from '@/models/Products/productFilter.model'
 import { searchProductInfo } from '@/models/Products/searchProductInfo.model'
 import { default as countryService } from '@/services/Countries/CountryService'
 import { default as productService } from '@/services/Products/ProductService'
+import { useBrandStore } from '@/stores/brandStore'
+import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api/'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
 
-const regions = ref<Region[]>([])
+const { regions, countries } = useLocationFilters()
 const selectedRegion = ref()
 const selectedCountry = ref()
-const countries = ref<Country[]>([])
 const products = ref<searchProductInfo[]>([])
 const selectedProducts = ref<searchProductInfo[]>([])
 const toast = useToast()
 const loading = ref(true)
-const layout = useLayoutStore()
-const brand = storeToRefs(layout).getActiveBrand
+const layout = useSystemStore()
+const brandStore = useBrandStore()
+const brand = storeToRefs(brandStore).activeBrand
 const searchText = ref('')
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -40,10 +40,11 @@ watch(brand, async (newBrand) => {
     })
     let rFilter = new regionFilter()
     rFilter.brandId = newBrand.id
-    await countryService.getRegions(rFilter).then((response) => {
-      regions.value = response
-      console.log('Regions loaded', regions.value)
-    })
+    useLocationFilters()
+      .getRegions(rFilter)
+      .then((response) => {
+        regions.value = response
+      })
   }
 })
 
@@ -52,13 +53,14 @@ onMounted(async () => {
   await productService.initialise()
   await countryService.initialise()
 
-  let brandid = layout.getActiveBrand?.id ?? 0
+  let brandid = brandStore.activeBrand?.id ?? 0
   let rFilter = new regionFilter()
   rFilter.brandId = brandid
-  await countryService.getRegions(rFilter).then((response) => {
-    regions.value = response
-    console.log('Regions loaded', regions.value)
-  })
+  await useLocationFilters()
+    .getRegions(rFilter)
+    .then((response) => {
+      regions.value = response
+    })
 
   var filter = new ProductFilter()
   filter.brandId = brandid
@@ -82,10 +84,7 @@ onMounted(async () => {
 
 async function onRegionChange() {
   if (selectedRegion.value) {
-    countryService.getCountries(selectedRegion.value, '').then((response) => {
-      countries.value = response
-      console.log('Countries loaded for region', selectedRegion.value, countries.value)
-    })
+    countries.value = await useLocationFilters().onRegionChange(selectedRegion.value)
     let filter = new ProductFilter()
     filter.brandId = layout.getActiveBrand?.id ?? 0
     filter.regionId = selectedRegion.value
@@ -139,7 +138,7 @@ async function clearFilters() {
       <template #start>
         <Select
           v-model="selectedRegion"
-          :options="regions"
+          :options="regions ?? []"
           @change="onRegionChange"
           option-label="name"
           option-value="id"
@@ -149,7 +148,7 @@ async function clearFilters() {
 
         <Select
           v-model="selectedCountry"
-          :options="countries"
+          :options="countries ?? []"
           @change="onCountryChange"
           option-label="name"
           option-value="id"

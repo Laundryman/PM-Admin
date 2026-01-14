@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useLayoutStore } from '@/layout/composables/layout'
 import { StandType } from '@/models/StandTypes/standType.model'
 import { standTypeFilter } from '@/models/StandTypes/standTypeFilter.model'
 import standTypeService from '@/services/StandTypes/StandTypeService'
+import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
@@ -15,7 +15,7 @@ const submitted = ref(false)
 const standType = ref(new StandType())
 const expandedRows = ref()
 const toast = useToast()
-const layout = useLayoutStore()
+const layout = useSystemStore()
 const brand = storeToRefs(layout).getActiveBrand
 
 watch(brand, async (newBrand) => {
@@ -51,7 +51,7 @@ const filters = ref({
 const src = ref()
 const file = ref()
 onMounted(async () => {
-  const layout = useLayoutStore()
+  const layout = useSystemStore()
   await standTypeService.initialise()
   var filter = new standTypeFilter()
   let brandid = layout.getActiveBrand?.id ?? 0

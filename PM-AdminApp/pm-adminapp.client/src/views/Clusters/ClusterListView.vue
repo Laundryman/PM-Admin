@@ -1,29 +1,28 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
 // import UserService from '@/services/UserService.js'
-import { useLayoutStore } from '@/layout/composables/layout'
+import { useLocationFilters } from '@/components/composables/locationFilters'
 import { clusterFilter } from '@/models/Clusters/clusterFilter.model'
 import { searchClusterInfo } from '@/models/Clusters/searchClusterInfo.model'
-import { Country } from '@/models/Countries/country.model'
-import { Region } from '@/models/Countries/region.model'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
 import { default as clusterService } from '@/services/Clusters/ClusterService'
 import { default as countryService } from '@/services/Countries/CountryService'
+import { useBrandStore } from '@/stores/brandStore'
+import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api/'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
 import { useRouter } from 'vue-router'
-
-const regions = ref<Region[]>([])
+const { regions, countries } = useLocationFilters()
 const selectedRegion = ref()
 const selectedCountry = ref()
-const countries = ref<Country[]>([])
 const clusters = ref<searchClusterInfo[]>([])
 const selectedClusters = ref<searchClusterInfo[]>([])
 const toast = useToast()
 const loading = ref(true)
-const layout = useLayoutStore()
-const brand = storeToRefs(layout).getActiveBrand
+const layout = useSystemStore()
+const brandStore = useBrandStore()
+const brand = storeToRefs(brandStore).activeBrand
 const searchText = ref('')
 const router = useRouter()
 const filters = ref({
@@ -42,25 +41,18 @@ watch(brand, async (newBrand) => {
 
     let rFilter = new regionFilter()
     rFilter.brandId = newBrand.id
-    await countryService.getRegions(rFilter).then((response) => {
-      regions.value = response
-      console.log('Regions loaded', regions.value)
-    })
+    await useLocationFilters().getRegions(rFilter)
   }
 })
 
 onMounted(async () => {
   loading.value = true
   await clusterService.initialise()
-  await countryService.initialise()
 
-  let brandid = layout.getActiveBrand?.id ?? 0
+  let brandid = brandStore.activeBrand?.id ?? 0
   let rFilter = new regionFilter()
   rFilter.brandId = brandid
-  await countryService.getRegions(rFilter).then((response) => {
-    regions.value = response
-    console.log('Regions loaded', regions.value)
-  })
+  await useLocationFilters().getRegions(rFilter)
 
   var filter = new clusterFilter()
   filter.brandId = brandid
@@ -84,10 +76,7 @@ onMounted(async () => {
 
 async function onRegionChange() {
   if (selectedRegion.value) {
-    countryService.getCountries(selectedRegion.value, '').then((response) => {
-      countries.value = response
-      console.log('Countries loaded for region', selectedRegion.value, countries.value)
-    })
+    countries.value = await useLocationFilters().onRegionChange(selectedRegion.value)
     let filter = new clusterFilter()
     filter.brandId = layout.getActiveBrand?.id ?? 0
     filter.regionId = selectedRegion.value
@@ -148,7 +137,7 @@ function editCluster(cluster: searchClusterInfo) {
       <template #start>
         <Select
           v-model="selectedRegion"
-          :options="regions"
+          :options="regions ?? []"
           @change="onRegionChange"
           option-label="name"
           option-value="id"
@@ -158,7 +147,7 @@ function editCluster(cluster: searchClusterInfo) {
 
         <Select
           v-model="selectedCountry"
-          :options="countries"
+          :options="countries ?? []"
           @change="onCountryChange"
           option-label="name"
           option-value="id"
@@ -199,7 +188,7 @@ function editCluster(cluster: searchClusterInfo) {
         :rows="10"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         :rowsPerPageOptions="[5, 10, 25]"
-        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} parts"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} Clusters"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
@@ -213,7 +202,7 @@ function editCluster(cluster: searchClusterInfo) {
           </div>
         </template>
         <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-        <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
+        <Column field="name" header="Name" sortable style="min-width: 6rem"></Column>
         <Column field="standName" header="Stand Name" sortable style="min-width: 12rem"></Column>
         <Column
           field="standTypeName"
@@ -237,8 +226,14 @@ function editCluster(cluster: searchClusterInfo) {
           style="min-width: 12rem"
         ></Column>
 
-        <Column field="height" header="Height" sortable style="min-width: 16rem"></Column>
-        <Column field="width" header="Width" sortable style="min-width: 12rem"></Column>
+        <Column field="height" header="Height" sortable style="min-width: 6rem"></Column>
+        <Column field="width" header="Width" sortable style="min-width: 6rem"></Column>
+        <Column field="published" header="Published" sortable style="min-width: 12rem"></Column>
+        <Column field="dateUpdated" header="Last Updated" sortable style="min-width: 12rem">
+          <template #body="slotProps">
+            {{ new Date(slotProps.data.dateUpdated).toLocaleDateString() }}
+          </template>
+        </Column>
         <Column :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button

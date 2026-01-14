@@ -74,11 +74,7 @@ namespace LMXApi.Controllers
 
                 //var spec = new ProductSpecification(_mapper.Map<ProductFilter>(filterDto));
                 //var products = await _asyncProductRepository.ListAsync(spec);
-                //var countFilter = filterDto;
-                //countFilter.IsPagingEnabled = false;
-                //var countSpec = new ProductSpecification(_mapper.Map<ProductFilter>(countFilter));
-                //int totalItems = await _asyncProductRepository.CountAsync(countSpec);
-                //_logger.LogInformation($"Returned all products from database.");
+                //_logger.LogInformation($"GetProducts returned successfully.");
 
 
                 //var response = new PagedProductsListDto();
@@ -101,25 +97,26 @@ namespace LMXApi.Controllers
 
         }
 
-        [HttpGet(Name = "ProductSelectList")]
-        public async Task<IActionResult> GetProductSelectList([FromQuery] ProductFilterDto filterDto)
+        [HttpPost(Name = "ProductSelectList")]
+        public async Task<IActionResult> GetProductsByCategory(ProductFilterDto filterDto)
         {
             try
             {
-                //if (filterDto.CountriesList != null)
-                //{
-                //    var allCountries = await IsAllCountries(filterDto.CountriesList, _countryRepository, _mapper);
-                //    if (allCountries)
-                //    {
-                //        filterDto.CountriesList = null;
-                //    }
-                //}
+                if (filterDto.CountriesList != null)
+                {
+                    var allCountries = await IsAllCountries(filterDto.CountriesList, _countryRepository, _mapper);
+                    if (allCountries)
+                    {
+                        filterDto.CountriesList = null;
+                    }
+                }
 
                 var spec = new ProductSpecification(_mapper.Map<ProductFilter>(filterDto));
                 var products = await _asyncProductRepository.ListAsync(spec);
 
-                var ProductSelectList = CreateSelectList(products);
-                return Ok(ProductSelectList);
+                //var ProductSelectList = CreateSelectList(products);
+                var response = _mapper.Map<IReadOnlyList<ProductDto>>(products);
+                return Ok(response);
             }
             catch (Exception ex)
             {

@@ -1,61 +1,33 @@
 <script setup lang="ts">
-import { useLayoutStore } from '@/layout/composables/layout'
-import brandService from '@/services/Brands/BrandService'
+import type { Brand } from '@/models/Brands/brand.model'
+import { useSystemStore } from '@/stores/systemStore'
 // import Select from 'primevue/select'
+import { useBrandStore } from '@/stores/brandStore'
+import type { SelectChangeEvent } from 'primevue/select'
 import { onMounted, ref } from 'vue'
 import AppConfigurator from './AppConfigurator.vue'
-const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayoutStore()
-// interface BrandOption {
-//   name: string
-//   code: string
-// }
+const { toggleMenu, toggleDarkMode, isDarkTheme } = useSystemStore()
 
-const brands = ref()
+const brandStore = useBrandStore()
+
 const brandOptions = ref()
-const layout = useLayoutStore()
-const selectedBrand = ref()
-const loadingBrands = ref(true)
-const selectBrandPH = ref('Loading...')
-function changeBrand() {
-  const brand = brands.value.find((b: any) => b.id === selectedBrand.value)
+const layout = useSystemStore()
+const selectedBrand = ref<Brand | null>(null)
+const selectedBrandId = ref<number | null>(null)
 
-  layout.layoutState.activeBrand = brand
-  console.log('Active Brand changed to:', layout.layoutState.activeBrand)
+function changeBrand(event: SelectChangeEvent) {
+  const brand = brandStore.brands.find((b: Brand) => b.id === event.value)
+
+  brandStore.activeBrand = brand ?? null
+  console.log('Active Brand changed to:', brandStore.activeBrand)
 }
 
-async function getBrands() {
-  if (layout.layoutState.brandsLoaded) {
-    selectedBrand.value = layout.layoutState.activeBrand
-    return
-  }
-  if (!brandService.isInitialised) await brandService.initialise()
-  console.log('Fetching brands...')
-  await brandService
-    .getBrands()
-    .then((data) => {
-      // create brandOptions array for select dropdown
-      brands.value = data.data
-      // let brandOptionsLocal: BrandOption[] = []
-      // for (const brand of brands.value) {
-      //   let brandOption = { name: brand.name, code: brand.id }
-      //   brandOptionsLocal.push(brandOption)
-      // }
-      // console.log('Brand Options:', brandOptionsLocal)
-      // brandOptions.value = brandOptionsLocal
-      layout.layoutState.activeBrand = null //brands.value[0]
-      selectedBrand.value = null //brands.value[0]
-      layout.layoutState.brandsLoaded = true
-      loadingBrands.value = false
-      selectBrandPH.value = 'Select a Brand'
-      console.log('Brands:', brands.value)
-    })
-    .catch((error) => {
-      console.error('Error fetching brands:', error)
-    })
-  console.log('Completed fetching brands.')
-}
 onMounted(() => {
-  getBrands()
+  if (!brandStore.brandsLoaded) brandStore.loadBrands()
+  if (brandStore.activeBrand != null) {
+    selectedBrand.value = brandStore.activeBrand
+    selectedBrandId.value = brandStore.activeBrand.id
+  }
 })
 </script>
 
@@ -103,12 +75,12 @@ onMounted(() => {
         <Select
           class="p-inputtext p-component p-filled p-select"
           style="min-width: 150px"
-          :placeholder="selectBrandPH"
-          :loading="loadingBrands"
-          :options="brands"
+          :placeholder="brandStore.selectBrandPH"
+          :loading="brandStore.loadingBrands"
+          :options="brandStore.brands"
           option-label="name"
           option-value="id"
-          v-model="selectedBrand"
+          v-model="selectedBrandId"
           @change="changeBrand"
         ></Select>
       </div>

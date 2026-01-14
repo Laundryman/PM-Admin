@@ -55,11 +55,12 @@ namespace LMXApi.Controllers
                 }
                 if (filterDto.GetParents)
                 {
-                    var mappedCats = _mapper.Map<List<ParentCategoryDto>>(categories);
-                    return Ok(mappedCats);
+                    var mappedPCats = _mapper.Map<List<ParentCategoryDto>>(categories);
+                    return Ok(mappedPCats);
                 }
-                //var mappedCats = _mapper.Map<List<>>()
-                return Ok(categories);
+                var mappedCats = _mapper.Map<List<CategoryDto>>(categories);
+                
+                return Ok(mappedCats);
             }
             catch (Exception ex)
             {

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import ClusterService from '@/services/Planner/ClusterService'
 import { useAuthStore } from '@/stores/auth'
+import { useBrandStore } from '@/stores/brandStore'
 import { RouterView } from 'vue-router'
 const authStore = useAuthStore()
+const brandStore = useBrandStore()
 
 async function loadClusterData(clusterId: number) {
   await ClusterService.initialise()

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useLayoutStore } from '@/layout/composables/layout'
 import { Category } from '@/models/Categories/category.model'
 import { default as categoryService } from '@/services/Categories/CategoryService'
+import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref } from 'vue'
@@ -51,7 +51,7 @@ const filters = ref({
 const src = ref()
 const file = ref()
 onMounted(async () => {
-  const layout = useLayoutStore()
+  const layout = useSystemStore()
   await categoryService.initialise()
 
   await categoryService.getParentCategories().then((data) => {

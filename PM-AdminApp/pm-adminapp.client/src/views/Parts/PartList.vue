@@ -2,29 +2,31 @@
 ;``
 import { onMounted, ref, watch } from 'vue'
 // import UserService from '@/services/UserService.js'
-import { useLayoutStore } from '@/layout/composables/layout'
-import { Country } from '@/models/Countries/country.model'
-import { Region } from '@/models/Countries/region.model'
+import { useLocationFilters } from '@/components/composables/locationFilters'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
 import { PartFilter } from '@/models/Parts/partFilter.model'
 import { SearchPartInfo } from '@/models/Parts/searchPartInfo.model'
 import { default as countryService } from '@/services/Countries/CountryService'
-import { default as partService } from '@/services/Parts/partService'
+import { partService } from '@/services/Parts/partService'
+import { useBrandStore } from '@/stores/brandStore'
+import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api/'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
+import { useRouter } from 'vue-router'
 
-const regions = ref<Region[]>([])
+const { regions, countries } = useLocationFilters()
 const selectedRegion = ref()
 const selectedCountry = ref()
-const countries = ref<Country[]>([])
 const parts = ref<SearchPartInfo[]>([])
 const selectedParts = ref<SearchPartInfo[]>([])
 const toast = useToast()
 const loading = ref(true)
-const layout = useLayoutStore()
-const brand = storeToRefs(layout).getActiveBrand
+const layout = useSystemStore()
+const brandStore = useBrandStore()
+const brand = storeToRefs(brandStore).activeBrand
 const searchText = ref('')
+const router = useRouter()
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   categoryName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
@@ -42,7 +44,6 @@ watch(brand, async (newBrand) => {
     rFilter.brandId = newBrand.id
     await countryService.getRegions(rFilter).then((response) => {
       regions.value = response
-      console.log('Regions loaded', regions.value)
     })
   }
 })
@@ -52,13 +53,10 @@ onMounted(async () => {
   await partService.initialise()
   await countryService.initialise()
 
-  let brandid = layout.getActiveBrand?.id ?? 0
+  let brandid = brandStore.activeBrand?.id ?? 0
   let rFilter = new regionFilter()
   rFilter.brandId = brandid
-  await countryService.getRegions(rFilter).then((response) => {
-    regions.value = response
-    console.log('Regions loaded', regions.value)
-  })
+  await useLocationFilters().getRegions(rFilter)
 
   var filter = new PartFilter()
   filter.brandId = brandid
@@ -82,10 +80,7 @@ onMounted(async () => {
 
 async function onRegionChange() {
   if (selectedRegion.value) {
-    countryService.getCountries(selectedRegion.value, '').then((response) => {
-      countries.value = response
-      console.log('Countries loaded for region', selectedRegion.value, countries.value)
-    })
+    countries.value = await useLocationFilters().onRegionChange(selectedRegion.value)
     let filter = new PartFilter()
     filter.brandId = layout.getActiveBrand?.id ?? 0
     filter.regionId = selectedRegion.value
@@ -129,6 +124,13 @@ async function clearFilters() {
     console.log('Regions loaded', regions.value)
   })
 }
+
+function editPart(part: SearchPartInfo) {
+  console.log('Edit part', part)
+  // layout.setActivePart(part)
+  // Navigate to edit page
+  router.push({ name: 'editPart', params: { id: part.id } })
+}
 </script>
 
 <template>
@@ -139,7 +141,7 @@ async function clearFilters() {
       <template #start>
         <Select
           v-model="selectedRegion"
-          :options="regions"
+          :options="regions ?? []"
           @change="onRegionChange"
           option-label="name"
           option-value="id"
@@ -149,7 +151,7 @@ async function clearFilters() {
 
         <Select
           v-model="selectedCountry"
-          :options="countries"
+          :options="countries ?? []"
           @change="onCountryChange"
           option-label="name"
           option-value="id"
@@ -203,7 +205,7 @@ async function clearFilters() {
             </IconField>
           </div>
         </template>
-        <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
+        <!-- <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column> -->
         <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
         <Column field="description" header="Description" sortable style="min-width: 16rem"></Column>
         <Column field="partNumber" header="Part Number" sortable style="min-width: 12rem"></Column>
@@ -211,7 +213,7 @@ async function clearFilters() {
           field="categoryName"
           header="Category"
           filterField="categoryName"
-          style="min-width: 16rem"
+          style="min-width: 10rem"
         >
           <template #filter="{ filterModel, filterCallback }">
             <InputText
@@ -222,9 +224,26 @@ async function clearFilters() {
             />
           </template>
         </Column>
-        <Column field="partTypeName" header="Part Type" sortable style="min-width: 12rem"></Column>
-        <Column field="facings" header="Facing" sortable style="min-width: 16rem"></Column>
-        <Column field="stock" header="Stock" sortable style="min-width: 12rem"></Column>
+        <Column field="partTypeName" header="Part Type" sortable style="min-width: 10rem"></Column>
+        <Column field="dateUpdated" header="Last Updated" sortable style="min-width: 12rem">
+          <template #body="slotProps">
+            {{ new Date(slotProps.data.dateUpdated).toLocaleDateString() }}
+          </template>
+        </Column>
+
+        <Column field="facings" header="Facing" sortable style="min-width: 4rem"></Column>
+        <Column field="stock" header="Stock" sortable style="min-width: 4rem"></Column>
+        <Column :exportable="false" style="min-width: 12rem">
+          <template #body="slotProps">
+            <Button
+              icon="pi pi-pencil"
+              variant="outlined"
+              rounded
+              class="mr-2"
+              @click="editPart(slotProps.data)"
+            />
+          </template>
+        </Column>
       </DataTable>
     </div>
   </div>

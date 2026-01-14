@@ -53,11 +53,12 @@ namespace LMXApi.Controllers
 
                 if (filterDto.GetParents)
                 {
-                    var mappedTypes = _mapper.Map<List<ParentStandTypeDto>>(standTypes);
-                    return Ok(mappedTypes);
+                    var mappedPTypes = _mapper.Map<List<ParentStandTypeDto>>(standTypes);
+                    return Ok(mappedPTypes);
                 }
 
-                return Ok(standTypes);
+                var mappedTypes = _mapper.Map<List<StandTypeDto>>(standTypes);
+                return Ok(mappedTypes);
             }
             catch (Exception ex)
             {

@@ -9,11 +9,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using PMApplication.Specifications.Filters;
 
 namespace LMXApi.Controllers
 {
     [Authorize]
-    [Route("api/parttypes")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class PartTypesController : ControllerBase
     {

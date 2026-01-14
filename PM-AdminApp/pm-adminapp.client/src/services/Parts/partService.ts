@@ -1,4 +1,5 @@
 // import { useAuthStore } from '@/stores/auth'
+import type { Part } from '@/models/Parts/part.model'
 import type { PartFilter } from '@/models/Parts/partFilter.model'
 import type { SearchPartInfo } from '@/models/Parts/searchPartInfo.model'
 import { Auth, msal } from '@/services/Identity/auth'
@@ -20,13 +21,25 @@ const apiClient = axios.create({
   },
 })
 
-export default {
+export const partService = {
   async searchParts(filter: PartFilter): Promise<SearchPartInfo[]> {
     // if (initialized.value !== false) {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
     let response = await apiClient.post('/searchParts', filter)
+    return response.data
+    // } else {
+    //   throw new Error('PartService not initialized')
+    // }
+  },
+
+  async getPart(partId: number): Promise<Part> {
+    // if (initialized.value !== false) {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    let response = await apiClient.get('/getPart', { params: { id: partId } })
     return response.data
     // } else {
     //   throw new Error('PartService not initialized')

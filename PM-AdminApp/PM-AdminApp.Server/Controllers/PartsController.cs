@@ -126,12 +126,14 @@ namespace LMXApi.Controllers
             }
         }
 
-        [HttpGet("{id}", Name = "PartById")]
-        public async Task<IActionResult> GetPartById(int id)
+        [HttpGet]
+        public async Task<IActionResult> GetPart([FromQuery] int id)
         {
             try
             {
-                var part = await _partAsyncRepository.GetByIdAsync(id);
+                var partFilter = new PartFilter() { Id = id };
+                var spec = new GetPartSpecification(partFilter);
+                var part = await _partAsyncRepository.FirstAsync(spec);
 
                 if (part == null)
                 {
@@ -247,6 +249,7 @@ namespace LMXApi.Controllers
         {
             try
             {
+
                 var part = await _partAsyncRepository.GetByIdAsync(id);
                 if (part == null)
                 {

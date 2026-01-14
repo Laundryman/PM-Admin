@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { useLayoutStore } from '@/layout/composables/layout'
+import { useSystemStore } from '@/stores/systemStore'
 import { onBeforeMount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-const layoutStore = useLayoutStore()
-const { layoutState, setActiveMenuItem, toggleMenu } = useLayoutStore()
+const layoutStore = useSystemStore()
+const { layoutState, setActiveMenuItem, toggleMenu } = useSystemStore()
 
 const props = defineProps({
   item: {
