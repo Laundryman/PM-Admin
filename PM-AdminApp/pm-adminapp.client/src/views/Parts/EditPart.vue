@@ -662,7 +662,7 @@ const onFormSubmit = ({ valid }: any) => {
                         :label="product.name"
                         v-tooltip="'this product is not published'"
                         :removeable="true"
-                        @remove="removeUnpublishedProduct(product.id)"
+                        @click:remove="removeUnpublishedProduct(product.id)"
                       >
                       </Chip>
                     </OverlayBadge>
