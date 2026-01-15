@@ -43,6 +43,7 @@ const selectedRegion = ref()
 const ms_selectedCountries = ref<number[] | null>(null) // MultiSelect binding
 const selectAllCountries = ref(false)
 const selectAllProducts = ref(false)
+const selectAllStandTypes = ref(false)
 
 const partTypes = ref<{ id: number; name: string }[] | null>(null)
 const selectedPartType = ref<PartType | null>(null)
@@ -54,11 +55,11 @@ const selectedParentCategoryId = ref<number | null>(null)
 const selectedChildCategory = ref<number | null>(null)
 const ms_productList = ref<Product[] | null>(null)
 const selectedProducts = ref<number[] | null>(null)
-const standTypes = ref<StandType[] | null>(null)
-const selectedStandTypes = ref<StandType[] | null>(null)
+const standTypesList = ref<StandType[] | null>(null)
+const selectedStandTypes = ref<number[] | null>(null)
 
 const part = storeToRefs(partStore).part
-
+const dateCreated = ref()
 // const packShot = ref<string | null>(null)
 const packShotFile = ref<File | null>(null)
 // const renderImg = ref<string | null>(null)
@@ -75,6 +76,7 @@ onMounted(async () => {
   partFilter.Id = Number(router.currentRoute.value.params.id) || 0
   await partStore.initialize(partFilter)
   selectedParentCategoryId.value = part.value.parentCategoryId || null
+  dateCreated.value = new Date(part.value.dateCreated) //added to bind date picker
   if (selectedParentCategoryId.value) {
     await categoryFilters.getChildCategories(selectedParentCategoryId.value).then((response) => {
       childCategories.value = response
@@ -100,8 +102,9 @@ onMounted(async () => {
   })
 
   await standTypeComposable.getPartStandTypes().then((response) => {
-    standTypes.value = response
-    console.log('Stand Types loaded', standTypes.value)
+    standTypesList.value = response
+    selectedStandTypes.value = part.value.standTypes.map((st) => st.id)
+    console.log('Stand Types loaded', standTypesList.value)
   })
 
   let productFilter = new ProductFilter()
@@ -293,13 +296,65 @@ function onSelectAllProductsChange(event: any) {
   manageSelectedProducts(selectedProducts.value)
 }
 
-function removeUnpublishedProduct(productId: number) {
-  let removeIndex = part.value.products.findIndex((p) => p.id === productId)
-  if (removeIndex !== -1) {
-    part.value.products.splice(removeIndex, 1)
+function clearProductSelection() {
+  part.value.products = []
+  selectedProducts.value = []
+}
+
+/////////////////////////////////////////////////////
+// Stand Type Handlers
+/////////////////////////////////////////////////////
+
+function manageSelectedStandTypes(selectValues: number[]) {
+  if (selectValues.length > 0 && selectValues.length >= (part.value?.standTypes.length ?? 0)) {
+    for (const standTypeId of selectValues) {
+      let foundStandType = part.value.standTypes.find((st) => st.id === standTypeId)
+      if (!foundStandType) {
+        let standType = standTypesList.value?.find((st) => st.id === standTypeId)
+        if (standType) part.value.standTypes?.push(standType)
+      }
+    }
+  } else {
+    if (selectValues.length <= (part.value?.standTypes.length ?? 0)) {
+      let standTypesToRemove = new Array<number>()
+      for (const standType of part.value.standTypes ?? []) {
+        let index = selectValues.indexOf(standType.id) //if it's been removed
+        if (index == -1) {
+          standTypesToRemove.push(standType.id)
+        }
+      }
+      for (const stId of standTypesToRemove) {
+        let removeIndex = part.value.standTypes.findIndex((st) => st.id === stId)
+        if (removeIndex !== -1) {
+          part.value.standTypes.splice(removeIndex, 1)
+        }
+      }
+    }
   }
 }
 
+function onStandTypeChange(evt: any) {
+  manageSelectedStandTypes(evt.value)
+}
+
+function onSelectAllStandTypesChange(event: any) {
+  selectedStandTypes.value = event.checked ? (standTypesList.value?.map((st) => st.id) ?? []) : []
+  selectAllStandTypes.value = event.checked
+  manageSelectedStandTypes(selectedStandTypes.value)
+}
+
+function clearStandTypeSelection() {
+  part.value.standTypes = []
+  selectedStandTypes.value = []
+}
+
+/////////////////////////////////////////////////////
+// Date Handlers
+////////////////////////////////////////////////////
+
+function updateDateCreated(evnt: any) {
+  console.log('Date selected', evnt)
+}
 /////////////////////////////////////////////////////
 // Form Handlers
 /////////////////////////////////////////////////////
@@ -649,26 +704,20 @@ const onFormSubmit = ({ valid }: any) => {
                 </MultiSelect>
               </div>
               <div class="flex gap-2 flex-wrap max-h-40 overflow-y-auto pt-1">
-                <!-- <Button
+                <Button
+                  v-if="part.products?.length > 0"
                   label="Clear Selection"
-                  class="w-text-left"
+                  class="w-text-left h-10"
                   @click="clearProductSelection"
-                /> -->
+                />
                 <template v-for="product in part.products">
                   <template v-if="!product.published">
-                    <OverlayBadge severity="danger">
-                      <Chip
-                        severity="danger"
-                        :label="product.name"
-                        v-tooltip="'this product is not published'"
-                        :removeable="true"
-                        @click:remove="removeUnpublishedProduct(product.id)"
-                      >
-                      </Chip>
+                    <OverlayBadge severity="danger" v-tooltip="'this product is not published'">
+                      <Chip :label="product.name"> </Chip>
                     </OverlayBadge>
                   </template>
                   <template v-else>
-                    <Chip :label="product.name" :removeable="true"></Chip>
+                    <Chip :label="product.name"></Chip>
                   </template>
                 </template>
               </div>
@@ -676,18 +725,21 @@ const onFormSubmit = ({ valid }: any) => {
           </fieldset>
         </div>
         <div class="bg-gray-50 col-span-2 p-10 mb-5">
-          <fieldset legend="Categorisation" class="col-span-2">
-            <legend class="text-lg font-bold mb-2">Categorisation</legend>
+          <fieldset legend="Stands" class="col-span-2">
+            <legend class="text-lg font-bold mb-2">Stands</legend>
             <div class="grid grid-cols-2 gap-10">
               <div class="flex flex-col gap-2">
                 <label for="standType">Stand Type:</label>
                 <MultiSelect
                   v-model="selectedStandTypes"
-                  :options="standTypes ?? []"
+                  :options="standTypesList ?? []"
                   id="standType"
                   class="w-full"
                   option-label="name"
                   option-value="id"
+                  @change="onStandTypeChange($event)"
+                  :selectAll="selectAllStandTypes"
+                  @selectall-change="onSelectAllStandTypesChange($event)"
                 >
                   <template #option="option">
                     <div class="flex align-items-center">
@@ -695,6 +747,12 @@ const onFormSubmit = ({ valid }: any) => {
                     </div>
                   </template>
                 </MultiSelect>
+              </div>
+              <div class="flex gap-2 flex-wrap max-h-40 overflow-y-auto pt-1">
+                <label class="w-full font-bold mb-2">Selected Stand Types:</label>
+                <template v-for="standType in part.standTypes">
+                  <Chip :label="standType.name"></Chip>
+                </template>
               </div>
             </div>
           </fieldset>
@@ -705,35 +763,57 @@ const onFormSubmit = ({ valid }: any) => {
             <div class="grid grid-cols-2 gap-10">
               <div class="flex flex-col gap-1">
                 <label for="facings">Facings:</label>
-                <InputText name="facings" type="text" placeholder="Facings" fluid />
+                <InputNumber name="facings" placeholder="Facings" fluid v-model="part.facings" />
               </div>
               <div class="flex flex-col gap-1">
                 <label for="Stock">Stock:</label>
-                <InputText name="stock" type="text" placeholder="Stock" fluid />
+                <InputNumber
+                  name="stock"
+                  type="text"
+                  placeholder="Stock"
+                  fluid
+                  v-model="part.stock"
+                />
               </div>
               <div class="flex flex-col gap-1">
                 <label for="shoppingHeight">Shopping Height:</label>
-                <InputText name="shoppingHeight" type="text" placeholder="Shopping Height" fluid />
+                <InputNumber
+                  name="shoppingHeight"
+                  placeholder="Shopping Height"
+                  fluid
+                  v-model="part.shoppingHeight"
+                />
               </div>
               <div class="flex flex-col gap-1">
                 <label for="Height">Height:</label>
-                <InputText name="height" type="text" placeholder="Height" fluid />
+                <InputNumber name="height" placeholder="Height" fluid v-model="part.height" />
               </div>
               <div class="flex flex-col gap-1">
                 <label for="width">Width:</label>
-                <InputText name="width" type="text" placeholder="Width" fluid />
+                <InputNumber name="width" placeholder="Width" fluid v-model="part.width" />
               </div>
               <div class="flex flex-col gap-1">
                 <label for="depth">Depth:</label>
-                <InputText name="depth" type="text" placeholder="Depth" fluid />
+                <InputNumber name="depth" placeholder="Depth" fluid v-model="part.depth" />
               </div>
               <div class="flex flex-col gap-1">
                 <label for="unitCost">Unit Cost:</label>
-                <InputText name="unitCost" type="text" placeholder="Unit Cost" fluid />
+                <InputNumber
+                  name="unitCost"
+                  placeholder="Unit Cost"
+                  fluid
+                  v-model="part.unitCost"
+                />
               </div>
               <div class="flex flex-col gap-1">
                 <label for="dateCreated">Created Date:</label>
-                <InputText name="dateCreated" type="text" placeholder="Created Date" fluid />
+                <DatePicker
+                  name="createdDate"
+                  placeholder="Created Date"
+                  fluid
+                  v-model="dateCreated"
+                  @date-select="updateDateCreated($event)"
+                />
               </div>
             </div>
           </fieldset>

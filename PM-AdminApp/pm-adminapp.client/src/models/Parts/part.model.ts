@@ -1,6 +1,7 @@
 import { Category } from '@/models/Categories/category.model'
 import { Country } from '@/models/Countries/country.model'
 import { Product } from '@/models/Products/product.model'
+import type { StandType } from '../StandTypes/standType.model'
 
 export class Part {
   id!: number
@@ -50,10 +51,12 @@ export class Part {
   products!: Product[]
   //PartType!: PartType;
   Category!: Category
+  standTypes!: StandType[]
 
   contstructor() {
     this.id = 0
     this.facings = 0
     this.partNumber = ''
+    this.products = []
   }
 }

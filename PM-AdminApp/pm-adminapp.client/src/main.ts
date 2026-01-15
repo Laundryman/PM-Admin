@@ -23,11 +23,13 @@ import Chart from 'primevue/chart'
 import Chip from 'primevue/chip'
 import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
+import DatePicker from 'primevue/datepicker'
 import Divider from 'primevue/divider'
 import FileUpload from 'primevue/fileupload'
 import IconField from 'primevue/iconfield'
 import Image from 'primevue/image'
 import InputIcon from 'primevue/inputicon'
+import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
 import Menu from 'primevue/menu'
 import MultiSelect from 'primevue/multiselect'
@@ -78,12 +80,14 @@ app.component('Chip', Chip)
 app.component('Column', Column)
 app.component('Divider', Divider)
 app.component('DataTable', DataTable)
+app.component('DatePicker', DatePicker)
 app.component('Dialog', Dialog)
 app.component('FileUpload', FileUpload)
 app.component('Image', Image)
 app.component('InputIcon', InputIcon)
 app.component('IconField', IconField)
 app.component('InputText', InputText)
+app.component('InputNumber', InputNumber)
 app.component('Menu', Menu)
 app.component('MultiSelect', MultiSelect)
 app.component('OverlayBadge', OverlayBadge)
