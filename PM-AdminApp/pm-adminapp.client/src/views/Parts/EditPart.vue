@@ -401,6 +401,10 @@ const onFormSubmit = ({ valid }: any) => {
     </div>
     <div class="w-full sticky bg-white top-16 block p-10 z-10">
       <h2>Edit Part</h2>
+      <div class="card flex flex-col gap-2">
+        <span class="font-bold text-xl">{{ part.name }}</span>
+        <span class="text-gray-600">Part No: {{ part.partNumber }}</span>
+      </div>
     </div>
     <div class="card grid grid-cols-1 gap-4 justify-center">
       <Form

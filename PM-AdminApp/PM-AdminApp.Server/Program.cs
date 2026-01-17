@@ -13,6 +13,9 @@ using Serilog;
 using System.Diagnostics;
 using System.Text;
 using Azure.Identity;
+using PM_AdminApp.Server.GraphApi.Interfaces;
+using PM_AdminApp.Server.GraphApi.Services;
+using PM_AdminApp.Server.Settings;
 using static System.Net.WebRequestMethods;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -74,6 +77,8 @@ builder.Services.AddAzureClients(clientBuilder =>
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddRepositories();
+builder.Services.AddScoped<IGraphService, GraphService>();
+builder.Services.AddScoped<IGraphSettings, GraphSettings>();
 builder.Services.AddPMServices();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();

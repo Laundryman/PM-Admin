@@ -1,5 +1,7 @@
 import type { MaybeAccount } from '@/services/Identity/auth'
 import { Auth } from '@/services/Identity/auth'
+import { Graph } from '@/services/Identity/graph'
+import userService from '@/services/Identity/UserService'
 import type { NavigationClient } from '@azure/msal-browser'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -7,12 +9,13 @@ import { ref } from 'vue'
 export const initialized = ref(false)
 export const account = ref<MaybeAccount>(null)
 export const error = ref<string>()
+export const userInfo = ref<any>(null)
 
 export const useAuthStore = defineStore('auth', () => {
   const error = ref<string>()
   const account = ref<MaybeAccount>(null)
   const initialized = ref(false)
-
+  const userInfo = ref<any>(null)
   async function initialize(client?: NavigationClient) {
     if (initialized.value === true) {
       return account.value
@@ -27,8 +30,9 @@ export const useAuthStore = defineStore('auth', () => {
   async function login() {
     error.value = ''
     return Auth.login()
-      .then((data) => {
+      .then(async (data) => {
         account.value = data
+        userInfo.value = await userService.getCurrentUserInfo()
         initialized.value = true
         error.value = ''
       })
@@ -45,8 +49,28 @@ export const useAuthStore = defineStore('auth', () => {
     })
   }
 
+  async function setCurrentlyLoggedInUserInfo() {
+    await userService.initialise()
+    userInfo.value = await userService.getCurrentUserInfo()
+  }
+
   async function GetToken(): Promise<string> {
     return Auth.getToken()
   }
-  return { initialized, account, error, initialize, login, logout, GetToken }
+
+  async function GetGraphToken(): Promise<string> {
+    return Graph.getGraphToken()
+  }
+  return {
+    initialized,
+    account,
+    userInfo,
+    error,
+    initialize,
+    login,
+    logout,
+    GetToken,
+    GetGraphToken,
+    setCurrentlyLoggedInUserInfo,
+  }
 })

@@ -2,7 +2,12 @@ import { definePreset } from '@primeuix/themes'
 import Lara from '@primeuix/themes/lara'
 
 const PMAdmin = definePreset(Lara, {
-  //Your customizations, see the following sections for examples
+  options: {
+    cssLayer: {
+      name: 'primevue',
+      order: 'theme, base, primevue',
+    },
+  },
   semantic: {
     primary: {
       50: '{sky.50}',

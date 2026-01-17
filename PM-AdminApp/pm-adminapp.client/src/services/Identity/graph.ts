@@ -1,29 +1,23 @@
-import { config, graphScopes, scopes } from '@/config/auth'
-import type {
-  AccountInfo,
-  AuthenticationResult,
-  PopupRequest,
-  SilentRequest,
-} from '@azure/msal-browser'
+import { config, graphScopes } from '@/config/auth'
+import type { AccountInfo, AuthenticationResult, SilentRequest } from '@azure/msal-browser'
 import {
-  BrowserAuthError,
   InteractionRequiredAuthError,
   NavigationClient,
   PublicClientApplication,
 } from '@azure/msal-browser'
-
 // type
 export type MaybeAccount = AccountInfo | null
 
 /**
  * MSAL instance
  */
+// config.auth.authority = import.meta.env.VITE_GRAPH_AUTHORITY
 export const msal = new PublicClientApplication(config)
 // msal.initialize()
 /**
  * Auth service
  */
-export const Auth = {
+export const Graph = {
   /**
    * Initialize and return active account
    */
@@ -56,69 +50,7 @@ export const Auth = {
   },
 
   /**
-   * Login
-   */
-  async login(): Promise<MaybeAccount> {
-    const request: PopupRequest = {
-      redirectUri: config.auth.redirectUri,
-      scopes: [],
-    }
-    return msal
-      .loginPopup(request)
-      .then((result) => {
-        // could do something with the AuthResult here if you need to
-        console.log('Logged in with', result)
-
-        // set active account
-        return this.setAccount(result.account)
-      })
-      .catch((error: BrowserAuthError) => {
-        // if we get stuck, clear session and attempt to log in again
-        if (error.errorCode === 'interaction_in_progress') {
-          this.reset()
-          return this.login()
-        }
-        throw new Error(error.errorMessage)
-      })
-  },
-
-  /**
-   * Logout
-   */
-  async logout() {
-    return msal.logoutPopup({
-      // required to make the application return to the home page
-      mainWindowRedirectUri: '/',
-    })
-  },
-
-  /**
    * Get token for api
-   */
-  async getToken() {
-    const request: SilentRequest = {
-      scopes,
-    }
-    return (
-      msal
-        // try getting the token silently
-        .acquireTokenSilent(request)
-
-        // attempt login popup if this fails
-        .catch(async (error: unknown) => {
-          if (error instanceof InteractionRequiredAuthError) {
-            return msal.acquireTokenPopup(request)
-          }
-          throw error
-        })
-        .then((result: AuthenticationResult) => {
-          return result.accessToken
-        })
-    )
-  },
-
-  /**
-   * Get token for Graph API
    */
   async getGraphToken() {
     const request: SilentRequest = {

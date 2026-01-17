@@ -5,7 +5,7 @@ import { useSystemStore } from '@/stores/systemStore'
 import { useBrandStore } from '@/stores/brandStore'
 import type { SelectChangeEvent } from 'primevue/select'
 import { onMounted, ref } from 'vue'
-import AppConfigurator from './AppConfigurator.vue'
+import UserProfile from './UserProfile.vue'
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useSystemStore()
 
 const brandStore = useBrandStore()
@@ -90,23 +90,6 @@ onMounted(() => {
         <button type="button" class="layout-topbar-action" @click="toggleDarkMode">
           <i :class="['pi', { 'pi-moon': isDarkTheme, 'pi-sun': !isDarkTheme }]"></i>
         </button>
-        <div class="relative">
-          <button
-            v-styleclass="{
-              selector: '@next',
-              enterFromClass: 'hidden',
-              enterActiveClass: 'animate-scalein',
-              leaveToClass: 'hidden',
-              leaveActiveClass: 'animate-fadeout',
-              hideOnOutsideClick: true,
-            }"
-            type="button"
-            class="layout-topbar-action layout-topbar-action-highlight"
-          >
-            <i class="pi pi-palette"></i>
-          </button>
-          <AppConfigurator />
-        </div>
       </div>
 
       <button
@@ -133,6 +116,25 @@ onMounted(() => {
             <i class="pi pi-inbox"></i>
             <span>Messages</span>
           </button>
+          <div class="relative">
+            <button
+              v-styleclass="{
+                selector: '@next',
+                enterFromClass: 'hidden',
+                enterActiveClass: 'animate-scalein',
+                leaveToClass: 'hidden',
+                leaveActiveClass: 'animate-fadeout',
+                hideOnOutsideClick: true,
+              }"
+              type="button"
+              class="layout-topbar-action layout-topbar-action-highlight"
+            >
+              <i class="pi pi-user"></i>
+              <span>Profile</span>
+            </button>
+            <UserProfile />
+          </div>
+
           <button type="button" class="layout-topbar-action">
             <i class="pi pi-user"></i>
             <span>Profile</span>

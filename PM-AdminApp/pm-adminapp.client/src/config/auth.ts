@@ -2,7 +2,7 @@ import type { Configuration } from '@azure/msal-browser'
 import { LogLevel, PublicClientApplication } from '@azure/msal-browser'
 
 export const scopes = [import.meta.env.VITE_AUTH_SCOPE]
-
+export const graphScopes = [import.meta.env.VITE_USER_SCOPE]
 export const config: Configuration = {
   // required
   auth: {
