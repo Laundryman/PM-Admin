@@ -7,6 +7,7 @@ import { Category } from '@/models/Categories/category.model'
 import { Country } from '@/models/Countries/country.model'
 import { Region } from '@/models/Countries/region.model'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
+import { Part } from '@/models/Parts/part.model'
 import { PartFilter } from '@/models/Parts/partFilter.model'
 import { PartType } from '@/models/Parts/partType.model'
 import { Product } from '@/models/Products/product.model'
@@ -58,7 +59,6 @@ const selectedProducts = ref<number[] | null>(null)
 const standTypesList = ref<StandType[] | null>(null)
 const selectedStandTypes = ref<number[] | null>(null)
 
-const part = storeToRefs(partStore).part
 const dateCreated = ref()
 // const packShot = ref<string | null>(null)
 const packShotFile = ref<File | null>(null)
@@ -66,24 +66,29 @@ const packShotFile = ref<File | null>(null)
 const renderFile = ref<File | null>(null)
 // const icon = ref<string | null>(null)
 const iconFile = ref<File | null>(null)
-// const initialValues = ref(new Part())
+
+const { part } = storeToRefs(partStore)
+const partForm = ref<Part>(new Part())
 
 const initialValues = reactive({
-  name: part.value?.name || '',
+  ...partForm.value,
 })
 onMounted(async () => {
   var partFilter = new PartFilter()
   partFilter.Id = Number(router.currentRoute.value.params.id) || 0
   await partStore.initialize(partFilter)
-  selectedParentCategoryId.value = part.value.parentCategoryId || null
-  dateCreated.value = new Date(part.value.dateCreated) //added to bind date picker
+  console.log('Editing Part:', partForm.value)
+  console.log('Part Store Part:', part.value)
+  partForm.value = { ...part.value } as Part //clone(part.value)
+  selectedParentCategoryId.value = partForm.value.parentCategoryId || null
+  dateCreated.value = new Date(partForm.value.dateCreated) //added to bind date picker
   if (selectedParentCategoryId.value) {
     await categoryFilters.getChildCategories(selectedParentCategoryId.value).then((response) => {
       childCategories.value = response
       console.log('Child Categories loaded', childCategories.value)
     })
   }
-  selectedChildCategory.value = part.value.categoryId || null
+  selectedChildCategory.value = partForm.value.categoryId || null
   let brandid = brandStore.activeBrand?.id ?? 0
   let rFilter = new regionFilter()
   rFilter.brandId = brandid
@@ -103,13 +108,13 @@ onMounted(async () => {
 
   await standTypeComposable.getPartStandTypes().then((response) => {
     standTypesList.value = response
-    selectedStandTypes.value = part.value.standTypes.map((st) => st.id)
+    selectedStandTypes.value = partForm.value.standTypes.map((st: StandType) => st.id)
     console.log('Stand Types loaded', standTypesList.value)
   })
 
   let productFilter = new ProductFilter()
   productFilter.brandId = brandid
-  productFilter.categoryId = part.value.categoryId || 0
+  productFilter.categoryId = partForm.value.categoryId || 0
   await productStore.getProductsByCategory(productFilter).then((response) => {
     ms_productList.value = response ?? null
     console.log('Products loaded', ms_productList.value)
@@ -119,8 +124,8 @@ onMounted(async () => {
 })
 
 function mapPubishedProducts() {
-  let publishedProducts = part.value.products.filter((p) => p.published === true)
-  return publishedProducts.map((p) => p.id)
+  let publishedProducts = partForm.value.products.filter((p: Product) => p.published === true)
+  return publishedProducts.map((p: Product) => p.id)
 }
 
 /////////////////////////////////////////////////////
@@ -130,6 +135,7 @@ async function onParentCategoryChange() {
   if (selectedParentCategoryId.value) {
     categoryFilters.getChildCategories(selectedParentCategoryId.value).then((response) => {
       childCategories.value = response
+      selectedChildCategory.value = null
       console.log('Child Categories loaded', childCategories.value)
     })
   } else {
@@ -148,6 +154,43 @@ async function onChildCategoryChange() {
     })
   } else {
     ms_productList.value = []
+  }
+}
+
+////////////////////////////////////////////////////
+// Generic Multi-Select Handler
+///////////////////////////////////////////////////
+
+function manageSelectedValues(
+  selectedValues: number[],
+  availableValues: any[],
+  targetArray: any[],
+) {
+  if (selectedValues.length > 0 && selectedValues.length >= (targetArray.length ?? 0)) {
+    for (const standTypeId of selectedValues) {
+      let foundStandType = targetArray.find((st) => st.id === standTypeId)
+      if (!foundStandType) {
+        //handling unpublished items in the target array
+        let standType = availableValues?.find((st) => st.id === standTypeId)
+        if (standType) targetArray?.push(standType)
+      }
+    }
+  } else {
+    if (selectedValues.length <= (targetArray.length ?? 0)) {
+      let selectedValuesToRemove = new Array<number>()
+      for (const standType of targetArray ?? []) {
+        let index = selectedValues.indexOf(standType.id) //if it's been removed
+        if (index == -1) {
+          selectedValuesToRemove.push(standType.id)
+        }
+      }
+      for (const stId of selectedValuesToRemove) {
+        let removeIndex = targetArray.findIndex((st) => st.id === stId)
+        if (removeIndex !== -1) {
+          targetArray.splice(removeIndex, 1)
+        }
+      }
+    }
   }
 }
 
@@ -172,36 +215,37 @@ async function onRegionChange() {
   }
 }
 
-function manageSelectedCountries(selectValues: number[]) {
-  if (selectValues.length > 0 && selectValues.length >= (part.value?.countries.length ?? 0)) {
-    // You can implement additional logic here if needed
-    for (const cntryId of selectValues) {
-      let foundCountry = part.value.countries.find((c) => c.id === cntryId)
-      if (!foundCountry) {
-        let cntry = countrySelectList.value?.find((c) => c.id === cntryId)
-        if (cntry) part.value.countries?.push(cntry)
-      }
-    }
-  } else {
-    if (selectValues.length <= (part.value?.countries.length ?? 0)) {
-      let countriesToRemove = new Array<number>()
-      for (const country of part.value.countries ?? []) {
-        let index = selectValues.indexOf(country.id) //if it's been removed
-        if (index == -1) {
-          countriesToRemove.push(country.id)
-        }
-      }
-      for (const cntryId of countriesToRemove) {
-        let removeIndex = part.value.countries.findIndex((c) => c.id === cntryId)
-        if (removeIndex !== -1) {
-          part.value.countries.splice(removeIndex, 1)
-        }
-      }
-    }
-  }
-}
+// function manageSelectedCountries(selectValues: number[]) {
+//   if (selectValues.length > 0 && selectValues.length >= (part.value?.countries.length ?? 0)) {
+//     // You can implement additional logic here if needed
+//     for (const cntryId of selectValues) {
+//       let foundCountry = part.value.countries.find((c) => c.id === cntryId)
+//       if (!foundCountry) {
+//         let cntry = countrySelectList.value?.find((c) => c.id === cntryId)
+//         if (cntry) part.value.countries?.push(cntry)
+//       }
+//     }
+//   } else {
+//     if (selectValues.length <= (part.value?.countries.length ?? 0)) {
+//       let countriesToRemove = new Array<number>()
+//       for (const country of part.value.countries ?? []) {
+//         let index = selectValues.indexOf(country.id) //if it's been removed
+//         if (index == -1) {
+//           countriesToRemove.push(country.id)
+//         }
+//       }
+//       for (const cntryId of countriesToRemove) {
+//         let removeIndex = part.value.countries.findIndex((c) => c.id === cntryId)
+//         if (removeIndex !== -1) {
+//           part.value.countries.splice(removeIndex, 1)
+//         }
+//       }
+//     }
+//   }
+// }
 async function onCountryChange(evt: any) {
-  manageSelectedCountries(evt.value)
+  // manageSelectedCountries(evt.value)
+  manageSelectedValues(evt.value, countrySelectList.value ?? [], partForm.value.countries ?? [])
 }
 
 function onSelectAllCountriesChange(event: any) {
@@ -209,12 +253,17 @@ function onSelectAllCountriesChange(event: any) {
     ? (countrySelectList.value?.map((item) => item.id) ?? [])
     : []
   selectAllCountries.value = event.checked
-  manageSelectedCountries(ms_selectedCountries.value)
+  //manageSelectedCountries(ms_selectedCountries.value)
+  manageSelectedValues(
+    ms_selectedCountries.value,
+    countrySelectList.value ?? [],
+    partForm.value.countries ?? [],
+  )
 }
 
 function clearCountrySelection() {
   ms_selectedCountries.value = []
-  part.value.countries = []
+  partForm.value.countries = []
 }
 
 ////////////////////////////////////////////////////
@@ -225,7 +274,7 @@ function onPackShotSelect(event: any) {
   const reader = new FileReader()
   reader.onload = async (e) => {
     // packShot.value = e.target?.result as string
-    part.value.packShotImageSrc = e.target?.result as string
+    partForm.value.packShotImageSrc = e.target?.result as string
   }
 
   reader.readAsDataURL(packShotFile.value!)
@@ -235,7 +284,7 @@ function onRenderSelect(event: any) {
   const reader = new FileReader()
   reader.onload = async (e) => {
     // renderImg.value = e.target?.result as string
-    part.value.render2dImage = e.target?.result as string
+    partForm.value.render2dImage = e.target?.result as string
   }
 
   reader.readAsDataURL(renderFile.value!)
@@ -245,7 +294,7 @@ function onIconSelect(event: any) {
   const reader = new FileReader()
   reader.onload = async (e) => {
     // icon.value = e.target?.result as string
-    part.value.svgLineGraphic = e.target?.result as string
+    partForm.value.svgLineGraphic = e.target?.result as string
   }
 
   reader.readAsDataURL(iconFile.value!)
@@ -255,49 +304,55 @@ function onIconSelect(event: any) {
 // Product Handlers
 /////////////////////////////////////////////////////
 
-function manageSelectedProducts(selectValues: number[]) {
-  if (selectValues.length > 0 && selectValues.length >= (part.value?.products.length ?? 0)) {
-    for (const productId of selectValues) {
-      let foundProduct = part.value.products.find((p) => p.id === productId)
-      if (!foundProduct) {
-        let product = ms_productList.value?.find((p) => p.id === productId)
-        if (product) part.value.products?.push(product)
-      }
-    }
-  } else {
-    if (selectValues.length <= (part.value?.products.length ?? 0)) {
-      let productsToRemove = new Array<number>()
-      for (const product of part.value.products ?? []) {
-        // let index = part.value.products.findIndex((p) => p.id === productId)
-        if (product.published === true) {
-          let index = selectValues.indexOf(product.id) //if it's been removed
-          if (index == -1) {
-            productsToRemove.push(product.id)
-          }
-        }
-      }
-      for (const prodId of productsToRemove) {
-        let removeIndex = part.value.products.findIndex((p) => p.id === prodId)
-        if (removeIndex !== -1) {
-          part.value.products.splice(removeIndex, 1)
-        }
-      }
-    }
-  }
-}
+// function manageSelectedProducts(selectValues: number[]) {
+//   if (selectValues.length > 0 && selectValues.length >= (part.value?.products.length ?? 0)) {
+//     for (const productId of selectValues) {
+//       let foundProduct = part.value.products.find((p) => p.id === productId)
+//       if (!foundProduct) {
+//         let product = ms_productList.value?.find((p) => p.id === productId)
+//         if (product) part.value.products?.push(product)
+//       }
+//     }
+//   } else {
+//     if (selectValues.length <= (part.value?.products.length ?? 0)) {
+//       let productsToRemove = new Array<number>()
+//       for (const product of part.value.products ?? []) {
+//         // let index = part.value.products.findIndex((p) => p.id === productId)
+//         if (product.published === true) {
+//           let index = selectValues.indexOf(product.id) //if it's been removed
+//           if (index == -1) {
+//             productsToRemove.push(product.id)
+//           }
+//         }
+//       }
+//       for (const prodId of productsToRemove) {
+//         let removeIndex = part.value.products.findIndex((p) => p.id === prodId)
+//         if (removeIndex !== -1) {
+//           part.value.products.splice(removeIndex, 1)
+//         }
+//       }
+//     }
+//   }
+// }
 
 async function onProductChange(evt: any) {
-  manageSelectedProducts(evt.value)
+  // manageSelectedProducts(evt.value)
+  manageSelectedValues(evt.value, ms_productList.value ?? [], partForm.value.products ?? [])
 }
 
 function onSelectAllProductsChange(event: any) {
   selectedProducts.value = event.checked ? (ms_productList.value?.map((p) => p.id) ?? []) : []
   selectAllProducts.value = event.checked
-  manageSelectedProducts(selectedProducts.value)
+  // manageSelectedProducts(selectedProducts.value)
+  manageSelectedValues(
+    selectedProducts.value,
+    ms_productList.value ?? [],
+    partForm.value.products ?? [],
+  )
 }
 
 function clearProductSelection() {
-  part.value.products = []
+  partForm.value.products = []
   selectedProducts.value = []
 }
 
@@ -305,46 +360,51 @@ function clearProductSelection() {
 // Stand Type Handlers
 /////////////////////////////////////////////////////
 
-function manageSelectedStandTypes(selectValues: number[]) {
-  if (selectValues.length > 0 && selectValues.length >= (part.value?.standTypes.length ?? 0)) {
-    for (const standTypeId of selectValues) {
-      let foundStandType = part.value.standTypes.find((st) => st.id === standTypeId)
-      if (!foundStandType) {
-        let standType = standTypesList.value?.find((st) => st.id === standTypeId)
-        if (standType) part.value.standTypes?.push(standType)
-      }
-    }
-  } else {
-    if (selectValues.length <= (part.value?.standTypes.length ?? 0)) {
-      let standTypesToRemove = new Array<number>()
-      for (const standType of part.value.standTypes ?? []) {
-        let index = selectValues.indexOf(standType.id) //if it's been removed
-        if (index == -1) {
-          standTypesToRemove.push(standType.id)
-        }
-      }
-      for (const stId of standTypesToRemove) {
-        let removeIndex = part.value.standTypes.findIndex((st) => st.id === stId)
-        if (removeIndex !== -1) {
-          part.value.standTypes.splice(removeIndex, 1)
-        }
-      }
-    }
-  }
-}
+// function manageSelectedStandTypes(selectValues: number[]) {
+//   if (selectValues.length > 0 && selectValues.length >= (part.value?.standTypes.length ?? 0)) {
+//     for (const standTypeId of selectValues) {
+//       let foundStandType = part.value.standTypes.find((st) => st.id === standTypeId)
+//       if (!foundStandType) {
+//         let standType = standTypesList.value?.find((st) => st.id === standTypeId)
+//         if (standType) part.value.standTypes?.push(standType)
+//       }
+//     }
+//   } else {
+//     if (selectValues.length <= (part.value?.standTypes.length ?? 0)) {
+//       let standTypesToRemove = new Array<number>()
+//       for (const standType of part.value.standTypes ?? []) {
+//         let index = selectValues.indexOf(standType.id) //if it's been removed
+//         if (index == -1) {
+//           standTypesToRemove.push(standType.id)
+//         }
+//       }
+//       for (const stId of standTypesToRemove) {
+//         let removeIndex = part.value.standTypes.findIndex((st) => st.id === stId)
+//         if (removeIndex !== -1) {
+//           part.value.standTypes.splice(removeIndex, 1)
+//         }
+//       }
+//     }
+//   }
+// }
 
 function onStandTypeChange(evt: any) {
-  manageSelectedStandTypes(evt.value)
+  // manageSelectedStandTypes(evt.value)
+  manageSelectedValues(evt.value, standTypesList.value ?? [], partForm.value.standTypes ?? [])
 }
 
 function onSelectAllStandTypesChange(event: any) {
   selectedStandTypes.value = event.checked ? (standTypesList.value?.map((st) => st.id) ?? []) : []
   selectAllStandTypes.value = event.checked
-  manageSelectedStandTypes(selectedStandTypes.value)
+  manageSelectedValues(
+    selectedStandTypes.value,
+    standTypesList.value ?? [],
+    partForm.value.standTypes ?? [],
+  )
 }
 
 function clearStandTypeSelection() {
-  part.value.standTypes = []
+  partForm.value.standTypes = []
   selectedStandTypes.value = []
 }
 
@@ -362,10 +422,38 @@ const resolver = ({ values }: any) => {
   const errors = {} as any
 
   if (!values.name) {
-    ;``
-    errors.name = [{ message: 'Username is required.' }]
+    errors.name = [{ message: 'Name is required.' }]
   }
-
+  if (!values.partNumber) {
+    errors.partNumber = [{ message: 'Part Number is required.' }]
+  }
+  if (!values.description) {
+    errors.description = [{ message: 'Description is required.' }]
+  }
+  if (!values.categoryId) {
+    errors.categoryId = [{ message: 'Category is required.' }]
+  }
+  if (!values.parentCategoryId) {
+    errors.parentCategoryId = [{ message: 'Parent Category is required.' }]
+  }
+  if (!values.facings && values.facings !== 0) {
+    errors.facings = [{ message: 'Facings is required.' }]
+  }
+  if (!values.height && values.height !== 0) {
+    errors.height = [{ message: 'Height is required.' }]
+  }
+  if (!values.width && values.width !== 0) {
+    errors.width = [{ message: 'Width is required.' }]
+  }
+  if (!values.stock && values.stock !== 0) {
+    errors.stock = [{ message: 'Stock is required.' }]
+  }
+  if (!values.depth && values.depth !== 0) {
+    errors.depth = [{ message: 'Depth is required.' }]
+  }
+  if (!values.unitCost && values.unitCost !== 0) {
+    errors.unitCost = [{ message: 'Unit Cost is required.' }]
+  }
   return {
     values, // (Optional) Used to pass current form values to submit event.
     errors,
@@ -402,8 +490,8 @@ const onFormSubmit = ({ valid }: any) => {
     <div class="w-full sticky bg-white top-16 block p-10 z-10">
       <h2>Edit Part</h2>
       <div class="card flex flex-col gap-2">
-        <span class="font-bold text-xl">{{ part.name }}</span>
-        <span class="text-gray-600">Part No: {{ part.partNumber }}</span>
+        <span class="font-bold text-xl">{{ partForm.name }}</span>
+        <span class="text-gray-600">Part No: {{ partForm.partNumber }}</span>
       </div>
     </div>
     <div class="card grid grid-cols-1 gap-4 justify-center">
@@ -421,7 +509,7 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-1">
                 <label for="published">Published:</label>
                 <ToggleButton
-                  v-model="part.published"
+                  v-model="partForm.published"
                   onLabel="Yes"
                   offLabel="No"
                   onIcon="pi pi-check"
@@ -432,7 +520,7 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-1">
                 <label for="discontinued">Discontinued:</label>
                 <ToggleButton
-                  v-model="part.discontinued"
+                  v-model="partForm.discontinued"
                   onLabel="Yes"
                   offLabel="No"
                   onIcon="pi pi-check"
@@ -450,9 +538,10 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-1">
                 <label for="name">Part Name:</label>
                 <InputText
-                  v-model="part.name"
+                  v-model="partForm.name"
                   name="name"
                   type="text"
+                  length="255"
                   placeholder="Part Name"
                   fluid
                 />
@@ -467,43 +556,61 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-1">
                 <label for="customerReference">Customer Reference:</label>
                 <InputText
-                  v-model="part.customerRefNo"
+                  v-model="partForm.customerRefNo"
                   name="customerReference"
                   type="text"
                   placeholder="Customer Reference"
                   fluid
+                  length="255"
                 />
+                <Message
+                  v-if="$form.customerReference?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.customerReference.error?.message }}</Message
+                >
               </div>
               <div class="flex flex-col gap-1">
                 <label for="partNumber">Part Number:</label>
                 <InputText
-                  v-model="part.partNumber"
+                  v-model="partForm.partNumber"
                   name="partNumber"
                   type="text"
                   placeholder="Part Number"
                   fluid
+                  length="255"
                 />
               </div>
               <div class="flex flex-col gap-1">
                 <label for="altPartNumber">Alt Part Number:</label>
                 <InputText
-                  v-model="part.altPartNumber"
+                  v-model="partForm.altPartNumber"
                   name="altPartNumber"
                   type="text"
                   placeholder="Alt Part Number"
                   fluid
+                  length="255"
                 />
               </div>
 
               <div class="flex flex-col gap-1">
                 <label for="description">Description:</label>
                 <InputText
-                  v-model="part.description"
+                  v-model="partForm.description"
                   name="description"
                   type="text"
+                  length="255"
                   placeholder="Description"
                   fluid
                 />
+                <Message
+                  v-if="$form.description?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.description.error?.message }}</Message
+                >
               </div>
             </div>
           </fieldset>
@@ -515,7 +622,7 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-1">
                 <!-- <div class="card flex flex-wrap gap-6 items-center justify-between"> -->
                 <label for="svgLineGraphic">Cassette Icon:</label>
-                <div v-html="part.svgLineGraphic" class="cassette-icon max-w-40"></div>
+                <div v-html="partForm.svgLineGraphic" class="cassette-icon max-w-40"></div>
                 <FileUpload
                   name="svgLineGraphic"
                   ref="fileupload"
@@ -530,8 +637,8 @@ const onFormSubmit = ({ valid }: any) => {
                 <!-- <div class="card flex flex-wrap gap-6 items-center justify-between"> -->
                 <label for="packShotImgSrc">Cassette Image:</label>
                 <img
-                  v-if="part.packShotImageSrc != null"
-                  :src="cassettePhotoUrl + part.packShotImageSrc"
+                  v-if="partForm.packShotImageSrc != null"
+                  :src="cassettePhotoUrl + partForm.packShotImageSrc"
                   alt="Pack Shot"
                   class="block m-auto pb-4 max-h-60"
                 />
@@ -550,8 +657,8 @@ const onFormSubmit = ({ valid }: any) => {
                 <label for="render2dImage">Planogram 2d Render:</label>
                 <!-- <InputText name="render2dImage" type="text" placeholder="Planogram 2d Render" fluid /> -->
                 <img
-                  v-if="part.render2dImage != null"
-                  :src="cassetteRenderUrl + part.render2dImage"
+                  v-if="partForm.render2dImage != null"
+                  :src="cassetteRenderUrl + partForm.render2dImage"
                   alt="Pack Shot"
                   class="block m-auto pb-4 max-h-60"
                 />
@@ -609,6 +716,13 @@ const onFormSubmit = ({ valid }: any) => {
                     </div>
                   </template>
                 </MultiSelect>
+                <Message
+                  v-if="$form.countries?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.countries.error?.message }}</Message
+                >
               </div>
               <div class="flex gap-2 flex-wrap max-h-40 overflow-auto">
                 <Button
@@ -616,7 +730,7 @@ const onFormSubmit = ({ valid }: any) => {
                   class="w-text-left"
                   @click="clearCountrySelection"
                 />
-                <template v-for="country in part.countries">
+                <template v-for="country in partForm.countries">
                   <Chip class="flex-wrap" :label="country.name"></Chip>
                 </template>
               </div>
@@ -630,7 +744,7 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-2">
                 <label for="parentCategory">Parent Category:</label>
                 <Select
-                  v-model="part.parentCategoryId"
+                  v-model="selectedParentCategoryId"
                   :options="parentCategories ?? []"
                   @change="onParentCategoryChange"
                   id="parentCategory"
@@ -644,11 +758,18 @@ const onFormSubmit = ({ valid }: any) => {
                     </div>
                   </template>
                 </Select>
+                <Message
+                  v-if="$form.parentCategoryId?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.parentCategoryId.error?.message }}</Message
+                >
               </div>
               <div class="flex flex-col gap-2">
                 <label for="childCategory">Child Category:</label>
                 <Select
-                  v-model="part.categoryId"
+                  v-model="selectedChildCategory"
                   :options="childCategories ?? []"
                   id="childCategory"
                   class="w-full"
@@ -662,13 +783,20 @@ const onFormSubmit = ({ valid }: any) => {
                     </div>
                   </template>
                 </Select>
+                <Message
+                  v-if="$form.childCategoryId?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.childCategoryId.error?.message }}</Message
+                >
               </div>
               <div class="flex flex-col gap-2">
-                <label for="Part Type">Part Types:</label>
+                <label for="Part Type">Part Type:</label>
                 <Select
                   v-model="selectedPartType"
                   :options="partTypes ?? []"
-                  id="region"
+                  id="partType"
                   class="w-full"
                   option-label="name"
                   option-value="id"
@@ -679,6 +807,13 @@ const onFormSubmit = ({ valid }: any) => {
                     </div>
                   </template>
                 </Select>
+                <Message
+                  v-if="$form.partTypeId?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.partTypeId.error?.message }}</Message
+                >
               </div>
             </div>
           </fieldset>
@@ -709,12 +844,12 @@ const onFormSubmit = ({ valid }: any) => {
               </div>
               <div class="flex gap-2 flex-wrap max-h-40 overflow-y-auto pt-1">
                 <Button
-                  v-if="part.products?.length > 0"
+                  v-if="partForm.products?.length > 0"
                   label="Clear Selection"
                   class="w-text-left h-10"
                   @click="clearProductSelection"
                 />
-                <template v-for="product in part.products">
+                <template v-for="product in partForm.products">
                   <template v-if="!product.published">
                     <OverlayBadge severity="danger" v-tooltip="'this product is not published'">
                       <Chip :label="product.name"> </Chip>
@@ -754,7 +889,7 @@ const onFormSubmit = ({ valid }: any) => {
               </div>
               <div class="flex gap-2 flex-wrap max-h-40 overflow-y-auto pt-1">
                 <label class="w-full font-bold mb-2">Selected Stand Types:</label>
-                <template v-for="standType in part.standTypes">
+                <template v-for="standType in partForm.standTypes">
                   <Chip :label="standType.name"></Chip>
                 </template>
               </div>
@@ -767,7 +902,19 @@ const onFormSubmit = ({ valid }: any) => {
             <div class="grid grid-cols-2 gap-10">
               <div class="flex flex-col gap-1">
                 <label for="facings">Facings:</label>
-                <InputNumber name="facings" placeholder="Facings" fluid v-model="part.facings" />
+                <InputNumber
+                  name="facings"
+                  placeholder="Facings"
+                  fluid
+                  v-model="partForm.facings"
+                />
+                <Message
+                  v-if="$form.facings?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.facings.error?.message }}</Message
+                >
               </div>
               <div class="flex flex-col gap-1">
                 <label for="Stock">Stock:</label>
@@ -776,8 +923,15 @@ const onFormSubmit = ({ valid }: any) => {
                   type="text"
                   placeholder="Stock"
                   fluid
-                  v-model="part.stock"
+                  v-model="partForm.stock"
                 />
+                <Message
+                  v-if="$form.stock?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.stock.error?.message }}</Message
+                >
               </div>
               <div class="flex flex-col gap-1">
                 <label for="shoppingHeight">Shopping Height:</label>
@@ -785,20 +939,41 @@ const onFormSubmit = ({ valid }: any) => {
                   name="shoppingHeight"
                   placeholder="Shopping Height"
                   fluid
-                  v-model="part.shoppingHeight"
+                  v-model="partForm.shoppingHeight"
                 />
               </div>
               <div class="flex flex-col gap-1">
                 <label for="Height">Height:</label>
-                <InputNumber name="height" placeholder="Height" fluid v-model="part.height" />
+                <InputNumber name="height" placeholder="Height" fluid v-model="partForm.height" />
+                <Message
+                  v-if="$form.height?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.height.error?.message }}</Message
+                >
               </div>
               <div class="flex flex-col gap-1">
                 <label for="width">Width:</label>
-                <InputNumber name="width" placeholder="Width" fluid v-model="part.width" />
+                <InputNumber name="width" placeholder="Width" fluid v-model="partForm.width" />
+                <Message
+                  v-if="$form.width?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.width.error?.message }}</Message
+                >
               </div>
               <div class="flex flex-col gap-1">
                 <label for="depth">Depth:</label>
-                <InputNumber name="depth" placeholder="Depth" fluid v-model="part.depth" />
+                <InputNumber name="depth" placeholder="Depth" fluid v-model="partForm.depth" />
+                <Message
+                  v-if="$form.depth?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.depth.error?.message }}</Message
+                >
               </div>
               <div class="flex flex-col gap-1">
                 <label for="unitCost">Unit Cost:</label>
@@ -806,7 +981,7 @@ const onFormSubmit = ({ valid }: any) => {
                   name="unitCost"
                   placeholder="Unit Cost"
                   fluid
-                  v-model="part.unitCost"
+                  v-model="partForm.unitCost"
                 />
               </div>
               <div class="flex flex-col gap-1">
@@ -816,6 +991,7 @@ const onFormSubmit = ({ valid }: any) => {
                   placeholder="Created Date"
                   fluid
                   v-model="dateCreated"
+                  disabled
                   @date-select="updateDateCreated($event)"
                 />
               </div>

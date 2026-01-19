@@ -1,21 +1,23 @@
 import type { MaybeAccount } from '@/services/Identity/auth'
 import { Auth } from '@/services/Identity/auth'
-import { Graph } from '@/services/Identity/graph'
 import userService from '@/services/Identity/UserService'
 import type { NavigationClient } from '@azure/msal-browser'
+import type { User } from '@microsoft/microsoft-graph-types-beta'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 export const initialized = ref(false)
 export const account = ref<MaybeAccount>(null)
 export const error = ref<string>()
-export const userInfo = ref<any>(null)
+export const userInfo = ref<User | null>(null)
 
 export const useAuthStore = defineStore('auth', () => {
   const error = ref<string>()
   const account = ref<MaybeAccount>(null)
   const initialized = ref(false)
-  const userInfo = ref<any>(null)
+  const userInfo = ref<User | null>(null)
+  const router = useRouter()
   async function initialize(client?: NavigationClient) {
     if (initialized.value === true) {
       return account.value
@@ -32,9 +34,11 @@ export const useAuthStore = defineStore('auth', () => {
     return Auth.login()
       .then(async (data) => {
         account.value = data
-        userInfo.value = await userService.getCurrentUserInfo()
+        await userService.initialise()
+        await userService.getCurrentUserInfo()
         initialized.value = true
         error.value = ''
+        router.push({ name: 'home' })
       })
       .catch((err) => {
         error.value = err.message
@@ -49,9 +53,8 @@ export const useAuthStore = defineStore('auth', () => {
     })
   }
 
-  async function setCurrentlyLoggedInUserInfo() {
-    await userService.initialise()
-    userInfo.value = await userService.getCurrentUserInfo()
+  async function setCurrentlyLoggedInUserInfo(data: User | null) {
+    userInfo.value = data
   }
 
   async function GetToken(): Promise<string> {
@@ -59,7 +62,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function GetGraphToken(): Promise<string> {
-    return Graph.getGraphToken()
+    return Auth.getGraphToken()
   }
   return {
     initialized,

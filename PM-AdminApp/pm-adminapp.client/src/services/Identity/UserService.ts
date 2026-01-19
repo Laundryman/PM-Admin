@@ -1,5 +1,5 @@
 import User from '@/models/Identity/user.model'
-import { Graph, msal } from '@/services/Identity/graph'
+import { Auth, msal } from '@/services/Identity/auth'
 
 import { useAuthStore } from '@/stores/auth'
 import axios from 'axios'
@@ -24,7 +24,9 @@ export default {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
-
+    // if (!authStore.value.initialized) {
+    //   await authStore.value.initialize()
+    // }
     // await apiClient
     //   .get('/get-currently-logged-in-user-info')
     //   .then((response) => {
@@ -37,7 +39,8 @@ export default {
     await apiClient
       .get('/me', {})
       .then((response) => {
-        return response.data
+        console.log('Graph user info response:', response.data)
+        authStore.value.setCurrentlyLoggedInUserInfo(response.data)
       })
       .catch((error) => {
         throw error
@@ -68,7 +71,7 @@ export default {
     if (!authStore.value.initialized) {
       await authStore.value.initialize()
     }
-    const t = await Graph.getGraphToken()
+    const t = await Auth.getGraphToken()
     token.value = t
     console.log('UserService initialized with token:', token.value)
     initialized.value = true

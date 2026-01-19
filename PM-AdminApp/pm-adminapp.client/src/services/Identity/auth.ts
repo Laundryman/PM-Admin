@@ -11,7 +11,6 @@ import {
   NavigationClient,
   PublicClientApplication,
 } from '@azure/msal-browser'
-
 // type
 export type MaybeAccount = AccountInfo | null
 

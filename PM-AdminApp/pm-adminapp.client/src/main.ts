@@ -5,23 +5,14 @@ import './assets/main.css'
 //import '@/assets/styles.scss'
 import '@/assets/styles.scss'
 import 'primeicons/primeicons.css'
-import {
-  AnimateOnScroll,
-  BadgeDirective,
-  Dialog,
-  FocusTrap,
-  Ripple,
-  SelectButton,
-  StyleClass,
-  Tag,
-  Tooltip,
-} from 'primevue'
+import { AnimateOnScroll, BadgeDirective, FocusTrap, Ripple, StyleClass } from 'primevue'
 import Button from 'primevue/button'
 import Chart from 'primevue/chart'
 import Chip from 'primevue/chip'
 import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
 import DatePicker from 'primevue/datepicker'
+import Dialog from 'primevue/dialog'
 import Divider from 'primevue/divider'
 import FileUpload from 'primevue/fileupload'
 import IconField from 'primevue/iconfield'
@@ -30,15 +21,21 @@ import InputIcon from 'primevue/inputicon'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
 import Menu from 'primevue/menu'
+import Message from 'primevue/message'
 import MultiSelect from 'primevue/multiselect'
 import OverlayBadge from 'primevue/overlaybadge'
 import Paginator from 'primevue/paginator'
 import Select from 'primevue/select'
+import SelectButton from 'primevue/selectbutton'
+import Tag from 'primevue/tag'
 import Toast from 'primevue/toast'
 import ToastService from 'primevue/toastservice'
 import ToggleButton from 'primevue/togglebutton'
 import ToggleSwitch from 'primevue/toggleswitch'
+
+import ConfirmationService from 'primevue/confirmationservice'
 import Toolbar from 'primevue/toolbar'
+import Tooltip from 'primevue/tooltip'
 import App from './App.vue'
 import PMAdmin from './planmatrThemePreset'
 import router from './router'
@@ -48,7 +45,7 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 app.use(ToastService)
-
+app.use(ConfirmationService)
 app.use(PrimeVue, {
   theme: {
     preset: PMAdmin,
@@ -86,6 +83,7 @@ app.directive('ripple', Ripple)
 app.directive('styleclass', StyleClass)
 app.directive('focustrap', FocusTrap)
 app.directive('animateonscroll', AnimateOnScroll)
+app.component('Message', Message)
 app.use(ToastService)
 
 declare global {

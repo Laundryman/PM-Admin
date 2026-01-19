@@ -2,10 +2,15 @@
 import type { Brand } from '@/models/Brands/brand.model'
 import { useSystemStore } from '@/stores/systemStore'
 // import Select from 'primevue/select'
+import userService from '@/services/Identity/UserService'
+import { useAuthStore } from '@/stores/auth'
 import { useBrandStore } from '@/stores/brandStore'
 import type { SelectChangeEvent } from 'primevue/select'
 import { onMounted, ref } from 'vue'
 import UserProfile from './UserProfile.vue'
+const auth = useAuthStore()
+const userInfo = auth.userInfo
+console.log('User Info in AppTopbar:', userInfo)
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useSystemStore()
 
 const brandStore = useBrandStore()
@@ -22,11 +27,18 @@ function changeBrand(event: SelectChangeEvent) {
   console.log('Active Brand changed to:', brandStore.activeBrand)
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (!brandStore.brandsLoaded) brandStore.loadBrands()
   if (brandStore.activeBrand != null) {
     selectedBrand.value = brandStore.activeBrand
     selectedBrandId.value = brandStore.activeBrand.id
+  }
+  if (auth.initialized === true) {
+    // no need to load user info again
+    if (!auth.userInfo) {
+      await userService.initialise()
+      await userService.getCurrentUserInfo()
+    }
   }
 })
 </script>
@@ -134,11 +146,6 @@ onMounted(() => {
             </button>
             <UserProfile />
           </div>
-
-          <button type="button" class="layout-topbar-action">
-            <i class="pi pi-user"></i>
-            <span>Profile</span>
-          </button>
         </div>
       </div>
     </div>

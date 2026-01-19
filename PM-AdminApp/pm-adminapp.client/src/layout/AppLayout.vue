@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useAuthStore } from '@/stores/auth'
 import { useSystemStore } from '@/stores/systemStore'
 import { storeToRefs } from 'pinia'
 import { computed, ref, watch } from 'vue'
@@ -9,7 +10,7 @@ import AppTopbar from './AppTopbar.vue'
 const layoutStore = useSystemStore()
 const { layoutConfig, layoutState } = useSystemStore()
 const { isSidebarActive } = storeToRefs(layoutStore)
-
+const auth = useAuthStore()
 const outsideClickListener = ref()
 
 watch(isSidebarActive, (newVal) => {
