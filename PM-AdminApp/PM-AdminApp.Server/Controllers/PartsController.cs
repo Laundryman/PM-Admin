@@ -90,33 +90,9 @@ namespace LMXApi.Controllers
         {
             try
             {
-                //var ptSpec = new PartTypeSpecification();
-                //var partTypes = await _partTypeRepository.ListAsync(ptSpec);
-
-                //var categoryFilter = new CategoryFilter();
-                //categoryFilter.ParentCategory = 0;
-                //var catSpec = new CategorySpecification(categoryFilter);
-                //var categories = await _categoryRepository.ListAsync(catSpec);
-
-                //var spec = new PartSpecification(_mapper.Map<PartFilter>(filterDto));
                 var parts = await _partRepository.SearchParts(filterDto);
-                //var countFilter = filterDto;
-                //countFilter.IsPagingEnabled = false;
-                //var countSpec = new PartSpecification(_mapper.Map<PartFilter>(countFilter));
-                //int totalItems = await _partRepository.CountAsync(countSpec);
-
                 _logger.LogInformation($"Returned all parts from database.");
-                //var ownersResult = _mapper.Map<IEnumerable<OwnerDto>>(owners);
-                //return Ok(ownersResult);
 
-                
-                //var response = _mapper.Map<List<SearchPartListDto>>(parts);
-                //update partTypenames here
-                //response.Page = new Page();
-                //response.Page.PageNumber = filterDto.Page;
-                //response.Page.TotalItems = totalItems;
-                //response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);
-                //response.Page.Size = filterDto.PageSize;
                 return Ok(parts);
             }
             catch (Exception ex)

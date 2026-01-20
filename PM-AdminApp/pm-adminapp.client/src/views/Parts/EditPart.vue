@@ -18,10 +18,11 @@ import { useBrandStore } from '@/stores/brandStore'
 import { usePartStore } from '@/stores/partStore'
 import { useProductStore } from '@/stores/productStore'
 import { useSystemStore } from '@/stores/systemStore'
+import type { FormInstance } from '@primevue/forms'
 import { Form } from '@primevue/forms'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
 
 const cassetteRenderUrl = import.meta.env.VITE_APP_CASSETTERENDER_URL
@@ -67,28 +68,33 @@ const renderFile = ref<File | null>(null)
 // const icon = ref<string | null>(null)
 const iconFile = ref<File | null>(null)
 
+const partform = useTemplateRef<FormInstance>('part-form')
 const { part } = storeToRefs(partStore)
-const partForm = ref<Part>(new Part())
+const partModel = ref<Part>(new Part())
 
-const initialValues = reactive({
-  ...partForm.value,
-})
+const initialValues = ref(new Part())
+
+//const initialValues = ref({})
 onMounted(async () => {
   var partFilter = new PartFilter()
   partFilter.Id = Number(router.currentRoute.value.params.id) || 0
   await partStore.initialize(partFilter)
-  console.log('Editing Part:', partForm.value)
+  console.log('Editing Part:', partModel.value)
   console.log('Part Store Part:', part.value)
-  partForm.value = { ...part.value } as Part //clone(part.value)
-  selectedParentCategoryId.value = partForm.value.parentCategoryId || null
-  dateCreated.value = new Date(partForm.value.dateCreated) //added to bind date picker
+  partModel.value = { ...part.value } as Part //clone(part.value)
+  initialisePartForm()
+  // initialValues.value = { ...partForm.value } //set initial values for form
+  setInitialFormValues()
+  console.log('Part Form initialized:', initialValues.value)
+  selectedParentCategoryId.value = partModel.value.parentCategoryId || null
+  dateCreated.value = new Date(partModel.value.dateCreated) //added to bind date picker
   if (selectedParentCategoryId.value) {
     await categoryFilters.getChildCategories(selectedParentCategoryId.value).then((response) => {
       childCategories.value = response
       console.log('Child Categories loaded', childCategories.value)
     })
   }
-  selectedChildCategory.value = partForm.value.categoryId || null
+  selectedChildCategory.value = partModel.value.categoryId || null
   let brandid = brandStore.activeBrand?.id ?? 0
   let rFilter = new regionFilter()
   rFilter.brandId = brandid
@@ -108,13 +114,13 @@ onMounted(async () => {
 
   await standTypeComposable.getPartStandTypes().then((response) => {
     standTypesList.value = response
-    selectedStandTypes.value = partForm.value.standTypes.map((st: StandType) => st.id)
+    selectedStandTypes.value = partModel.value.standTypes.map((st: StandType) => st.id)
     console.log('Stand Types loaded', standTypesList.value)
   })
 
   let productFilter = new ProductFilter()
   productFilter.brandId = brandid
-  productFilter.categoryId = partForm.value.categoryId || 0
+  productFilter.categoryId = partModel.value.categoryId || 0
   await productStore.getProductsByCategory(productFilter).then((response) => {
     ms_productList.value = response ?? null
     console.log('Products loaded', ms_productList.value)
@@ -123,9 +129,17 @@ onMounted(async () => {
   selectedProducts.value = mapPubishedProducts()
 })
 
+function initialisePartForm() {
+  partform.value?.setValues({ ...partModel.value })
+}
+
 function mapPubishedProducts() {
-  let publishedProducts = partForm.value.products.filter((p: Product) => p.published === true)
+  let publishedProducts = partModel.value.products.filter((p: Product) => p.published === true)
   return publishedProducts.map((p: Product) => p.id)
+}
+
+function setInitialFormValues() {
+  initialValues.value = { ...partModel.value }
 }
 
 /////////////////////////////////////////////////////
@@ -215,37 +229,9 @@ async function onRegionChange() {
   }
 }
 
-// function manageSelectedCountries(selectValues: number[]) {
-//   if (selectValues.length > 0 && selectValues.length >= (part.value?.countries.length ?? 0)) {
-//     // You can implement additional logic here if needed
-//     for (const cntryId of selectValues) {
-//       let foundCountry = part.value.countries.find((c) => c.id === cntryId)
-//       if (!foundCountry) {
-//         let cntry = countrySelectList.value?.find((c) => c.id === cntryId)
-//         if (cntry) part.value.countries?.push(cntry)
-//       }
-//     }
-//   } else {
-//     if (selectValues.length <= (part.value?.countries.length ?? 0)) {
-//       let countriesToRemove = new Array<number>()
-//       for (const country of part.value.countries ?? []) {
-//         let index = selectValues.indexOf(country.id) //if it's been removed
-//         if (index == -1) {
-//           countriesToRemove.push(country.id)
-//         }
-//       }
-//       for (const cntryId of countriesToRemove) {
-//         let removeIndex = part.value.countries.findIndex((c) => c.id === cntryId)
-//         if (removeIndex !== -1) {
-//           part.value.countries.splice(removeIndex, 1)
-//         }
-//       }
-//     }
-//   }
-// }
 async function onCountryChange(evt: any) {
   // manageSelectedCountries(evt.value)
-  manageSelectedValues(evt.value, countrySelectList.value ?? [], partForm.value.countries ?? [])
+  manageSelectedValues(evt.value, countrySelectList.value ?? [], partModel.value.countries ?? [])
 }
 
 function onSelectAllCountriesChange(event: any) {
@@ -257,13 +243,13 @@ function onSelectAllCountriesChange(event: any) {
   manageSelectedValues(
     ms_selectedCountries.value,
     countrySelectList.value ?? [],
-    partForm.value.countries ?? [],
+    partModel.value.countries ?? [],
   )
 }
 
 function clearCountrySelection() {
   ms_selectedCountries.value = []
-  partForm.value.countries = []
+  partModel.value.countries = []
 }
 
 ////////////////////////////////////////////////////
@@ -274,7 +260,7 @@ function onPackShotSelect(event: any) {
   const reader = new FileReader()
   reader.onload = async (e) => {
     // packShot.value = e.target?.result as string
-    partForm.value.packShotImageSrc = e.target?.result as string
+    partModel.value.packShotImageSrc = e.target?.result as string
   }
 
   reader.readAsDataURL(packShotFile.value!)
@@ -284,7 +270,7 @@ function onRenderSelect(event: any) {
   const reader = new FileReader()
   reader.onload = async (e) => {
     // renderImg.value = e.target?.result as string
-    partForm.value.render2dImage = e.target?.result as string
+    partModel.value.render2dImage = e.target?.result as string
   }
 
   reader.readAsDataURL(renderFile.value!)
@@ -294,7 +280,7 @@ function onIconSelect(event: any) {
   const reader = new FileReader()
   reader.onload = async (e) => {
     // icon.value = e.target?.result as string
-    partForm.value.svgLineGraphic = e.target?.result as string
+    partModel.value.svgLineGraphic = e.target?.result as string
   }
 
   reader.readAsDataURL(iconFile.value!)
@@ -337,7 +323,7 @@ function onIconSelect(event: any) {
 
 async function onProductChange(evt: any) {
   // manageSelectedProducts(evt.value)
-  manageSelectedValues(evt.value, ms_productList.value ?? [], partForm.value.products ?? [])
+  manageSelectedValues(evt.value, ms_productList.value ?? [], partModel.value.products ?? [])
 }
 
 function onSelectAllProductsChange(event: any) {
@@ -347,12 +333,12 @@ function onSelectAllProductsChange(event: any) {
   manageSelectedValues(
     selectedProducts.value,
     ms_productList.value ?? [],
-    partForm.value.products ?? [],
+    partModel.value.products ?? [],
   )
 }
 
 function clearProductSelection() {
-  partForm.value.products = []
+  partModel.value.products = []
   selectedProducts.value = []
 }
 
@@ -390,7 +376,7 @@ function clearProductSelection() {
 
 function onStandTypeChange(evt: any) {
   // manageSelectedStandTypes(evt.value)
-  manageSelectedValues(evt.value, standTypesList.value ?? [], partForm.value.standTypes ?? [])
+  manageSelectedValues(evt.value, standTypesList.value ?? [], partModel.value.standTypes ?? [])
 }
 
 function onSelectAllStandTypesChange(event: any) {
@@ -399,12 +385,12 @@ function onSelectAllStandTypesChange(event: any) {
   manageSelectedValues(
     selectedStandTypes.value,
     standTypesList.value ?? [],
-    partForm.value.standTypes ?? [],
+    partModel.value.standTypes ?? [],
   )
 }
 
 function clearStandTypeSelection() {
-  partForm.value.standTypes = []
+  partModel.value.standTypes = []
   selectedStandTypes.value = []
 }
 
@@ -490,12 +476,13 @@ const onFormSubmit = ({ valid }: any) => {
     <div class="w-full sticky bg-white top-16 block p-10 z-10">
       <h2>Edit Part</h2>
       <div class="card flex flex-col gap-2">
-        <span class="font-bold text-xl">{{ partForm.name }}</span>
-        <span class="text-gray-600">Part No: {{ partForm.partNumber }}</span>
+        <span class="font-bold text-xl">{{ partModel.name }}</span>
+        <span class="text-gray-600">Part No: {{ partModel.partNumber }}</span>
       </div>
     </div>
     <div class="card grid grid-cols-1 gap-4 justify-center">
       <Form
+        ref="part-form"
         v-slot="$form"
         :initialValues
         :resolver
@@ -509,7 +496,8 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-1">
                 <label for="published">Published:</label>
                 <ToggleButton
-                  v-model="partForm.published"
+                  name="published"
+                  v-model="partModel.published"
                   onLabel="Yes"
                   offLabel="No"
                   onIcon="pi pi-check"
@@ -520,7 +508,8 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-1">
                 <label for="discontinued">Discontinued:</label>
                 <ToggleButton
-                  v-model="partForm.discontinued"
+                  name="discontinued"
+                  v-model="partModel.discontinued"
                   onLabel="Yes"
                   offLabel="No"
                   onIcon="pi pi-check"
@@ -538,8 +527,9 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-1">
                 <label for="name">Part Name:</label>
                 <InputText
-                  v-model="partForm.name"
+                  v-model="partModel.name"
                   name="name"
+                  :value="partModel.name"
                   type="text"
                   length="255"
                   placeholder="Part Name"
@@ -556,7 +546,7 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-1">
                 <label for="customerReference">Customer Reference:</label>
                 <InputText
-                  v-model="partForm.customerRefNo"
+                  v-model="partModel.customerRefNo"
                   name="customerReference"
                   type="text"
                   placeholder="Customer Reference"
@@ -574,7 +564,7 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-1">
                 <label for="partNumber">Part Number:</label>
                 <InputText
-                  v-model="partForm.partNumber"
+                  v-model="partModel.partNumber"
                   name="partNumber"
                   type="text"
                   placeholder="Part Number"
@@ -585,7 +575,7 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-1">
                 <label for="altPartNumber">Alt Part Number:</label>
                 <InputText
-                  v-model="partForm.altPartNumber"
+                  v-model="partModel.altPartNumber"
                   name="altPartNumber"
                   type="text"
                   placeholder="Alt Part Number"
@@ -597,7 +587,7 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-1">
                 <label for="description">Description:</label>
                 <InputText
-                  v-model="partForm.description"
+                  v-model="partModel.description"
                   name="description"
                   type="text"
                   length="255"
@@ -622,7 +612,7 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-1">
                 <!-- <div class="card flex flex-wrap gap-6 items-center justify-between"> -->
                 <label for="svgLineGraphic">Cassette Icon:</label>
-                <div v-html="partForm.svgLineGraphic" class="cassette-icon max-w-40"></div>
+                <div v-html="partModel.svgLineGraphic" class="cassette-icon max-w-40"></div>
                 <FileUpload
                   name="svgLineGraphic"
                   ref="fileupload"
@@ -637,8 +627,8 @@ const onFormSubmit = ({ valid }: any) => {
                 <!-- <div class="card flex flex-wrap gap-6 items-center justify-between"> -->
                 <label for="packShotImgSrc">Cassette Image:</label>
                 <img
-                  v-if="partForm.packShotImageSrc != null"
-                  :src="cassettePhotoUrl + partForm.packShotImageSrc"
+                  v-if="partModel.packShotImageSrc != null"
+                  :src="cassettePhotoUrl + partModel.packShotImageSrc"
                   alt="Pack Shot"
                   class="block m-auto pb-4 max-h-60"
                 />
@@ -657,8 +647,8 @@ const onFormSubmit = ({ valid }: any) => {
                 <label for="render2dImage">Planogram 2d Render:</label>
                 <!-- <InputText name="render2dImage" type="text" placeholder="Planogram 2d Render" fluid /> -->
                 <img
-                  v-if="partForm.render2dImage != null"
-                  :src="cassetteRenderUrl + partForm.render2dImage"
+                  v-if="partModel.render2dImage != null"
+                  :src="cassetteRenderUrl + partModel.render2dImage"
                   alt="Pack Shot"
                   class="block m-auto pb-4 max-h-60"
                 />
@@ -682,6 +672,7 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-2">
                 <label for="region">Region:</label>
                 <Select
+                  name="region"
                   v-model="selectedRegion"
                   :options="regions ?? []"
                   id="region"
@@ -700,6 +691,7 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-2">
                 <label for="country">Country:</label>
                 <MultiSelect
+                  name="countries"
                   v-model="ms_selectedCountries"
                   :options="countrySelectList ?? []"
                   id="country"
@@ -730,7 +722,7 @@ const onFormSubmit = ({ valid }: any) => {
                   class="w-text-left"
                   @click="clearCountrySelection"
                 />
-                <template v-for="country in partForm.countries">
+                <template v-for="country in partModel.countries">
                   <Chip class="flex-wrap" :label="country.name"></Chip>
                 </template>
               </div>
@@ -744,6 +736,7 @@ const onFormSubmit = ({ valid }: any) => {
               <div class="flex flex-col gap-2">
                 <label for="parentCategory">Parent Category:</label>
                 <Select
+                  name="ParentCategory"
                   v-model="selectedParentCategoryId"
                   :options="parentCategories ?? []"
                   @change="onParentCategoryChange"
@@ -771,6 +764,7 @@ const onFormSubmit = ({ valid }: any) => {
                 <Select
                   v-model="selectedChildCategory"
                   :options="childCategories ?? []"
+                  name="childCategory"
                   id="childCategory"
                   class="w-full"
                   option-label="name"
@@ -797,6 +791,7 @@ const onFormSubmit = ({ valid }: any) => {
                   v-model="selectedPartType"
                   :options="partTypes ?? []"
                   id="partType"
+                  name="partType"
                   class="w-full"
                   option-label="name"
                   option-value="id"
@@ -828,6 +823,7 @@ const onFormSubmit = ({ valid }: any) => {
                   v-model="selectedProducts"
                   :options="ms_productList ?? []"
                   id="products"
+                  name="products"
                   class="w-full"
                   option-label="name"
                   option-value="id"
@@ -844,12 +840,12 @@ const onFormSubmit = ({ valid }: any) => {
               </div>
               <div class="flex gap-2 flex-wrap max-h-40 overflow-y-auto pt-1">
                 <Button
-                  v-if="partForm.products?.length > 0"
+                  v-if="partModel.products?.length > 0"
                   label="Clear Selection"
                   class="w-text-left h-10"
                   @click="clearProductSelection"
                 />
-                <template v-for="product in partForm.products">
+                <template v-for="product in partModel.products">
                   <template v-if="!product.published">
                     <OverlayBadge severity="danger" v-tooltip="'this product is not published'">
                       <Chip :label="product.name"> </Chip>
@@ -873,6 +869,7 @@ const onFormSubmit = ({ valid }: any) => {
                   v-model="selectedStandTypes"
                   :options="standTypesList ?? []"
                   id="standType"
+                  name="standType"
                   class="w-full"
                   option-label="name"
                   option-value="id"
@@ -889,7 +886,7 @@ const onFormSubmit = ({ valid }: any) => {
               </div>
               <div class="flex gap-2 flex-wrap max-h-40 overflow-y-auto pt-1">
                 <label class="w-full font-bold mb-2">Selected Stand Types:</label>
-                <template v-for="standType in partForm.standTypes">
+                <template v-for="standType in partModel.standTypes">
                   <Chip :label="standType.name"></Chip>
                 </template>
               </div>
@@ -906,7 +903,7 @@ const onFormSubmit = ({ valid }: any) => {
                   name="facings"
                   placeholder="Facings"
                   fluid
-                  v-model="partForm.facings"
+                  v-model="partModel.facings"
                 />
                 <Message
                   v-if="$form.facings?.invalid"
@@ -923,7 +920,7 @@ const onFormSubmit = ({ valid }: any) => {
                   type="text"
                   placeholder="Stock"
                   fluid
-                  v-model="partForm.stock"
+                  v-model="partModel.stock"
                 />
                 <Message
                   v-if="$form.stock?.invalid"
@@ -939,12 +936,12 @@ const onFormSubmit = ({ valid }: any) => {
                   name="shoppingHeight"
                   placeholder="Shopping Height"
                   fluid
-                  v-model="partForm.shoppingHeight"
+                  v-model="partModel.shoppingHeight"
                 />
               </div>
               <div class="flex flex-col gap-1">
                 <label for="Height">Height:</label>
-                <InputNumber name="height" placeholder="Height" fluid v-model="partForm.height" />
+                <InputNumber name="height" placeholder="Height" fluid v-model="partModel.height" />
                 <Message
                   v-if="$form.height?.invalid"
                   severity="error"
@@ -955,7 +952,7 @@ const onFormSubmit = ({ valid }: any) => {
               </div>
               <div class="flex flex-col gap-1">
                 <label for="width">Width:</label>
-                <InputNumber name="width" placeholder="Width" fluid v-model="partForm.width" />
+                <InputNumber name="width" placeholder="Width" fluid v-model="partModel.width" />
                 <Message
                   v-if="$form.width?.invalid"
                   severity="error"
@@ -966,7 +963,7 @@ const onFormSubmit = ({ valid }: any) => {
               </div>
               <div class="flex flex-col gap-1">
                 <label for="depth">Depth:</label>
-                <InputNumber name="depth" placeholder="Depth" fluid v-model="partForm.depth" />
+                <InputNumber name="depth" placeholder="Depth" fluid v-model="partModel.depth" />
                 <Message
                   v-if="$form.depth?.invalid"
                   severity="error"
@@ -981,7 +978,7 @@ const onFormSubmit = ({ valid }: any) => {
                   name="unitCost"
                   placeholder="Unit Cost"
                   fluid
-                  v-model="partForm.unitCost"
+                  v-model="partModel.unitCost"
                 />
               </div>
               <div class="flex flex-col gap-1">
