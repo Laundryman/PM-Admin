@@ -227,8 +227,8 @@ namespace LMXApi.Controllers
                 //update childItems here
                 UpdatePartCountryCollection(dbPart, partEdit);
                 UpdatePartProductsCollection(dbPart, partEdit);
-                UpdatePartTypesCollection(dbPart, partEdit);
-
+                UpdateStandTypesCollection(dbPart, partEdit);
+                UpdateRegionsCollection(dbPart, partEdit);
 
 
                 await _partAsyncRepository.UpdateAsync(dbPart);
@@ -293,6 +293,9 @@ namespace LMXApi.Controllers
                     origPart.Countries.Remove(origCountry);
                 }
             }
+
+            //update Part.CountryList string
+            origPart.CountriesList = string.Join(",", origPart.Countries.Select(c => c.Id));
         }
 
         private void UpdatePartProductsCollection(Part origPart, PartDto updatePart)
@@ -316,7 +319,7 @@ namespace LMXApi.Controllers
             }
         }
 
-        private void UpdatePartTypesCollection(Part origPart, PartDto updatePart)
+        private void UpdateStandTypesCollection(Part origPart, PartDto updatePart)
         {
             foreach (var standType in updatePart.StandTypes)
             {
@@ -335,6 +338,31 @@ namespace LMXApi.Controllers
                     origPart.StandTypes.Remove(origStandType);
                 }
             }
+        }
+
+
+        private void UpdateRegionsCollection(Part origPart, PartDto updatePart)
+        {
+            foreach (var region in updatePart.Regions)
+            {
+                var origRegion = origPart.Regions.FirstOrDefault(r => r.Id == region.Id);
+                if (origRegion == null)
+                {
+                    origPart.Regions.Add(_mapper.Map<Region>(region));
+                }
+            }
+            for (int i = origPart.Regions.Count - 1; i >= 0; i--)
+            {
+                var origRegion = origPart.Regions[i];
+                var updatedRegion = updatePart.Regions.FirstOrDefault(r => r.Id == origRegion.Id);
+                if (updatedRegion == null)
+                {
+                    origPart.Regions.Remove(origRegion);
+                }
+            }
+
+            //update Part.RegionList string
+            origPart.RegionsList = string.Join(",", origPart.Regions.Select(r => r.Id));
         }
 
         ///Consider this perhaps -> https://medium.com/@hamidmusayev/synchronizing-entity-framework-core-child-collections-a-clean-and-reusable-approach-2ebd8e853f4d

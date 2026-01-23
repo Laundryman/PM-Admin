@@ -198,20 +198,23 @@ function manageSelectedValues(
         if (item) targetArray?.push(item)
       }
     }
-    let selectedValuesToRemove = new Array<number>()
-    for (const item of targetArray ?? []) {
-      let index = selectedValues.indexOf(item.id) //if it's been removed
-      if (index == -1) {
-        // let foundItem = availableValues.find((st) => st.id === item.id)
-        // if (!foundItem)
-        if (item.published === true) selectedValuesToRemove.push(item.id)
+  }
+  let selectedValuesToRemove = new Array<number>()
+  for (const item of targetArray ?? []) {
+    let index = selectedValues.indexOf(item.id) //if it's been removed
+    if (index == -1) {
+      // let foundItem = availableValues.find((st) => st.id === item.id)
+      // if (!foundItem)
+      var published = item.published ?? true
+      if (published === true) {
+        selectedValuesToRemove.push(item.id)
       }
     }
-    for (const stId of selectedValuesToRemove) {
-      let removeIndex = targetArray.findIndex((st) => st.id === stId)
-      if (removeIndex !== -1) {
-        targetArray.splice(removeIndex, 1)
-      }
+  }
+  for (const stId of selectedValuesToRemove) {
+    let removeIndex = targetArray.findIndex((st) => st.id === stId)
+    if (removeIndex !== -1) {
+      targetArray.splice(removeIndex, 1)
     }
   }
 }
@@ -319,6 +322,17 @@ function onSelectAllProductsChange(event: any) {
 function clearProductSelection() {
   partModel.value.products = []
   selectedProducts.value = []
+}
+
+/////////////////////////////////////////////////////
+// Part Type Handlers
+////////////////////////////////////////////////////
+
+function onPartTypeChange(evt: any) {
+  let selectedId = evt.value as number
+  let selectedPartTypeItem = partTypes.value?.find((pt) => pt.id === selectedId) as PartType
+  partModel.value.partTypeId = selectedPartTypeItem.id
+  partModel.value.PartType = selectedPartTypeItem
 }
 
 /////////////////////////////////////////////////////
@@ -747,6 +761,7 @@ async function onFormSubmit({ valid }: any) {
                   class="w-full"
                   option-label="name"
                   option-value="id"
+                  @change="onPartTypeChange"
                 >
                   <template #option="option">
                     <div class="flex align-items-center">

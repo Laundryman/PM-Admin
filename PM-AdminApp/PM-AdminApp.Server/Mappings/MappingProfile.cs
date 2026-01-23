@@ -63,6 +63,7 @@ namespace PM_AdminApp.Server.Mappings
 
             CreateMap<RegionsFilterDto, RegionFilter>();
             CreateMap<Region, RegionDto>();
+            CreateMap<RegionDto, Region>();
 
             CreateMap<ShadeFilterDto, ShadeFilter>();
             CreateMap<Shade, ShadeDto>();

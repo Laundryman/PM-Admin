@@ -44,7 +44,9 @@ namespace PM_AdminApp.Server.Mappings
                 .ForMember(dest => dest.DmiReco, opt => opt.MapFrom(src => src.DmiReco))
                 .ForMember(dest => dest.Products, opt => opt.Ignore())
                 .ForMember(dest => dest.Countries, opt => opt.Ignore())
-                .ForMember(dest => dest.StandTypes, opt => opt.Ignore());
+                .ForMember(dest => dest.StandTypes, opt => opt.Ignore())
+                .ForMember(dest => dest.PartType, opt => opt.Ignore())
+                .ForMember(dest => dest.Regions, opt => opt.Ignore());
 
 
             //.ForMember(dest => dest.HidePrices, opt => opt.MapFrom(src => src.HidePrices))
