@@ -8,7 +8,7 @@ import { ref } from 'vue'
 export const usePartStore = defineStore('partStore', () => {
   const error = ref<string>()
   const part = ref<Part>(new Part())
-  const products = ref<Product[]>()
+  // const products = ref<Product[]>()
   const initialized = ref(false)
   const activeProduct = ref<Product>()
 
@@ -26,7 +26,19 @@ export const usePartStore = defineStore('partStore', () => {
       })
   }
 
-  return { part, error, initialize, activeProduct }
+  async function savePart(updatedPart: Part): Promise<void> {
+    await partService.initialise()
+
+    await partService
+      .savePart(updatedPart)
+      .then((data) => {
+        part.value = data
+      })
+      .catch((err) => {
+        error.value = err.message
+      })
+  }
+  return { part, error, initialize, activeProduct, savePart }
 })
 
 if (import.meta.hot) {

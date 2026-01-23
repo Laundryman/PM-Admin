@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth'
+import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
 import { storeToRefs } from 'pinia'
 import { computed, ref, watch } from 'vue'
@@ -8,6 +9,8 @@ import AppSidebar from './AppSidebar.vue'
 import AppTopbar from './AppTopbar.vue'
 
 const layoutStore = useSystemStore()
+const brandStore = useBrandStore()
+
 const { layoutConfig, layoutState } = useSystemStore()
 const { isSidebarActive } = storeToRefs(layoutStore)
 const auth = useAuthStore()

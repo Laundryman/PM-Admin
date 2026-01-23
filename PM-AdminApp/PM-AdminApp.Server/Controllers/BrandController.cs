@@ -19,7 +19,7 @@ using static PMApplication.Services.AzureBlobService;
 
 namespace PM_AdminApp.Server.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/brands/[action]")]
     [ApiController]
     public class BrandController : ControllerBase

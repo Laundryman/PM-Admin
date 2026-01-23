@@ -26,7 +26,7 @@ export const useBrandStore = defineStore('brandStore', () => {
         // }
         // console.log('Brand Options:', brandOptionsLocal)
         // brandOptions.value = brandOptionsLocal
-        activeBrand.value = null //brands.value[0]
+        console.log('active brand before check:', activeBrand.value)
         loadingBrands.value = false
         brandsLoaded.value = true
         selectBrandPH.value = 'Select a Brand'

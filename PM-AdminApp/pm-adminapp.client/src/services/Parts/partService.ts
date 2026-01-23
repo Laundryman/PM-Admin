@@ -46,6 +46,18 @@ export const partService = {
     // }
   },
 
+  async savePart(part: Part): Promise<Part> {
+    // if (initialized.value !== false) {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    let response = await apiClient.post('/savePart', part)
+    return response.data
+    // } else {
+    //   throw new Error('PartService not initialized')
+    // }
+  },
+
   async initialise() {
     const authStore = useAuthStore()
     if (!authStore.initialized) {

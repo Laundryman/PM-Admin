@@ -34,5 +34,23 @@ export function useLocationFilters() {
     return countries.value
   }
 
-  return { regions, countries, getRegions, onRegionChange }
+  async function getCountriesForRegions(selectedRegions: number[] | null) {
+    if (selectedRegions && selectedRegions.length > 0) {
+      await countryService
+        .initialise()
+        .catch((error) => console.error('Error initializing Country Service:', error))
+      let allCountries: Country[] = []
+      for (const regionId of selectedRegions) {
+        const response = await countryService.getCountries(regionId, '')
+        allCountries = allCountries.concat(response)
+      }
+      countries.value = allCountries
+      console.log('Countries loaded for regions', selectedRegions, countries.value)
+    } else {
+      countries.value = []
+    }
+    return countries.value
+  }
+
+  return { regions, countries, getRegions, onRegionChange, getCountriesForRegions }
 }

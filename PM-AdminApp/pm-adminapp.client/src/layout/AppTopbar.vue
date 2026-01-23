@@ -20,15 +20,17 @@ const layout = useSystemStore()
 const selectedBrand = ref<Brand | null>(null)
 const selectedBrandId = ref<number | null>(null)
 
-function changeBrand(event: SelectChangeEvent) {
-  const brand = brandStore.brands.find((b: Brand) => b.id === event.value)
+async function changeBrand(event: SelectChangeEvent) {
+  const brand = await brandStore.brands.find((b: Brand) => b.id === event.value)
 
   brandStore.activeBrand = brand ?? null
   console.log('Active Brand changed to:', brandStore.activeBrand)
 }
 
 onMounted(async () => {
-  if (!brandStore.brandsLoaded) brandStore.loadBrands()
+  if (!brandStore.brandsLoaded) await brandStore.loadBrands()
+  console.log('Brands loaded:', brandStore.brands)
+  console.log('Active Brand on mount:', brandStore.activeBrand)
   if (brandStore.activeBrand != null) {
     selectedBrand.value = brandStore.activeBrand
     selectedBrandId.value = brandStore.activeBrand.id

@@ -40,15 +40,16 @@ const router = useRouter()
 
 const brand = storeToRefs(layout).getActiveBrand
 const toast = useToast()
-const regions = ref<Region[] | null>(null)
+const regionSelectList = ref<Region[] | null>(null)
 const selectedRegion = ref()
+const ms_selectedRegions = ref<number[] | null>(null) // MultiSelect binding
 const ms_selectedCountries = ref<number[] | null>(null) // MultiSelect binding
 const selectAllCountries = ref(false)
 const selectAllProducts = ref(false)
 const selectAllStandTypes = ref(false)
 
 const partTypes = ref<{ id: number; name: string }[] | null>(null)
-const selectedPartType = ref<PartType | null>(null)
+const selectedPartType = ref<number | null>(null)
 const countrySelectList = ref<Country[] | null>(null)
 const parentCategories = ref<Category[] | null>(null)
 const childCategories = ref<Category[] | null>(null)
@@ -79,15 +80,13 @@ onMounted(async () => {
   var partFilter = new PartFilter()
   partFilter.Id = Number(router.currentRoute.value.params.id) || 0
   await partStore.initialize(partFilter)
-  console.log('Editing Part:', partModel.value)
-  console.log('Part Store Part:', part.value)
   partModel.value = { ...part.value } as Part //clone(part.value)
-  initialisePartForm()
-  // initialValues.value = { ...partForm.value } //set initial values for form
-  setInitialFormValues()
-  console.log('Part Form initialized:', initialValues.value)
   selectedParentCategoryId.value = partModel.value.parentCategoryId || null
+  ms_selectedRegions.value = partModel.value.regions.map((c) => c.id)
+  countrySelectList.value = await locationFilters.getCountriesForRegions(ms_selectedRegions.value)
+  ms_selectedCountries.value = partModel.value.countries.map((c) => c.id)
   dateCreated.value = new Date(partModel.value.dateCreated) //added to bind date picker
+
   if (selectedParentCategoryId.value) {
     await categoryFilters.getChildCategories(selectedParentCategoryId.value).then((response) => {
       childCategories.value = response
@@ -99,7 +98,7 @@ onMounted(async () => {
   let rFilter = new regionFilter()
   rFilter.brandId = brandid
   await locationFilters.getRegions(rFilter).then((response) => {
-    regions.value = response
+    regionSelectList.value = response
   })
 
   await categoryFilters.getParentCategories().then((response) => {
@@ -110,12 +109,19 @@ onMounted(async () => {
   await partTypeComposable.getPartTypes().then((response) => {
     partTypes.value = response
     console.log('Part Types loaded', partTypes.value)
+    partModel.value.PartType = partTypes.value?.find(
+      (pt) => pt.id === partModel.value.partTypeId,
+    ) as PartType
+    selectedPartType.value = partModel.value.PartType.id
   })
 
   await standTypeComposable.getPartStandTypes().then((response) => {
     standTypesList.value = response
     selectedStandTypes.value = partModel.value.standTypes.map((st: StandType) => st.id)
     console.log('Stand Types loaded', standTypesList.value)
+    partModel.value.standTypes = standTypesList.value?.filter((st) =>
+      selectedStandTypes.value?.includes(st.id),
+    ) as StandType[]
   })
 
   let productFilter = new ProductFilter()
@@ -127,19 +133,22 @@ onMounted(async () => {
   })
 
   selectedProducts.value = mapPubishedProducts()
+  initialisePartForm()
 })
 
 function initialisePartForm() {
   partform.value?.setValues({ ...partModel.value })
+  partform.value?.setFieldValue('countries', [])
+
+  //default the selection to ALL COUNTRIES LP - so user sees something
+  // selectedRegion.value =
+  //   regionSelectList.value?.find((region) => region.name === 'ALL COUNTRIES LP')?.id || null
+  // onRegionChange()
 }
 
 function mapPubishedProducts() {
   let publishedProducts = partModel.value.products.filter((p: Product) => p.published === true)
   return publishedProducts.map((p: Product) => p.id)
-}
-
-function setInitialFormValues() {
-  initialValues.value = { ...partModel.value }
 }
 
 /////////////////////////////////////////////////////
@@ -180,29 +189,28 @@ function manageSelectedValues(
   availableValues: any[],
   targetArray: any[],
 ) {
-  if (selectedValues.length > 0 && selectedValues.length >= (targetArray.length ?? 0)) {
-    for (const standTypeId of selectedValues) {
-      let foundStandType = targetArray.find((st) => st.id === standTypeId)
-      if (!foundStandType) {
+  if (selectedValues.length > 0) {
+    for (const valueId of selectedValues) {
+      let foundValue = targetArray.find((st) => st.id === valueId)
+      if (!foundValue) {
         //handling unpublished items in the target array
-        let standType = availableValues?.find((st) => st.id === standTypeId)
-        if (standType) targetArray?.push(standType)
+        let item = availableValues?.find((st) => st.id === valueId)
+        if (item) targetArray?.push(item)
       }
     }
-  } else {
-    if (selectedValues.length <= (targetArray.length ?? 0)) {
-      let selectedValuesToRemove = new Array<number>()
-      for (const standType of targetArray ?? []) {
-        let index = selectedValues.indexOf(standType.id) //if it's been removed
-        if (index == -1) {
-          selectedValuesToRemove.push(standType.id)
-        }
+    let selectedValuesToRemove = new Array<number>()
+    for (const item of targetArray ?? []) {
+      let index = selectedValues.indexOf(item.id) //if it's been removed
+      if (index == -1) {
+        // let foundItem = availableValues.find((st) => st.id === item.id)
+        // if (!foundItem)
+        if (item.published === true) selectedValuesToRemove.push(item.id)
       }
-      for (const stId of selectedValuesToRemove) {
-        let removeIndex = targetArray.findIndex((st) => st.id === stId)
-        if (removeIndex !== -1) {
-          targetArray.splice(removeIndex, 1)
-        }
+    }
+    for (const stId of selectedValuesToRemove) {
+      let removeIndex = targetArray.findIndex((st) => st.id === stId)
+      if (removeIndex !== -1) {
+        targetArray.splice(removeIndex, 1)
       }
     }
   }
@@ -212,21 +220,23 @@ function manageSelectedValues(
 // Location Handlers
 ////////////////////////////////////////////////////
 
-async function onRegionChange() {
-  if (selectedRegion.value) {
-    countrySelectList.value = await locationFilters.onRegionChange(selectedRegion.value)
-    ms_selectedCountries.value = []
-    if (countrySelectList.value) {
-      for (const cntry of countrySelectList.value) {
-        let foundCountry = part.value.countries.find((c) => c.id === cntry.id)
-        if (foundCountry) {
-          ms_selectedCountries.value.push(cntry.id)
-        }
-      }
-    }
+async function onRegionChange(evt: any) {
+  countrySelectList.value = await locationFilters.getCountriesForRegions(ms_selectedRegions.value)
+  //remove any countries no longer in the list
+  let newSelectList = ms_selectedCountries.value?.filter((countryId) =>
+    countrySelectList.value?.some((c) => c.id === countryId),
+  )
+  if (newSelectList) {
+    ms_selectedCountries.value = newSelectList
   } else {
-    countrySelectList.value = []
+    ms_selectedCountries.value = []
   }
+  manageSelectedValues(evt.value, regionSelectList.value ?? [], partModel.value.regions ?? [])
+  manageSelectedValues(
+    ms_selectedCountries.value ?? [],
+    countrySelectList.value ?? [],
+    partModel.value.countries ?? [],
+  )
 }
 
 async function onCountryChange(evt: any) {
@@ -290,37 +300,6 @@ function onIconSelect(event: any) {
 // Product Handlers
 /////////////////////////////////////////////////////
 
-// function manageSelectedProducts(selectValues: number[]) {
-//   if (selectValues.length > 0 && selectValues.length >= (part.value?.products.length ?? 0)) {
-//     for (const productId of selectValues) {
-//       let foundProduct = part.value.products.find((p) => p.id === productId)
-//       if (!foundProduct) {
-//         let product = ms_productList.value?.find((p) => p.id === productId)
-//         if (product) part.value.products?.push(product)
-//       }
-//     }
-//   } else {
-//     if (selectValues.length <= (part.value?.products.length ?? 0)) {
-//       let productsToRemove = new Array<number>()
-//       for (const product of part.value.products ?? []) {
-//         // let index = part.value.products.findIndex((p) => p.id === productId)
-//         if (product.published === true) {
-//           let index = selectValues.indexOf(product.id) //if it's been removed
-//           if (index == -1) {
-//             productsToRemove.push(product.id)
-//           }
-//         }
-//       }
-//       for (const prodId of productsToRemove) {
-//         let removeIndex = part.value.products.findIndex((p) => p.id === prodId)
-//         if (removeIndex !== -1) {
-//           part.value.products.splice(removeIndex, 1)
-//         }
-//       }
-//     }
-//   }
-// }
-
 async function onProductChange(evt: any) {
   // manageSelectedProducts(evt.value)
   manageSelectedValues(evt.value, ms_productList.value ?? [], partModel.value.products ?? [])
@@ -345,34 +324,6 @@ function clearProductSelection() {
 /////////////////////////////////////////////////////
 // Stand Type Handlers
 /////////////////////////////////////////////////////
-
-// function manageSelectedStandTypes(selectValues: number[]) {
-//   if (selectValues.length > 0 && selectValues.length >= (part.value?.standTypes.length ?? 0)) {
-//     for (const standTypeId of selectValues) {
-//       let foundStandType = part.value.standTypes.find((st) => st.id === standTypeId)
-//       if (!foundStandType) {
-//         let standType = standTypesList.value?.find((st) => st.id === standTypeId)
-//         if (standType) part.value.standTypes?.push(standType)
-//       }
-//     }
-//   } else {
-//     if (selectValues.length <= (part.value?.standTypes.length ?? 0)) {
-//       let standTypesToRemove = new Array<number>()
-//       for (const standType of part.value.standTypes ?? []) {
-//         let index = selectValues.indexOf(standType.id) //if it's been removed
-//         if (index == -1) {
-//           standTypesToRemove.push(standType.id)
-//         }
-//       }
-//       for (const stId of standTypesToRemove) {
-//         let removeIndex = part.value.standTypes.findIndex((st) => st.id === stId)
-//         if (removeIndex !== -1) {
-//           part.value.standTypes.splice(removeIndex, 1)
-//         }
-//       }
-//     }
-//   }
-// }
 
 function onStandTypeChange(evt: any) {
   // manageSelectedStandTypes(evt.value)
@@ -446,8 +397,9 @@ const resolver = ({ values }: any) => {
   }
 }
 
-const onFormSubmit = ({ valid }: any) => {
+async function onFormSubmit({ valid }: any) {
   if (valid) {
+    await partStore.savePart(partModel.value)
     toast.add({
       severity: 'success',
       summary: 'Form is submitted.',
@@ -671,10 +623,10 @@ const onFormSubmit = ({ valid }: any) => {
             <div class="grid grid-cols-3 gap-10">
               <div class="flex flex-col gap-2">
                 <label for="region">Region:</label>
-                <Select
+                <MultiSelect
                   name="region"
-                  v-model="selectedRegion"
-                  :options="regions ?? []"
+                  v-model="ms_selectedRegions"
+                  :options="regionSelectList ?? []"
                   id="region"
                   class="w-full"
                   option-label="name"
@@ -686,7 +638,7 @@ const onFormSubmit = ({ valid }: any) => {
                       <span>{{ option.option.name }}</span>
                     </div>
                   </template>
-                </Select>
+                </MultiSelect>
               </div>
               <div class="flex flex-col gap-2">
                 <label for="country">Country:</label>

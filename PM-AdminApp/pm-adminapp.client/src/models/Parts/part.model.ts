@@ -1,57 +1,61 @@
-import { Category } from '@/models/Categories/category.model'
 import { Country } from '@/models/Countries/country.model'
 import { Product } from '@/models/Products/product.model'
+import type { Region } from '../Countries/region.model'
 import type { StandType } from '../StandTypes/standType.model'
+import type { PartType } from './partType.model'
 
 export class Part {
   id!: number
+  brandId!: number
   name!: string
   description!: string
   partNumber!: string
   altPartNumber!: string
   customerRefNo!: string
+  published!: boolean
+  discontinued!: boolean
   facings!: number
   height!: number
   width!: number
   depth!: number
   stock!: number
+  regionsList!: string
+  countriesList!: string
   categoryId!: number
   parentCategoryId!: number
   categoryName!: string
   parentCategoryName!: string
   partTypeId!: number
   partTypeName!: string
-  regiondId!: number
-  regionName!: string
   shoppingHeight!: number
-  brandId!: number
   dateCreated!: Date
   dateUpdated!: Date
-  published!: boolean
-  countryList!: string
-
-  planoImageSrc!: string
+  shoppable!: boolean
   packShotImageSrc!: string
   render2dImage!: string
   svgLineGraphic!: string
 
-  shadeSelectByFacing: any
-  discontinued!: boolean
   unitCost!: number
+  launchPrice!: number
+  launchDate!: Date
+  presentation!: string
+  cassetteBio!: string
   manufacturingProcess!: string
   testingType!: string
   internationalPart!: boolean
-  shoppable!: boolean
-  launchPrice!: number
-  launchDate!: Date
-  cassetteBio!: string
-  presentation!: string
   dmiReco!: boolean
+  hidePrices!: boolean
+  regions!: Region[]
   countries!: Country[]
   products!: Product[]
-  //PartType!: PartType;
-  Category!: Category
+  PartType!: PartType
+  // Category!: Category
   standTypes!: StandType[]
+  // regionId!: number
+  // regionName!: string
+  // planoImageSrc!: string
+  // countryList!: string
+  // shadeSelectByFacing: any
 
   contstructor() {
     this.id = 0

@@ -23,6 +23,7 @@ namespace PM_AdminApp.Server.Mappings
         {
             CreateMap<BrandFilterDto, BrandFilter>();
             CreateMap<Brand, BrandDto>();
+            CreateMap<BrandDto, Brand>();
 
             CreateMap<CategoryFilterDto, CategoryFilter>();
             CreateMap<Category, CategoryDto>();
@@ -35,6 +36,7 @@ namespace PM_AdminApp.Server.Mappings
             //CreateMap<ClusterShelf, PlanmPartInfo>();
             CreateMap<CountriesFilterDto, CountryFilter>();
             CreateMap<Country, CountryDto>();
+            CreateMap<CountryDto, Country>();
 
             CreateMap<JobFolderDto, JobFolder>();
 
@@ -44,6 +46,7 @@ namespace PM_AdminApp.Server.Mappings
             CreateMap<PartFilter, PartFilterDto>();
             CreateMap<Part, PartListDto>();
             CreateMap<Part, PartDto>();
+            CreateMap<PartDto, Part>();
 
             CreateMap<Planogram, PlanmPlanogramDto>();
             CreateMap<PlanmPlanogramDto, Planogram>();
@@ -53,6 +56,7 @@ namespace PM_AdminApp.Server.Mappings
 
             CreateMap<Product, PlanmProductDto>();
             CreateMap<Product, ProductDto>();
+            CreateMap<ProductDto, Product>();
             CreateMap<Product, ProductListDto>();
             CreateMap<Product, FullProductDto>();
             CreateMap<ProductFilterDto, ProductFilter>();
@@ -75,7 +79,8 @@ namespace PM_AdminApp.Server.Mappings
             CreateMap<StandColumnUpright, PlanmStandColumnUprightDto>();
             CreateMap<StandRow, PlanmStandRowDto>();
             CreateMap<StandType, ParentStandTypeDto>();
-            //CreateMap<StandType, StandTypeDto>();
+            CreateMap<StandType, StandTypeDto>();
+            CreateMap<StandTypeDto, StandType>();
             CreateMap<StandTypeFilterDto, StandTypeFilter>();
             CreateMap<Sku, ExportSkuDto>();
 

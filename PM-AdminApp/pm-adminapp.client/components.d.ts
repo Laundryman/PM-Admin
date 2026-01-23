@@ -48,7 +48,6 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('primevue/select')['default']
-    SelectButton: typeof import('primevue/selectbutton')['default']
     StatsWidget: typeof import('./src/components/dashboard/StatsWidget.vue')['default']
     TheWelcome: typeof import('./src/components/TheWelcome.vue')['default']
     Toast: typeof import('primevue/toast')['default']

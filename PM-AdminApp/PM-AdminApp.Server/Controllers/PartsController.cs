@@ -2,11 +2,14 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Graph.Models;
 using PMApplication.Dtos;
 using PMApplication.Dtos.Filters;
 using PMApplication.Entities;
 using PMApplication.Entities.PartAggregate;
 using PMApplication.Interfaces;
+using PMApplication.Interfaces.RepositoryInterfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
 using System;
@@ -14,7 +17,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using PMApplication.Interfaces.RepositoryInterfaces;
+using PMApplication.Entities.CountriesAggregate;
+using PMApplication.Entities.ProductAggregate;
+using PMApplication.Entities.StandAggregate;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -185,12 +190,12 @@ namespace LMXApi.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePart(int id, [FromBody] Part part)
+        [HttpPost]
+        public async Task<IActionResult> SavePart([FromBody] PartDto partEdit)
         {
             try
             {
-                if (part == null)
+                if (partEdit == null)
                 {
                     _logger.LogError("Part object sent from client is null.");
                     return BadRequest("Part object is null");
@@ -202,16 +207,33 @@ namespace LMXApi.Controllers
                     return BadRequest("Invalid model object");
                 }
 
-                var dbPart = await _partAsyncRepository.GetByIdAsync(id);
+                var id = partEdit.Id ?? 0;
+                var partFilter = new PartFilter() { Id = id };
+                var spec = new GetPartSpecification(partFilter);
+                var dbPart = await _partAsyncRepository.FirstAsync(spec);
+
+
                 if (dbPart == null)
                 {
                     _logger.LogError($"Part with id: {id}, hasn't been found in db.");
                     return NotFound();
                 }
 
+                //map updates to part
+                _mapper.Map(partEdit, dbPart);
+
+
+
+                //update childItems here
+                UpdatePartCountryCollection(dbPart, partEdit);
+                UpdatePartProductsCollection(dbPart, partEdit);
+                UpdatePartTypesCollection(dbPart, partEdit);
+
+
+
                 await _partAsyncRepository.UpdateAsync(dbPart);
 
-                return NoContent();
+                return Ok(dbPart);
             }
             catch (Exception ex)
             {
@@ -250,5 +272,71 @@ namespace LMXApi.Controllers
             }
         }
 
+        private void UpdatePartCountryCollection(Part origPart, PartDto updatePart)
+        {
+            //add new countries
+            foreach (var country in updatePart.Countries)
+            {
+                var origCountry = origPart.Countries.FirstOrDefault(c => c.Id == country.Id);
+                if (origCountry == null)
+                {
+                    origPart.Countries.Add(_mapper.Map<Country>(country));
+                }
+            }
+            //remove deleted countries
+            for (int i = origPart.Countries.Count - 1; i >= 0; i--)
+            {
+                var origCountry = origPart.Countries[i];
+                var updatedCountry = updatePart.Countries.FirstOrDefault(c => c.Id == origCountry.Id);
+                if (updatedCountry == null)
+                {
+                    origPart.Countries.Remove(origCountry);
+                }
+            }
         }
+
+        private void UpdatePartProductsCollection(Part origPart, PartDto updatePart)
+        {
+            foreach (var product in updatePart.Products)
+            {
+                var origProduct = origPart.Products.FirstOrDefault(p => p.Id == product.Id);
+                if (origProduct == null)
+                {
+                    origPart.Products.Add(_mapper.Map<Product>(product));
+                }
+            }
+            for (int i = origPart.Products.Count - 1; i >= 0; i--)
+            {
+                var origProduct = origPart.Products[i];
+                var updatedProduct = updatePart.Products.FirstOrDefault(p => p.Id == origProduct.Id);
+                if (updatedProduct == null)
+                {
+                    origPart.Products.Remove(origProduct);
+                }
+            }
+        }
+
+        private void UpdatePartTypesCollection(Part origPart, PartDto updatePart)
+        {
+            foreach (var standType in updatePart.StandTypes)
+            {
+                var origStandType = origPart.StandTypes.FirstOrDefault(s => s.Id == standType.Id);
+                if (origStandType == null)
+                {
+                    origPart.StandTypes.Add(_mapper.Map<StandType>(standType));
+                }
+            }
+            for (int i = origPart.StandTypes.Count - 1; i >= 0; i--)
+            {
+                var origStandType = origPart.StandTypes[i];
+                var updatedStandType = updatePart.StandTypes.FirstOrDefault(s => s.Id == origStandType.Id);
+                if (updatedStandType == null)
+                {
+                    origPart.StandTypes.Remove(origStandType);
+                }
+            }
+        }
+
+        ///Consider this perhaps -> https://medium.com/@hamidmusayev/synchronizing-entity-framework-core-child-collections-a-clean-and-reusable-approach-2ebd8e853f4d
+    }
 }
