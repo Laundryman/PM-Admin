@@ -1,4 +1,4 @@
-import User from '@/models/Identity/user.model'
+import { User } from '@/models/Identity/user.model'
 import { Auth, msal } from '@/services/Identity/auth'
 
 import { useAuthStore } from '@/stores/auth'
@@ -24,18 +24,6 @@ export default {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
-    // if (!authStore.value.initialized) {
-    //   await authStore.value.initialize()
-    // }
-    // await apiClient
-    //   .get('/get-currently-logged-in-user-info')
-    //   .then((response) => {
-    //     return response.data
-    //   })
-    //   .catch((error) => {
-    //     console.log('Error fetching user info:', error)
-    //     throw error
-    //   })
     await apiClient
       .get('/me', {})
       .then((response) => {
@@ -47,12 +35,128 @@ export default {
       })
   },
 
-  saveUser(user: User) {
-    return apiClient.put('/update', user)
+  async getUser(id: string): Promise<User> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    return await apiClient
+      .get('/users/' + id, {
+        params: {
+          $select:
+            'identities,id,displayname,userName, givenName,surname,mail,mailNickname,userPrincipalName, ' +
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles, extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands, extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress',
+        },
+      })
+      .then((response) => {
+        let user = response.data
+        this.updateExtensionFields(user)
+        return user
+      })
+      .catch((error) => {
+        throw error
+      })
   },
 
-  createUser(user: User) {
-    return apiClient.put('/create', user)
+  async getPMUsers(): Promise<User[]> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    return await apiClient
+      .get('/users', {
+        params: {
+          $select:
+            'identities,id,displayname,userName, givenName,surname,mail,mailNickname,userPrincipalName, ' +
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles, extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands, extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress',
+          $filter: "creationType eq 'LocalAccount'",
+          $top: '100',
+          // $orderBy: 'displayName',
+        },
+      })
+      .then((response) => {
+        console.log('Graph list users response:', response.data)
+        const users = response.data.value
+        users.forEach((user: any) => {
+          this.updateExtensionFields(user)
+          // if (user.identities) {
+          //   let usernameId = user.identities.find(
+          //     (identity: any) => identity.signInType === 'userName',
+          //   )
+          //   if (usernameId) {
+          //     user.userName = usernameId.issuerAssignedId
+          //   }
+          // }
+          // if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']) {
+          //   user.roleIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
+          //     .split(',')
+          //     .map((id: any) => parseInt(id))
+          // } else {
+          //   user.roleIds = []
+          // }
+          // if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']) {
+          //   user.brandIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']
+          //     .split(',')
+          //     .map((id: any) => parseInt(id))
+          // } else {
+          //   user.brandIds = []
+          // }
+          // if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']) {
+          //   user.diamCountryId = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
+          // }
+          // if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']) {
+          //   user.userEmailAddress =
+          //     user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']
+          // }
+        })
+        return users
+      })
+      .catch((error) => {
+        throw error
+      })
+  },
+
+  async saveUser(user: User) {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+      apiClient.defaults.headers['Content-Type'] = 'application/json'
+      apiClient.defaults.headers['prefer'] = 'return=representation'
+    }
+    let updatedUser = new Object() as any
+    updatedUser = {
+      Id: user.id,
+      DisplayName: user.displayName,
+      GivenName: user.givenName,
+      Surname: user.surname,
+      // MailNickname: user.mailNickName,
+      AccountEnabled: true,
+    }
+    if (user.brandIds != null && user.brandIds.length > 0) {
+      updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands'] = user.brandIds.join(',')
+    } else if (user.brandIds != null && user.brandIds.length == 1) {
+      updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands'] = user.brandIds
+    }
+
+    updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId'] = user.diamCountryId
+
+    if (user.roleIds != null && user.roleIds.length > 0) {
+      updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles'] = user.roleIds.join(',')
+    } else if (user.roleIds != null && user.roleIds.length == 1) {
+      updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles'] = user.roleIds
+    }
+    updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress'] =
+      user.userEmailAddress
+
+    await apiClient
+      .patch('/users/' + user.id, updatedUser)
+      .then((response) => {
+        return response
+      })
+      .catch((error) => {
+        throw error
+      })
+  },
+
+  async createUser(user: User) {
+    return await apiClient.put('/users', user)
   },
 
   deleteUser(id: string) {
@@ -75,5 +179,34 @@ export default {
     token.value = t
     console.log('UserService initialized with token:', token.value)
     initialized.value = true
+  },
+
+  updateExtensionFields(user: any) {
+    if (user.identities) {
+      let usernameId = user.identities.find((identity: any) => identity.signInType === 'userName')
+      if (usernameId) {
+        user.userName = usernameId.issuerAssignedId
+      }
+    }
+    if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']) {
+      user.roleIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
+        .split(',')
+        .map((id: any) => parseInt(id))
+    } else {
+      user.roleIds = []
+    }
+    if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']) {
+      user.brandIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']
+        .split(',')
+        .map((id: any) => parseInt(id))
+    } else {
+      user.brandIds = []
+    }
+    if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']) {
+      user.diamCountryId = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
+    }
+    if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']) {
+      user.userEmailAddress = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']
+    }
   },
 }

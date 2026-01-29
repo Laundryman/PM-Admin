@@ -37,7 +37,7 @@ namespace LMXApi.Controllers
         #region Countries
 
         [HttpGet(Name = "Countries")]
-        public async Task<IActionResult> GetAllCountries(int regionId, string? searchText = "")
+        public async Task<IActionResult> GetAllCountries(int? regionId, string? searchText = "")
         {
             try
             {

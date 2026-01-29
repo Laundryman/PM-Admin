@@ -65,6 +65,18 @@ const model = ref([
       },
     ],
   },
+  {
+    label: 'Users',
+    icon: 'pi pi-fw pi-table',
+    to: '/users',
+    items: [
+      {
+        label: 'Users',
+        icon: 'pi pi-fw pi-check-square',
+        to: '/users',
+      },
+    ],
+  },
 
   // {
   //   label: 'Hierarchy',

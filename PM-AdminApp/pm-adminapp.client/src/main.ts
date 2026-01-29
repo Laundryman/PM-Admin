@@ -25,9 +25,11 @@ import Message from 'primevue/message'
 import MultiSelect from 'primevue/multiselect'
 import OverlayBadge from 'primevue/overlaybadge'
 import Paginator from 'primevue/paginator'
+import Password from 'primevue/password'
 import Select from 'primevue/select'
 import SelectButton from 'primevue/selectbutton'
 import Tag from 'primevue/tag'
+import Textarea from 'primevue/textarea'
 import Toast from 'primevue/toast'
 import ToastService from 'primevue/toastservice'
 import ToggleButton from 'primevue/togglebutton'
@@ -70,9 +72,11 @@ app.component('Menu', Menu)
 app.component('MultiSelect', MultiSelect)
 app.component('OverlayBadge', OverlayBadge)
 app.component('Paginator', Paginator)
+app.component('Password', Password)
 app.component('Select', Select)
 app.component('SelectButton', SelectButton)
 app.component('Tag', Tag)
+app.component('Textarea', Textarea)
 app.component('Toast', Toast)
 app.component('ToggleSwitch', ToggleSwitch)
 app.component('ToggleButton', ToggleButton)
