@@ -50,6 +50,7 @@ watch(brand, async (newBrand) => {
 
 onMounted(async () => {
   loading.value = true
+  layout.layoutState.disableBrandSelect = false
   await productService.initialise()
   await countryService.initialise()
 

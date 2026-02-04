@@ -1,66 +1,84 @@
 ﻿using AutoMapper;
 using AutoMapper.Execution;
 using Microsoft.Graph.Models;
+using Newtonsoft.Json;
 using PMApplication.Dtos;
 using PMApplication.Dtos.PlanModels;
 using PMApplication.Dtos.StandTypes;
 using PMApplication.Entities.CountriesAggregate;
 using PMApplication.Entities.PartAggregate;
 using PMApplication.Entities.PlanogramAggregate;
+using PMApplication.Entities.ProductAggregate;
 using PMApplication.Entities.StandAggregate;
 
 namespace PM_AdminApp.Server.Mappings.Resolvers
 {
-    public class ProductDtoPartProductResolver : IValueResolver<PartDto, Part, List<PartProduct>>
+    public class ProductDtoProductResolver : IValueResolver<PartUploadDto, Part, List<Product>>
     {
-        public List<PartProduct> Resolve(PartDto source, Part destination, List<PartProduct> destMember, ResolutionContext context)
+        private readonly IMapper _mapper;
+
+        public ProductDtoProductResolver(IMapper mapper)
         {
-            var products = new List<PartProduct>();
-            foreach (var prod in source.Products)
-            {
-                products.Add(new PartProduct
-                {
-                    PartId = source.Id ?? 0,
-                    ProductId = prod.Id,
-                    
-                });
-            }
+            _mapper = mapper;
+        }
+        public List<Product> Resolve(PartUploadDto source, Part destination, List<Product> destMember, ResolutionContext context)
+        {
+            var partProducts = JsonConvert.DeserializeObject<List<ProductDto>>(source.Products ?? "[]");
+            var products = _mapper.Map<List<Product>>(partProducts);
+
             return products;
         }
     }
 
-    public class StandTypeDtoStandTypePartResolver : IValueResolver<PartDto, Part, List<StandTypePart>>
+    public class StandTypePartResolver : IValueResolver<PartUploadDto, Part, List<StandType>>
     {
-        public List<StandTypePart> Resolve(PartDto source, Part destination, List<StandTypePart> destMember, ResolutionContext context)
-        {
-            var products = new List<StandTypePart>();
-            foreach (var stype in source.StandTypes)
-            {
-                products.Add(new StandTypePart
-                {
-                    PartId = source.Id ?? 0,
-                    StandTypeId = stype.Id,
+        private readonly IMapper _mapper;
 
-                });
+        public StandTypePartResolver(IMapper mapper)
+        {
+            _mapper = mapper;
+        }
+        public List<StandType> Resolve(PartUploadDto source, Part destination, List<StandType> destMember, ResolutionContext context)
+        {
+            var partStandTypes = JsonConvert.DeserializeObject<List<StandTypeDto>>(source.StandTypes ?? "[]");
+            foreach (var standType in partStandTypes)
+            {
+                // Ensure Description is not null
+                standType.Brand = null;
             }
-            return products;
+            var standTypes = _mapper.Map<List<StandType>>(partStandTypes);
+            return standTypes;
         }
     }
 
-    public class CountryDtoCountryPartResolver : IValueResolver<PartDto, Part, List<CountryPart>>
+    public class RegionPartResolver : IValueResolver<PartUploadDto, Part, List<Region>>
     {
-        public List<CountryPart> Resolve(PartDto source, Part destination, List<CountryPart> destMember, ResolutionContext context)
-        {
-            var countries = new List<CountryPart>();
-            foreach (var country in source.Countries)
-            {
-                countries.Add(new CountryPart
-                {
-                    PartId = source.Id ?? 0,
-                    CountryId = country.Id,
+        private readonly IMapper _mapper;
 
-                });
-            }
+        public RegionPartResolver(IMapper mapper)
+        {
+            _mapper = mapper;
+        }
+        public List<Region> Resolve(PartUploadDto source, Part destination, List<Region> destMember, ResolutionContext context)
+        {
+            var regionParts = JsonConvert.DeserializeObject<List<RegionDto>>(source.Regions ?? "[]");
+            var regions = _mapper.Map<List<Region>>(regionParts);
+            return regions;
+        }
+    }
+
+    public class CountryPartResolver : IValueResolver<PartUploadDto, Part, List<Country>>
+    {
+        private readonly IMapper _mapper;
+
+        public CountryPartResolver(IMapper mapper)
+        {
+            _mapper = mapper;
+        }
+        public List<Country> Resolve(PartUploadDto source, Part destination, List<Country> destMember, ResolutionContext context)
+        {
+            var countryParts = JsonConvert.DeserializeObject<List<CountryDto>>(source.Countries ?? "[]");
+            var countries = _mapper.Map<List<Country>>(countryParts);
             return countries;
         }
     }

@@ -28,6 +28,7 @@ import Paginator from 'primevue/paginator'
 import Password from 'primevue/password'
 import Select from 'primevue/select'
 import SelectButton from 'primevue/selectbutton'
+import Skeleton from 'primevue/skeleton'
 import Tag from 'primevue/tag'
 import Textarea from 'primevue/textarea'
 import Toast from 'primevue/toast'
@@ -75,6 +76,7 @@ app.component('Paginator', Paginator)
 app.component('Password', Password)
 app.component('Select', Select)
 app.component('SelectButton', SelectButton)
+app.component('Skeleton', Skeleton)
 app.component('Tag', Tag)
 app.component('Textarea', Textarea)
 app.component('Toast', Toast)

@@ -24,6 +24,7 @@ interface SystemState {
   activeCluster: searchClusterInfo | null
   brandsLoaded?: boolean
   plannerLoaded?: boolean
+  disableBrandSelect?: boolean
 }
 
 const layoutConfig = reactive<LayoutConfig>({
@@ -60,6 +61,7 @@ export const useSystemStore = defineStore('layout', () => {
     activeCluster: null,
     brandsLoaded: false,
     plannerLoaded: false,
+    disableBrandSelect: false,
   })
 
   function setActiveMenuItem(item: MenuItem) {
@@ -115,6 +117,7 @@ export const useSystemStore = defineStore('layout', () => {
   const getPrimary = computed(() => layoutConfig.primary)
   const getSurface = computed(() => layoutConfig.surface)
   const getActiveBrand = computed(() => systemState.value.activeBrand)
+  //const disableBrandSelect = computed(() => systemState.value.disableBrandSelect === false)
 
   return {
     layoutConfig,

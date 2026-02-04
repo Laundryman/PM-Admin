@@ -4,7 +4,7 @@ export class ProductFilter {
   regionId!: number
   categoryId!: number
   partId!: number
-  countryList: number[] = []
+  countriesList!: string
   // standTypeId!: number
   // searchText!: string
 }

@@ -18,8 +18,9 @@ import { useRouter } from 'vue-router'
 const { regions, countries } = useLocationFilters()
 const selectedRegion = ref()
 const selectedCountry = ref()
+const selectedPart = ref<SearchPartInfo | null>(null)
 const parts = ref<SearchPartInfo[]>([])
-const selectedParts = ref<SearchPartInfo[]>([])
+// const selectedParts = ref<SearchPartInfo[]>([])
 const toast = useToast()
 const loading = ref(true)
 const layout = useSystemStore()
@@ -50,10 +51,12 @@ watch(brand, async (newBrand) => {
 
 onMounted(async () => {
   loading.value = true
+  layout.layoutState.disableBrandSelect = false
   await partService.initialise()
   await countryService.initialise()
 
   let brandid = brandStore.activeBrand?.id ?? 0
+  // let brandid = layout.getActiveBrand?.id ?? 0
   let rFilter = new regionFilter()
   rFilter.brandId = brandid
   await useLocationFilters().getRegions(rFilter)
@@ -82,7 +85,7 @@ async function onRegionChange() {
   if (selectedRegion.value) {
     countries.value = await useLocationFilters().onRegionChange(selectedRegion.value)
     let filter = new PartFilter()
-    filter.brandId = layout.getActiveBrand?.id ?? 0
+    filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.regionId = selectedRegion.value
     await partService.searchParts(filter).then((response) => {
       parts.value = response
@@ -96,7 +99,7 @@ async function onRegionChange() {
 async function onCountryChange() {
   if (selectedCountry.value) {
     let filter = new PartFilter()
-    filter.brandId = layout.getActiveBrand?.id ?? 0
+    filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.countryId = selectedCountry.value
     await partService.searchParts(filter).then((response) => {
       parts.value = response
@@ -131,6 +134,42 @@ function editPart(part: SearchPartInfo) {
   // Navigate to edit page
   router.push({ name: 'editPart', params: { id: part.id } })
 }
+
+function openNew() {
+  router.push({ name: 'newPart' })
+}
+
+function copyPart(part: SearchPartInfo) {
+  router.push({ name: 'copyPart', params: { id: part.id } })
+}
+
+// function onRowSelect(event: any) {
+//   selectedPart.value = event.data
+//   toast.add({
+//     severity: 'info',
+//     summary: 'Product Selected',
+//     detail: 'Name: ' + event.data.name,
+//     life: 3000,
+//   })
+// }
+// function onRowUnselect(event: any) {
+//   selectedPart.value = null
+//   toast.add({
+//     severity: 'info',
+//     summary: 'Product Unselected',
+//     detail: 'Name: ' + event.data.name,
+//     life: 3000,
+//   })
+// }
+
+// function confirmDeleteSelected() {
+//   toast.add({
+//     severity: 'info',
+//     summary: 'Info',
+//     detail: 'Delete Selected Parts - Functionality to be implemented',
+//     life: 3000,
+//   })
+// }
 </script>
 
 <template>
@@ -169,12 +208,15 @@ function editPart(part: SearchPartInfo) {
         />
       </template>
 
-      <template #end> </template>
+      <template #end>
+        <Button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" @click="openNew" />
+      </template>
     </Toolbar>
     <div class="card">
       <DataTable
         ref="dt"
-        v-model:selection="selectedParts"
+        dataKey="id"
+        v-model:selection="selectedPart"
         v-model:filters="filters"
         :globalFilterFields="[
           //'categoryName',
@@ -187,7 +229,6 @@ function editPart(part: SearchPartInfo) {
         ]"
         filterDisplay="row"
         :value="parts"
-        dataKey="id"
         :paginator="true"
         :rows="10"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
@@ -236,11 +277,20 @@ function editPart(part: SearchPartInfo) {
         <Column :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
+              v-tooltip="'Edit Part'"
               icon="pi pi-pencil"
               variant="outlined"
               rounded
               class="mr-2"
               @click="editPart(slotProps.data)"
+            />
+            <Button
+              v-tooltip="'Copy Part'"
+              icon="pi pi-copy"
+              variant="outlined"
+              rounded
+              class="mr-2"
+              @click="copyPart(slotProps.data)"
             />
           </template>
         </Column>

@@ -52,6 +52,7 @@ const src = ref()
 const file = ref()
 onMounted(async () => {
   const layout = useSystemStore()
+  layout.layoutState.disableBrandSelect = false
   await standTypeService.initialise()
   var filter = new standTypeFilter()
   let brandid = layout.getActiveBrand?.id ?? 0

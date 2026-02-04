@@ -34,25 +34,21 @@ const toggleMenu = (event: Event) => {
         <div
           class="w-12 h-12 flex items-center justify-center bg-blue-100 dark:bg-blue-400/10 rounded-full mr-4 shrink-0"
         >
-          <i class="pi pi-dollar !text-xl text-blue-500"></i>
+          <i class="pi pi-pen-to-square !text-xl text-blue-500"></i>
         </div>
         <span class="text-surface-900 dark:text-surface-0 leading-normal"
-          >Richard Jones
-          <span class="text-surface-700 dark:text-surface-100"
-            >has purchased a blue t-shirt for
-            <span class="text-primary font-bold">$79.00</span></span
-          >
+          >Amelia Smith
+          <span class="text-surface-700 dark:text-surface-100">left a note on your planogram </span>
         </span>
       </li>
       <li class="flex items-center py-2">
         <div
           class="w-12 h-12 flex items-center justify-center bg-orange-100 dark:bg-orange-400/10 rounded-full mr-4 shrink-0"
         >
-          <i class="pi pi-download !text-xl text-orange-500"></i>
+          <i class="pi pi-pen-to-square !text-xl text-orange-500"></i>
         </div>
         <span class="text-surface-700 dark:text-surface-100 leading-normal"
-          >Your request for withdrawal of <span class="text-primary font-bold">$2500.00</span> has
-          been initiated.</span
+          >James Drake has replied to your note.</span
         >
       </li>
     </ul>
@@ -68,8 +64,7 @@ const toggleMenu = (event: Event) => {
         <span class="text-surface-900 dark:text-surface-0 leading-normal"
           >Keyser Wick
           <span class="text-surface-700 dark:text-surface-100"
-            >has purchased a black jacket for
-            <span class="text-primary font-bold">$59.00</span></span
+            >has placed an order for planogram 45668</span
           >
         </span>
       </li>
@@ -77,17 +72,17 @@ const toggleMenu = (event: Event) => {
         <div
           class="w-12 h-12 flex items-center justify-center bg-pink-100 dark:bg-pink-400/10 rounded-full mr-4 shrink-0"
         >
-          <i class="pi pi-question !text-xl text-pink-500"></i>
+          <i class="pi pi-pen-to-square !text-xl text-pink-500"></i>
         </div>
         <span class="text-surface-900 dark:text-surface-0 leading-normal"
           >Jane Davis
           <span class="text-surface-700 dark:text-surface-100"
-            >has posted a new questions about your product.</span
+            >has posted a new note on her planogram.</span
           >
         </span>
       </li>
     </ul>
-    <span class="block text-muted-color font-medium mb-4">LAST WEEK</span>
+    <!-- <span class="block text-muted-color font-medium mb-4">LAST WEEK</span>
     <ul class="p-0 m-0 list-none">
       <li class="flex items-center py-2 border-b border-surface">
         <div
@@ -110,6 +105,6 @@ const toggleMenu = (event: Event) => {
           wishlist.</span
         >
       </li>
-    </ul>
+    </ul> -->
   </div>
 </template>

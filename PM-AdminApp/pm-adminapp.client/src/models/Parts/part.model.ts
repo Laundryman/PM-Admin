@@ -39,18 +39,20 @@ export class Part {
   launchPrice!: number
   launchDate!: Date
   presentation!: string
+  productList!: string
   cassetteBio!: string
   manufacturingProcess!: string
+  standTypeList!: string
   testingType!: string
   internationalPart!: boolean
   dmiReco!: boolean
   hidePrices!: boolean
   regions!: Region[]
-  countries!: Country[]
-  products!: Product[]
-  PartType!: PartType
+  countries: Country[] = []
+  products: Product[] = []
+  partType!: PartType
   // Category!: Category
-  standTypes!: StandType[]
+  standTypes: StandType[] = []
   // regionId!: number
   // regionName!: string
   // planoImageSrc!: string

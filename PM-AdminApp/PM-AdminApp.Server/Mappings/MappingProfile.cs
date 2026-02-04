@@ -46,6 +46,7 @@ namespace PM_AdminApp.Server.Mappings
             CreateMap<PartFilter, PartFilterDto>();
             CreateMap<Part, PartListDto>();
             CreateMap<Part, PartDto>();
+            CreateMap<PartUploadDto, Part>();
             CreateMap<PartDto, Part>();
 
             CreateMap<Planogram, PlanmPlanogramDto>();

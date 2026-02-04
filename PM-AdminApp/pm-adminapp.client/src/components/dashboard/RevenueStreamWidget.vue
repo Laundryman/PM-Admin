@@ -15,23 +15,23 @@ function setChartData() {
     datasets: [
       {
         type: 'bar',
-        label: 'Subscriptions',
+        label: 'MaxFactor',
         backgroundColor: documentStyle.getPropertyValue('--p-primary-400'),
-        data: [4000, 10000, 15000, 4000],
+        data: [40, 60, 80, 50],
         barThickness: 32,
       },
       {
         type: 'bar',
-        label: 'Advertising',
+        label: 'LOreal',
         backgroundColor: documentStyle.getPropertyValue('--p-primary-300'),
-        data: [2100, 8400, 2400, 7500],
+        data: [21, 84, 24, 75],
         barThickness: 32,
       },
       {
         type: 'bar',
-        label: 'Affiliate',
+        label: 'Maybelline',
         backgroundColor: documentStyle.getPropertyValue('--p-primary-200'),
-        data: [4100, 5200, 3400, 7400],
+        data: [41, 52, 34, 74],
         borderRadius: {
           topLeft: 8,
           topRight: 8,
@@ -90,7 +90,7 @@ onMounted(() => {
 
 <template>
   <div class="card">
-    <div class="font-semibold text-xl mb-4">Revenue Stream</div>
+    <div class="font-semibold text-xl mb-4">New Planograms</div>
     <Chart type="bar" :data="chartData" :options="chartOptions" class="h-80" />
   </div>
 </template>

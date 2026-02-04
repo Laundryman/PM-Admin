@@ -1,49 +1,50 @@
-import { LogLevel } from '@azure/msal-browser';
+import { LogLevel } from '@azure/msal-browser'
 /**
  * Configuration object to be passed to MSAL instance on creation.
  * For a full list of MSAL.js configuration parameters, visit:
  * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md
  */
 export const msalConfig = {
-    auth: {
-        clientId: import.meta.env.VITE_AUTH_CLIENT_ID,
-        authority: import.meta.env.VITE_AUTH_AUTHORITY, //  Replace the placeholder with your tenant info
-        // EXTERNAL TENANT
-        // authority: "https://Enter_the_Tenant_Subdomain_Here.ciamlogin.com/", // Replace the placeholder with your tenant subdomain
-        redirectUri: import.meta.env.VITE_AUTH_REDIRECT_URI, // You must register this URI on App Registration. Defaults to window.location.href e.g. http://localhost:3000/
-        navigateToLoginRequestUrl: true
+  auth: {
+    clientId: import.meta.env.VITE_AUTH_CLIENT_ID,
+    authority: import.meta.env.VITE_AUTH_AUTHORITY, //  Replace the placeholder with your tenant info
+    // EXTERNAL TENANT
+    // authority: "https://Enter_the_Tenant_Subdomain_Here.ciamlogin.com/", // Replace the placeholder with your tenant subdomain
+    redirectUri: import.meta.env.VITE_AUTH_REDIRECT_URI, // You must register this URI on App Registration. Defaults to window.location.href e.g. http://localhost:3000/
+    navigateToLoginRequestUrl: true,
+  },
+  cache: {
+    cacheLocation: 'sessionStorage', // Configures cache location. "sessionStorage" is more secure, but "localStorage" gives you SSO.
+    storeAuthStateInCookie: false, // set this to true if you have to support IE
+  },
+  // optional
+  system: {
+    allowNativeBroker: false, // Prevents Windows issues
+    loggerOptions: {
+      logLevel: LogLevel.Verbose,
+      loggerCallback,
     },
-    cache: {
-        cacheLocation: 'sessionStorage', // Configures cache location. "sessionStorage" is more secure, but "localStorage" gives you SSO.
-        storeAuthStateInCookie: false // set this to true if you have to support IE
-    },
-    // optional
-    system: {
-        loggerOptions: {
-            logLevel: LogLevel.Verbose,
-            loggerCallback
-        }
-    }
-};
+  },
+}
 
 function loggerCallback(level: LogLevel, message: string, containsPii: boolean) {
-    if (!containsPii) {
-        const parts = message.split(' : ');
-        const text = parts.pop();
-        switch (level) {
-            case LogLevel.Error:
-                return console.error(text);
+  if (!containsPii) {
+    const parts = message.split(' : ')
+    const text = parts.pop()
+    switch (level) {
+      case LogLevel.Error:
+        return console.error(text)
 
-            case LogLevel.Warning:
-                return console.warn(text);
+      case LogLevel.Warning:
+        return console.warn(text)
 
-            case LogLevel.Info:
-                return console.info(text);
+      case LogLevel.Info:
+        return console.info(text)
 
-            case LogLevel.Verbose:
-                return console.debug(text);
-        }
+      case LogLevel.Verbose:
+        return console.debug(text)
     }
+  }
 }
 /**
  * Scopes you add here will be prompted for user consent during sign-in.
@@ -51,9 +52,7 @@ function loggerCallback(level: LogLevel, message: string, containsPii: boolean) 
  * For more information about OIDC scopes, visit:
  * https://learn.microsoft.com/en-us/entra/identity-platform/permissions-consent-overview#openid-connect-scopes
  */
-export const scopes = [
-  import.meta.env.VITE_AUTH_SCOPE
-]
+export const scopes = [import.meta.env.VITE_AUTH_SCOPE]
 
 /**
  * An optional silentRequest object can be used to achieve silent SSO

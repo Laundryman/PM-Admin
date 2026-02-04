@@ -8,7 +8,7 @@
       target="_blank"
       rel="noopener noreferrer"
       class="text-primary font-bold hover:underline"
-      >Laundromat Media</a
+      >planMatr.com</a
     >
   </div>
 </template>

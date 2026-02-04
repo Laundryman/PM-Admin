@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useCategoryFilters } from '@/components/composables/categoryFilters copy'
 import { useLocationFilters } from '@/components/composables/locationFilters'
+import { usePartForm } from '@/components/composables/partForm.composable'
 import { usePartTypes } from '@/components/composables/partTypes.composable'
 import { useStandTypes } from '@/components/composables/standTypes.composable'
 import { Category } from '@/models/Categories/category.model'
@@ -27,6 +28,10 @@ import { useRouter } from 'vue-router'
 
 const cassetteRenderUrl = import.meta.env.VITE_APP_CASSETTERENDER_URL
 const cassettePhotoUrl = import.meta.env.VITE_APP_CASSETTEPHOTO_URL
+const cassetteIconUrl = import.meta.env.VITE_APP_CASSETTEICON_URL
+const cassetteIconSrc = ref()
+const cassetteRenderSrc = ref()
+const cassettePhotoSrc = ref()
 
 const partTypeComposable = usePartTypes()
 const standTypeComposable = useStandTypes()
@@ -35,6 +40,7 @@ const brandStore = useBrandStore()
 const productStore = useProductStore()
 const locationFilters = useLocationFilters()
 const categoryFilters = useCategoryFilters()
+const partForm = usePartForm()
 const layout = useSystemStore()
 const router = useRouter()
 
@@ -77,15 +83,51 @@ const initialValues = ref(new Part())
 
 //const initialValues = ref({})
 onMounted(async () => {
+  if (!brandStore.activeBrand) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Please select a brand to continue',
+      life: 3000,
+      group: 'tr',
+    })
+  }
+  layout.layoutState.disableBrandSelect = true
   var partFilter = new PartFilter()
   partFilter.Id = Number(router.currentRoute.value.params.id) || 0
   await partStore.initialize(partFilter)
   partModel.value = { ...part.value } as Part //clone(part.value)
+  if (router.currentRoute.value.name === 'copyPart') {
+    partModel.value.id = 0 //reset for copy
+    partModel.value.name = partModel.value.name + ' - Copy'
+    partModel.value.partNumber = partModel.value.partNumber + '-COPY'
+    partModel.value.packShotImageSrc = ''
+    partModel.value.render2dImage = ''
+    partModel.value.svgLineGraphic = ''
+    cassetteRenderSrc.value = ''
+    cassettePhotoSrc.value = ''
+    cassetteIconSrc.value = ''
+  }
+
+  if (router.currentRoute.value.name === 'newPart') {
+    partModel.value.brandId = brandStore.activeBrand?.id ?? 0
+  }
+
+  if (partModel.value.packShotImageSrc != null && partModel.value.packShotImageSrc.length > 0) {
+    cassettePhotoSrc.value = cassettePhotoUrl + partModel.value.packShotImageSrc
+  }
+  if (partModel.value.render2dImage != null && partModel.value.render2dImage.length > 0) {
+    cassetteRenderSrc.value = cassetteRenderUrl + partModel.value.render2dImage
+  }
+  if (partModel.value.svgLineGraphic != null && partModel.value.svgLineGraphic.length > 0) {
+    cassetteIconSrc.value = cassetteIconUrl + partModel.value.svgLineGraphic
+  }
   selectedParentCategoryId.value = partModel.value.parentCategoryId || null
-  ms_selectedRegions.value = partModel.value.regions.map((c) => c.id)
-  countrySelectList.value = await locationFilters.getCountriesForRegions(ms_selectedRegions.value)
-  ms_selectedCountries.value = partModel.value.countries.map((c) => c.id)
-  dateCreated.value = new Date(partModel.value.dateCreated) //added to bind date picker
+  if (router.currentRoute.value.name === 'editPart') {
+    ms_selectedRegions.value = partModel.value.regions.map((c) => c.id)
+    countrySelectList.value = await locationFilters.getCountriesForRegions(ms_selectedRegions.value)
+    ms_selectedCountries.value = partModel.value.countries.map((c) => c.id)
+    dateCreated.value = new Date(partModel.value.dateCreated) //added to bind date picker
+  }
 
   if (selectedParentCategoryId.value) {
     await categoryFilters.getChildCategories(selectedParentCategoryId.value).then((response) => {
@@ -108,20 +150,24 @@ onMounted(async () => {
 
   await partTypeComposable.getPartTypes().then((response) => {
     partTypes.value = response
-    console.log('Part Types loaded', partTypes.value)
-    partModel.value.PartType = partTypes.value?.find(
+    // console.log('Part Types loaded', partTypes.value)
+    partModel.value.partType = partTypes.value?.find(
       (pt) => pt.id === partModel.value.partTypeId,
     ) as PartType
-    selectedPartType.value = partModel.value.PartType.id
+    if (router.currentRoute.value.name === 'editPart') {
+      selectedPartType.value = partModel.value.partType.id ?? null
+    }
   })
 
   await standTypeComposable.getPartStandTypes().then((response) => {
     standTypesList.value = response
-    selectedStandTypes.value = partModel.value.standTypes.map((st: StandType) => st.id)
-    console.log('Stand Types loaded', standTypesList.value)
-    partModel.value.standTypes = standTypesList.value?.filter((st) =>
-      selectedStandTypes.value?.includes(st.id),
-    ) as StandType[]
+    if (router.currentRoute.value.name === 'editPart') {
+      selectedStandTypes.value = partModel.value.standTypes.map((st: StandType) => st.id)
+      // console.log('Stand Types loaded', standTypesList.value)
+      partModel.value.standTypes = standTypesList.value?.filter((st) =>
+        selectedStandTypes.value?.includes(st.id),
+      ) as StandType[]
+    }
   })
 
   let productFilter = new ProductFilter()
@@ -129,11 +175,13 @@ onMounted(async () => {
   productFilter.categoryId = partModel.value.categoryId || 0
   await productStore.getProductsByCategory(productFilter).then((response) => {
     ms_productList.value = response ?? null
-    console.log('Products loaded', ms_productList.value)
+    // console.log('Products loaded', ms_productList.value)
   })
 
-  selectedProducts.value = mapPubishedProducts()
-  initialisePartForm()
+  if (router.currentRoute.value.name === 'editPart') selectedProducts.value = mapPubishedProducts()
+
+  // if (router.currentRoute.value.name === 'newPart')
+  //   initialisePartForm()
 })
 
 function initialisePartForm() {
@@ -156,7 +204,11 @@ function mapPubishedProducts() {
 /////////////////////////////////////////////////////
 async function onParentCategoryChange() {
   if (selectedParentCategoryId.value) {
-    categoryFilters.getChildCategories(selectedParentCategoryId.value).then((response) => {
+    partModel.value.parentCategoryId = selectedParentCategoryId.value
+    partModel.value.parentCategoryName =
+      parentCategories.value?.find((pc) => pc.id === selectedParentCategoryId.value)?.name || ''
+
+    await categoryFilters.getChildCategories(selectedParentCategoryId.value).then((response) => {
       childCategories.value = response
       selectedChildCategory.value = null
       console.log('Child Categories loaded', childCategories.value)
@@ -169,12 +221,12 @@ async function onParentCategoryChange() {
 async function onChildCategoryChange() {
   if (selectedChildCategory.value) {
     var productFilter = new ProductFilter()
-    productFilter.brandId = layout.getActiveBrand?.id ?? 0
+    productFilter.brandId = brandStore.activeBrand?.id ?? 0
     productFilter.categoryId = selectedChildCategory.value
-    await productStore.getProductsByCategory(productFilter).then((response) => {
-      ms_productList.value = response ?? null
-      console.log('Products loaded', ms_productList.value)
-    })
+    partModel.value.categoryId = selectedChildCategory.value
+    partModel.value.categoryName =
+      childCategories.value?.find((cc) => cc.id === selectedChildCategory.value)?.name || ''
+    await getProducts()
   } else {
     ms_productList.value = []
   }
@@ -211,10 +263,12 @@ function manageSelectedValues(
       }
     }
   }
-  for (const stId of selectedValuesToRemove) {
-    let removeIndex = targetArray.findIndex((st) => st.id === stId)
-    if (removeIndex !== -1) {
-      targetArray.splice(removeIndex, 1)
+  if (selectedValuesToRemove.length > 0) {
+    for (const stId of selectedValuesToRemove) {
+      let removeIndex = targetArray.findIndex((st) => st.id === stId)
+      if (removeIndex !== -1) {
+        targetArray.splice(removeIndex, 1)
+      }
     }
   }
 }
@@ -240,11 +294,21 @@ async function onRegionChange(evt: any) {
     countrySelectList.value ?? [],
     partModel.value.countries ?? [],
   )
+
+  partModel.value.regionsList = partModel.value.regions?.map((r) => r.id).join(',') || ''
 }
 
 async function onCountryChange(evt: any) {
   // manageSelectedCountries(evt.value)
   manageSelectedValues(evt.value, countrySelectList.value ?? [], partModel.value.countries ?? [])
+  console.log('Selected Countries after region change', ms_selectedCountries.value)
+  console.log('Part Model Countries after region change', partModel.value.countries)
+  let someArray = partModel.value.countries ?? []
+  if (partModel.value.products != null && partModel.value.products.length > 0) {
+    await getProducts()
+  }
+
+  partModel.value.countriesList = partModel.value.countries?.map((c) => c.id).join(',') || ''
 }
 
 function onSelectAllCountriesChange(event: any) {
@@ -252,17 +316,22 @@ function onSelectAllCountriesChange(event: any) {
     ? (countrySelectList.value?.map((item) => item.id) ?? [])
     : []
   selectAllCountries.value = event.checked
+  //reset the product selection
+  clearProductSelection()
+  clearStandTypeSelection()
   //manageSelectedCountries(ms_selectedCountries.value)
   manageSelectedValues(
     ms_selectedCountries.value,
     countrySelectList.value ?? [],
     partModel.value.countries ?? [],
   )
+  partModel.value.countriesList = partModel.value.countries?.map((c) => c.id).join(',') || ''
 }
 
 function clearCountrySelection() {
   ms_selectedCountries.value = []
   partModel.value.countries = []
+  partModel.value.countriesList = ''
 }
 
 ////////////////////////////////////////////////////
@@ -273,7 +342,9 @@ function onPackShotSelect(event: any) {
   const reader = new FileReader()
   reader.onload = async (e) => {
     // packShot.value = e.target?.result as string
-    partModel.value.packShotImageSrc = e.target?.result as string
+    // partModel.value.packShotImageSrc = e.target?.result as string
+    partModel.value.packShotImageSrc = ''
+    cassettePhotoSrc.value = e.target?.result
   }
 
   reader.readAsDataURL(packShotFile.value!)
@@ -282,30 +353,88 @@ function onRenderSelect(event: any) {
   renderFile.value = event.files[0]
   const reader = new FileReader()
   reader.onload = async (e) => {
-    // renderImg.value = e.target?.result as string
-    partModel.value.render2dImage = e.target?.result as string
+    // partModel.value.render2dImage = e.target?.result as string
+    partModel.value.render2dImage = ''
+    cassetteRenderSrc.value = e.target?.result
   }
 
   reader.readAsDataURL(renderFile.value!)
 }
 function onIconSelect(event: any) {
   iconFile.value = event.files[0]
-  const reader = new FileReader()
-  reader.onload = async (e) => {
-    // icon.value = e.target?.result as string
-    partModel.value.svgLineGraphic = e.target?.result as string
-  }
+  if (iconFile.value?.type === 'image/svg+xml') {
+    const reader = new FileReader()
+    reader.onload = async (e) => {
+      let svgString = e.target?.result as string
+      var svg = atob(svgString.replace(/data:image\/svg\+xml;base64,/, ''))
+      console.log(svg)
 
-  reader.readAsDataURL(iconFile.value!)
+      partModel.value.svgLineGraphic = ''
+      cassetteIconSrc.value = svgString
+    }
+    reader.readAsDataURL(iconFile.value!)
+  }
 }
 
 /////////////////////////////////////////////////////
 // Product Handlers
 /////////////////////////////////////////////////////
 
+async function getProducts() {
+  let productFilter = new ProductFilter()
+  productFilter.brandId = brandStore.activeBrand?.id ?? 0
+  if (ms_selectedCountries == null || ms_selectedCountries.value?.length == 0) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Please select at least one country to load products',
+      group: 'bc',
+      life: 3000,
+    })
+    return
+  }
+  productFilter.countriesList = ms_selectedCountries.value?.join(',') ?? ''
+  if (selectedChildCategory.value) {
+    productFilter.categoryId = selectedChildCategory.value
+  } else {
+    //must select category to get products
+    toast.add({
+      severity: 'warn',
+      summary: 'Please select a category to load products',
+      group: 'bc',
+      life: 3000,
+    })
+    return
+  }
+  await productStore.getProductsByCategory(productFilter).then((response) => {
+    ms_productList.value = response ?? null
+    console.log('Products loaded', ms_productList.value)
+  })
+}
+function onShowProducts() {
+  if (partModel.value.countries == null || partModel.value.countries.length == 0) {
+    toast.add({
+      severity: 'error',
+      summary: 'Please select at least one country to load products',
+      life: 3000,
+      group: 'bc',
+    })
+    return
+  }
+  if (selectedChildCategory.value == null) {
+    //must select category to get products
+    toast.add({
+      severity: 'error',
+      summary: 'Please select a category to load products',
+      life: 3000,
+      group: 'bc',
+    })
+    return
+  }
+}
 async function onProductChange(evt: any) {
   // manageSelectedProducts(evt.value)
   manageSelectedValues(evt.value, ms_productList.value ?? [], partModel.value.products ?? [])
+  partModel.value.productList = partModel.value.products?.map((p) => p.id).join(',') || ''
 }
 
 function onSelectAllProductsChange(event: any) {
@@ -317,6 +446,7 @@ function onSelectAllProductsChange(event: any) {
     ms_productList.value ?? [],
     partModel.value.products ?? [],
   )
+  partModel.value.productList = partModel.value.products?.map((p) => p.id).join(',') || ''
 }
 
 function clearProductSelection() {
@@ -332,7 +462,8 @@ function onPartTypeChange(evt: any) {
   let selectedId = evt.value as number
   let selectedPartTypeItem = partTypes.value?.find((pt) => pt.id === selectedId) as PartType
   partModel.value.partTypeId = selectedPartTypeItem.id
-  partModel.value.PartType = selectedPartTypeItem
+  partModel.value.partTypeName = selectedPartTypeItem.name
+  partModel.value.partType = selectedPartTypeItem
 }
 
 /////////////////////////////////////////////////////
@@ -342,6 +473,7 @@ function onPartTypeChange(evt: any) {
 function onStandTypeChange(evt: any) {
   // manageSelectedStandTypes(evt.value)
   manageSelectedValues(evt.value, standTypesList.value ?? [], partModel.value.standTypes ?? [])
+  partModel.value.standTypeList = partModel.value.standTypes?.map((st) => st.id).join(',') || ''
 }
 
 function onSelectAllStandTypesChange(event: any) {
@@ -352,6 +484,7 @@ function onSelectAllStandTypesChange(event: any) {
     standTypesList.value ?? [],
     partModel.value.standTypes ?? [],
   )
+  partModel.value.standTypeList = partModel.value.standTypes?.map((st) => st.id).join(',') || ''
 }
 
 function clearStandTypeSelection() {
@@ -413,12 +546,35 @@ const resolver = ({ values }: any) => {
 
 async function onFormSubmit({ valid }: any) {
   if (valid) {
-    await partStore.savePart(partModel.value)
-    toast.add({
-      severity: 'success',
-      summary: 'Form is submitted.',
-      life: 3000,
-    })
+    //manage file uploads
+    let partData = partForm.createPartFormData(partModel)
+
+    if (packShotFile.value) {
+      partData.append('packShotFile', packShotFile.value)
+    }
+    if (renderFile.value) {
+      partData.append('renderFile', renderFile.value)
+    }
+    if (iconFile.value) {
+      partData.append('iconFile', iconFile.value)
+    }
+    await partStore
+      .savePart(partData, partModel.value.id ?? 0)
+      .then(() => {
+        toast.add({
+          severity: 'success',
+          summary: 'Form is submitted.',
+          life: 3000,
+        })
+        //router.push({ name: 'partList' })
+      })
+      .catch((error) => {
+        toast.add({
+          severity: 'error',
+          summary: 'Error saving part: ' + error,
+          life: 5000,
+        })
+      })
   }
 }
 </script>
@@ -431,6 +587,8 @@ async function onFormSubmit({ valid }: any) {
 </style>
 <template>
   <div class="edit-part-view">
+    <Toast position="top-right" group="tr" />
+    <Toast position="bottom-center" group="bc" />
     <div class="mb-5">
       <Button
         label="Back to Parts"
@@ -578,9 +736,16 @@ async function onFormSubmit({ valid }: any) {
               <div class="flex flex-col gap-1">
                 <!-- <div class="card flex flex-wrap gap-6 items-center justify-between"> -->
                 <label for="svgLineGraphic">Cassette Icon:</label>
-                <div v-html="partModel.svgLineGraphic" class="cassette-icon max-w-40"></div>
+                <!-- <div v-html="cassetteIconSrc" class="cassette-icon max-w-40"></div> -->
+                <img :src="cassetteIconSrc" class="cassette-icon max-w-40"></img>
+                <Skeleton
+                  v-if="cassetteIconSrc == null || cassetteIconSrc.length == 0"
+                  height="8rem"
+                  width="8rem"
+                  class="mb-2"
+                ></Skeleton>
                 <FileUpload
-                  name="svgLineGraphic"
+                  name="iconFile"
                   ref="fileupload"
                   mode="basic"
                   @select="onIconSelect"
@@ -593,13 +758,20 @@ async function onFormSubmit({ valid }: any) {
                 <!-- <div class="card flex flex-wrap gap-6 items-center justify-between"> -->
                 <label for="packShotImgSrc">Cassette Image:</label>
                 <img
-                  v-if="partModel.packShotImageSrc != null"
-                  :src="cassettePhotoUrl + partModel.packShotImageSrc"
+                  v-if="cassettePhotoSrc != null && cassettePhotoSrc.length != 0"
+                  :src="cassettePhotoSrc"
                   alt="Pack Shot"
                   class="block m-auto pb-4 max-h-60"
                 />
+                <Skeleton
+                  v-if="cassettePhotoSrc == null || cassettePhotoSrc.length == 0"
+                  height="8rem"
+                  width="8rem"
+                  class="mb-2"
+                ></Skeleton>
+
                 <FileUpload
-                  name="packShotImgSrc"
+                  name="packShotFile"
                   ref="fileupload"
                   mode="basic"
                   @select="onPackShotSelect"
@@ -613,13 +785,20 @@ async function onFormSubmit({ valid }: any) {
                 <label for="render2dImage">Planogram 2d Render:</label>
                 <!-- <InputText name="render2dImage" type="text" placeholder="Planogram 2d Render" fluid /> -->
                 <img
-                  v-if="partModel.render2dImage != null"
-                  :src="cassetteRenderUrl + partModel.render2dImage"
+                  v-if="cassetteRenderSrc != null && cassetteRenderSrc.length != 0"
+                  :src="cassetteRenderSrc"
                   alt="Pack Shot"
                   class="block m-auto pb-4 max-h-60"
                 />
+                <Skeleton
+                  v-if="cassetteRenderSrc == null || cassetteRenderSrc.length == 0"
+                  height="8rem"
+                  width="8rem"
+                  class="mb-2"
+                ></Skeleton>
+
                 <FileUpload
-                  name="render2dImage"
+                  name="renderFile"
                   ref="fileupload"
                   mode="basic"
                   @select="onRenderSelect"
@@ -795,6 +974,7 @@ async function onFormSubmit({ valid }: any) {
                   option-label="name"
                   option-value="id"
                   @change="onProductChange($event)"
+                  @show="onShowProducts()"
                   :selectAll="selectAllProducts"
                   @selectall-change="onSelectAllProductsChange($event)"
                 >

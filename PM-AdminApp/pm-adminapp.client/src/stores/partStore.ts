@@ -15,28 +15,45 @@ export const usePartStore = defineStore('partStore', () => {
   async function initialize(partFilter?: PartFilter): Promise<void> {
     await partService.initialise()
 
-    await partService
-      .getPart(partFilter?.Id ?? 0)
-      .then((data) => {
-        part.value = data
-        initialized.value = true
-      })
-      .catch((err) => {
-        error.value = err.message
-      })
+    if (partFilter?.Id != 0) {
+      await partService
+        .getPart(partFilter?.Id ?? 0)
+        .then((data) => {
+          part.value = data
+          initialized.value = true
+        })
+        .catch((err) => {
+          error.value = err.message
+        })
+    } else {
+      part.value = new Part()
+      initialized.value = true
+    }
   }
 
-  async function savePart(updatedPart: Part): Promise<void> {
+  async function savePart(updatedPart: FormData, id: Number): Promise<void> {
     await partService.initialise()
-
-    await partService
-      .savePart(updatedPart)
-      .then((data) => {
-        part.value = data
-      })
-      .catch((err) => {
-        error.value = err.message
-      })
+    if (id == 0) {
+      await partService
+        .createPart(updatedPart)
+        .then((data) => {
+          part.value = data
+        })
+        .catch((err) => {
+          error.value = err.message
+        })
+      return
+    } else {
+      // update the existing part
+      await partService
+        .savePart(updatedPart)
+        .then((data) => {
+          part.value = data
+        })
+        .catch((err) => {
+          error.value = err.message
+        })
+    }
   }
   return { part, error, initialize, activeProduct, savePart }
 })

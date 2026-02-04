@@ -35,27 +35,44 @@ export const partService = {
   },
 
   async getPart(partId: number): Promise<Part> {
-    // if (initialized.value !== false) {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
     let response = await apiClient.get('/getPart', { params: { id: partId } })
     return response.data
-    // } else {
-    //   throw new Error('PartService not initialized')
-    // }
   },
 
-  async savePart(part: Part): Promise<Part> {
-    // if (initialized.value !== false) {
+  async savePart(part: FormData): Promise<Part> {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
-    let response = await apiClient.post('/savePart', part)
+    apiClient.defaults.headers['Content-Type'] = 'multipart/form-data'
+
+    let response = await apiClient
+      .post('/savePart', part)
+      .then((resp) => {
+        return resp.data
+      })
+      .catch((error) => {
+        throw error
+      })
     return response.data
-    // } else {
-    //   throw new Error('PartService not initialized')
-    // }
+  },
+
+  async createPart(part: FormData): Promise<Part> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    apiClient.defaults.headers['Content-Type'] = 'multipart/form-data'
+    let response = await apiClient
+      .post('/createPart', part)
+      .then((resp) => {
+        return resp
+      })
+      .catch((error) => {
+        throw error
+      })
+    return response.data
   },
 
   async initialise() {

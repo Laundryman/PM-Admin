@@ -16,7 +16,7 @@ const toggleMenu = (event: Event) => {
 <template>
   <div class="card">
     <div class="flex justify-between items-center mb-6">
-      <div class="font-semibold text-xl">Best Selling Products</div>
+      <div class="font-semibold text-xl">Most Used Products</div>
       <div>
         <Button
           icon="pi pi-ellipsis-v"
@@ -31,9 +31,9 @@ const toggleMenu = (event: Event) => {
       <li class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
           <span class="text-surface-900 dark:text-surface-0 font-medium mr-2 mb-1 md:mb-0"
-            >Space T-Shirt</span
+            >Striking Colour Gloss</span
           >
-          <div class="mt-1 text-muted-color">Clothing</div>
+          <div class="mt-1 text-muted-color">Lips</div>
         </div>
         <div class="mt-2 md:mt-0 flex items-center">
           <div
@@ -48,9 +48,9 @@ const toggleMenu = (event: Event) => {
       <li class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
           <span class="text-surface-900 dark:text-surface-0 font-medium mr-2 mb-1 md:mb-0"
-            >Portal Sticker</span
+            >Super Large Lashes</span
           >
-          <div class="mt-1 text-muted-color">Accessories</div>
+          <div class="mt-1 text-muted-color">Eyes</div>
         </div>
         <div class="mt-2 md:mt-0 ml-0 md:ml-20 flex items-center">
           <div
@@ -65,9 +65,9 @@ const toggleMenu = (event: Event) => {
       <li class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
           <span class="text-surface-900 dark:text-surface-0 font-medium mr-2 mb-1 md:mb-0"
-            >Supernova Sticker</span
+            >Supernova Extravagant Blush</span
           >
-          <div class="mt-1 text-muted-color">Accessories</div>
+          <div class="mt-1 text-muted-color">Face</div>
         </div>
         <div class="mt-2 md:mt-0 ml-0 md:ml-20 flex items-center">
           <div
@@ -82,9 +82,9 @@ const toggleMenu = (event: Event) => {
       <li class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
           <span class="text-surface-900 dark:text-surface-0 font-medium mr-2 mb-1 md:mb-0"
-            >Wonders Notebook</span
+            >Clearly Superior Tint</span
           >
-          <div class="mt-1 text-muted-color">Office</div>
+          <div class="mt-1 text-muted-color">Face</div>
         </div>
         <div class="mt-2 md:mt-0 ml-0 md:ml-20 flex items-center">
           <div
@@ -99,9 +99,9 @@ const toggleMenu = (event: Event) => {
       <li class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
           <span class="text-surface-900 dark:text-surface-0 font-medium mr-2 mb-1 md:mb-0"
-            >Mat Black Case</span
+            >Mat Lashes</span
           >
-          <div class="mt-1 text-muted-color">Accessories</div>
+          <div class="mt-1 text-muted-color">Eyes</div>
         </div>
         <div class="mt-2 md:mt-0 ml-0 md:ml-20 flex items-center">
           <div
@@ -116,9 +116,9 @@ const toggleMenu = (event: Event) => {
       <li class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
           <span class="text-surface-900 dark:text-surface-0 font-medium mr-2 mb-1 md:mb-0"
-            >Robots T-Shirt</span
+            >Superga Volumizing Mascara</span
           >
-          <div class="mt-1 text-muted-color">Clothing</div>
+          <div class="mt-1 text-muted-color">Eyes</div>
         </div>
         <div class="mt-2 md:mt-0 ml-0 md:ml-20 flex items-center">
           <div

@@ -9,6 +9,7 @@ import fs from 'fs'
 import { fileURLToPath, URL } from 'node:url'
 import path from 'path'
 import { env } from 'process'
+// import { server } from 'typescript'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig } from 'vite'
 const baseFolder =
@@ -65,6 +66,12 @@ export default defineConfig({
     },
   },
   server: {
+    headers: {
+      // 'Access-Control-Allow-Origin': '*',
+      // 'Access-Control-Allow-Headers': '*',
+      // 'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Opener-Policy': 'unsafe-none',
+    },
     proxy: {
       '^/weatherforecast': {
         target,
