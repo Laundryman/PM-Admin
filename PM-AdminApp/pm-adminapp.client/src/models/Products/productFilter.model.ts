@@ -1,4 +1,5 @@
 export class ProductFilter {
+  id!: number
   brandId!: number
   countryId!: number
   regionId!: number

@@ -12,7 +12,9 @@ import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api/'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const { regions, countries } = useLocationFilters()
 const selectedRegion = ref()
 const selectedCountry = ref()
@@ -129,6 +131,21 @@ async function clearFilters() {
     console.log('Regions loaded', regions.value)
   })
 }
+
+function editProduct(product: searchProductInfo) {
+  console.log('Edit product', product)
+  // layout.setActiveProduct(product) --- IGNORE ---
+  // Navigate to edit page
+  router.push({ name: 'editProduct', params: { id: product.id } })
+}
+
+function openNew() {
+  router.push({ name: 'newProduct' })
+}
+
+function copyProduct(product: searchProductInfo) {
+  router.push({ name: 'copyProduct', params: { id: product.id } })
+}
 </script>
 
 <template>
@@ -232,6 +249,26 @@ async function clearFilters() {
               type="text"
               @input="filterCallback()"
               placeholder="Search by category"
+            />
+          </template>
+        </Column>
+        <Column :exportable="false" style="min-width: 12rem">
+          <template #body="slotProps">
+            <Button
+              v-tooltip="'Edit Part'"
+              icon="pi pi-pencil"
+              variant="outlined"
+              rounded
+              class="mr-2"
+              @click="editProduct(slotProps.data)"
+            />
+            <Button
+              v-tooltip="'Copy Part'"
+              icon="pi pi-copy"
+              variant="outlined"
+              rounded
+              class="mr-2"
+              @click="copyProduct(slotProps.data)"
             />
           </template>
         </Column>

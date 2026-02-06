@@ -335,7 +335,7 @@ function clearCountrySelection() {
 }
 
 ////////////////////////////////////////////////////
-// File Upload Handlers
+// Image Handlers
 ////////////////////////////////////////////////////
 function onPackShotSelect(event: any) {
   packShotFile.value = event.files[0]

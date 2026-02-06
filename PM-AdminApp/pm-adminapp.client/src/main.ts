@@ -29,6 +29,11 @@ import Password from 'primevue/password'
 import Select from 'primevue/select'
 import SelectButton from 'primevue/selectbutton'
 import Skeleton from 'primevue/skeleton'
+import Tab from 'primevue/tab'
+import TabList from 'primevue/tablist'
+import TabPanel from 'primevue/tabpanel'
+import TabPanels from 'primevue/tabpanels'
+import Tabs from 'primevue/tabs'
 import Tag from 'primevue/tag'
 import Textarea from 'primevue/textarea'
 import Toast from 'primevue/toast'
@@ -77,6 +82,11 @@ app.component('Password', Password)
 app.component('Select', Select)
 app.component('SelectButton', SelectButton)
 app.component('Skeleton', Skeleton)
+app.component('TabPanel', TabPanel)
+app.component('Tabs', Tabs)
+app.component('TabList', TabList)
+app.component('Tab', Tab)
+app.component('TabPanels', TabPanels)
 app.component('Tag', Tag)
 app.component('Textarea', Textarea)
 app.component('Toast', Toast)

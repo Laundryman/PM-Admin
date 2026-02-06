@@ -1,4 +1,5 @@
 // import { useAuthStore } from '@/stores/auth'
+import type { Product } from '@/models/Products/product.model'
 import type { ProductFilter } from '@/models/Products/productFilter.model'
 import type { searchProductInfo } from '@/models/Products/searchProductInfo.model'
 import { Auth, msal } from '@/services/Identity/auth'
@@ -31,6 +32,14 @@ export default {
     // } else {
     //   throw new Error('PartService not initialized')
     // }
+  },
+
+  async getProduct(productId: number): Promise<Product> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    let response = await apiClient.get('/getProduct', { params: { id: productId } })
+    return response.data
   },
 
   async getProductsByCategory(filter: ProductFilter): Promise<any[]> {

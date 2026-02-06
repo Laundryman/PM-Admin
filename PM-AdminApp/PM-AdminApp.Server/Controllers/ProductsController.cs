@@ -125,12 +125,14 @@ namespace LMXApi.Controllers
             }
         }
 
-        [HttpGet("{id}", Name = "ProductById")]
-        public async Task<IActionResult> GetProductById(int id)
+        [HttpGet()]
+        public async Task<IActionResult> GetProduct([FromQuery] int id)
         {
             try
             {
-                var product = await _asyncProductRepository.GetByIdAsync(id);
+                var spec = new ProductByIdSpecification(id);
+
+                var product = await _asyncProductRepository.FirstOrDefaultAsync(spec);
 
                 if (product == null)
                 {
@@ -140,7 +142,7 @@ namespace LMXApi.Controllers
                 else
                 {
                     _logger.LogInformation($"Returned product with id: {id}");
-                    var response = _mapper.Map<FullProductDto>(product);
+                    var response = _mapper.Map<ProductDto>(product);
 
                     return Ok(response);
                 }

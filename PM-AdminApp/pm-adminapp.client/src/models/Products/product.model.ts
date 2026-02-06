@@ -1,4 +1,7 @@
+import type { Country } from '../Countries/country.model'
+import type { Region } from '../Countries/region.model'
 import { ProductList } from './product-list.model'
+import type { Shade } from './shade.model'
 
 export class Product {
   id!: number
@@ -15,7 +18,11 @@ export class Product {
   dateUpdated!: Date
   published!: boolean
   discontinued!: boolean
-  countryList!: string
+  countriesList!: string
+  regionsList!: string
+  regions!: Region[]
+  countries: Country[] = []
+  shades: Shade[] = []
   contstructor() {
     this.id = 0
   }

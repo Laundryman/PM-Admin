@@ -12,18 +12,21 @@ export const useProductStore = defineStore('productStore', () => {
   const products = ref<Product[]>([])
   const initialized = ref(false)
 
-  async function initialize(productFilter: ProductFilter) {
+  async function initialize(id: number) {
     if (initialized.value === true) {
       return productList.value
     }
     await ProductService.initialise()
-    return await ProductService.searchProducts(productFilter ?? 0).then(
-      (data: searchProductInfo[]) => {
-        productList.value = data
+    return await ProductService.getProduct(id)
+      .then((data: Product) => {
+        product.value = data
         initialized.value = true
         return data
-      },
-    )
+      })
+      .catch((err) => {
+        error.value = err.message
+        initialized.value = false
+      })
   }
 
   async function getProductsByCategory(productFilter: ProductFilter) {
