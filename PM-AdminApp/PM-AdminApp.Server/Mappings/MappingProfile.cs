@@ -74,6 +74,8 @@ namespace PM_AdminApp.Server.Mappings
 
             CreateMap<PlanmStandDto, Stand>();
             //CreateMap<Stand, PlanmStandDto>();
+            CreateMap<StandDto, Stand>();
+            CreateMap<Stand, StandDto>();
             CreateMap<PlanmStandColumnDto, StandColumn>();
             CreateMap<PlanmStandRowDto, StandRow>();
             //CreateMap<StandRow, PlanmStandRowDto>();

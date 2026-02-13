@@ -86,32 +86,33 @@ namespace LMXApi.Controllers
         //    }
         //}
 
-        //[HttpGet("{id}", Name = "StandById")]
-        //public async Task<IActionResult> GetStandById(int id)
-        //{
-        //    try
-        //    {
-        //        var stand = await _asyncStandRepository.GetByIdAsync(id);
+        [HttpGet()]
+        public async Task<IActionResult> GetStand([FromQuery] int id)
+        {
+            try
+            {
+                var spec = new StandByIdSpecification(id);
+                var stand = await _asyncStandRepository.FirstOrDefaultAsync(spec);
 
-        //        if (stand == null)
-        //        {
-        //            _logger.LogWarning($"Stand with id: {id}, hasn't been found in db.");
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            _logger.LogInformation($"Returned stand with id: {id}");
-        //            var response = _mapper.Map<FullStandDto>(stand);
+                if (stand == null)
+                {
+                    _logger.LogWarning($"Stand with id: {id}, hasn't been found in db.");
+                    return NotFound();
+                }
+                else
+                {
+                    _logger.LogInformation($"Returned stand with id: {id}");
+                    var response = _mapper.Map<StandDto>(stand);
 
-        //            return Ok(response);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError($"Something went wrong inside GetProductById action: {ex.Message}");
-        //        return StatusCode(500, "Internal server error");
-        //    }
-        //}
+                    return Ok(response);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Something went wrong inside GetProductById action: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
 
         //private List<StandListDto> CreateSelectList(IReadOnlyList<Stand> list)
         //{

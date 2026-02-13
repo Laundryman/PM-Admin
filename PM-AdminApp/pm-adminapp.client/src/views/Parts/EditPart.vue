@@ -159,7 +159,7 @@ onMounted(async () => {
     }
   })
 
-  await standTypeComposable.getPartStandTypes().then((response) => {
+  await standTypeComposable.getStandTypes().then((response) => {
     standTypesList.value = response
     if (router.currentRoute.value.name === 'editPart') {
       selectedStandTypes.value = partModel.value.standTypes.map((st: StandType) => st.id)

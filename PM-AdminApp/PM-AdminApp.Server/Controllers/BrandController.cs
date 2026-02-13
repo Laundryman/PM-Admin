@@ -53,7 +53,7 @@ namespace PM_AdminApp.Server.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Something went wrong inside GetPartTypes action: {ex.Message}");
+                _logger.LogWarning($"Something went wrong inside GetBrands action: {ex.Message}");
                 return StatusCode(500, "Internal server error");
             }
         }

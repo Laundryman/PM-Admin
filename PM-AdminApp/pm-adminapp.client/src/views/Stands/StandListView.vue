@@ -4,7 +4,7 @@ import { onMounted, ref, watch } from 'vue'
 import { useLocationFilters } from '@/components/composables/locationFilters'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
 import { searchStandInfo } from '@/models/Stands/searchStandInfo.model'
-import { standFilter } from '@/models/Stands/standFilter.model'
+import { StandFilter } from '@/models/Stands/standFilter.model'
 import { default as countryService } from '@/services/Countries/CountryService'
 import { default as standService } from '@/services/Stands/StandService'
 import { useBrandStore } from '@/stores/brandStore'
@@ -12,7 +12,9 @@ import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api/'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const { regions, countries } = useLocationFilters()
 const selectedRegion = ref()
 const selectedCountry = ref()
@@ -32,7 +34,7 @@ const filters = ref({
 
 watch(brand, async (newBrand) => {
   if (newBrand) {
-    let filter = new standFilter()
+    let filter = new StandFilter()
     filter.brandId = newBrand.id
     await standService.searchStands(filter).then((response) => {
       stands.value = response
@@ -65,7 +67,7 @@ onMounted(async () => {
       regions.value = response
     })
 
-  var filter = new standFilter()
+  var filter = new StandFilter()
   filter.brandId = brandid
   await standService.searchStands(filter).then((response) => {
     stands.value = response
@@ -88,7 +90,7 @@ onMounted(async () => {
 async function onRegionChange() {
   if (selectedRegion.value) {
     countries.value = await useLocationFilters().onRegionChange(selectedRegion.value)
-    let filter = new standFilter()
+    let filter = new StandFilter()
     filter.brandId = layout.getActiveBrand?.id ?? 0
     filter.regionId = selectedRegion.value
     await standService.searchStands(filter).then((response) => {
@@ -102,7 +104,7 @@ async function onRegionChange() {
 
 async function onCountryChange() {
   if (selectedCountry.value) {
-    let filter = new standFilter()
+    let filter = new StandFilter()
     filter.brandId = layout.getActiveBrand?.id ?? 0
     filter.countryId = selectedCountry.value
     await standService.searchStands(filter).then((response) => {
@@ -118,7 +120,7 @@ async function clearFilters() {
   selectedRegion.value = null
   selectedCountry.value = null
   countries.value = []
-  let filter = new standFilter()
+  let filter = new StandFilter()
   filter.brandId = layout.getActiveBrand?.id ?? 0
   await standService.searchStands(filter).then((response) => {
     stands.value = response
@@ -131,12 +133,27 @@ async function clearFilters() {
     console.log('Regions loaded', regions.value)
   })
 }
+
+function editStand(stand: searchStandInfo) {
+  console.log('Edit stand', stand)
+  // layout.setActiveStand(stand) --- IGNORE ---
+  // Navigate to edit page
+  router.push({ name: 'editStand', params: { id: stand.id } })
+}
+
+function openNew() {
+  router.push({ name: 'newStand' })
+}
+
+function copyStand(stand: searchStandInfo) {
+  router.push({ name: 'copyStand', params: { id: stand.id } })
+}
 </script>
 
 <template>
   <div>
-    <h1>Product List View</h1>
-    <!-- Product list content goes here -->
+    <h1>Stand List View</h1>
+    <!-- Stand list content goes here -->
     <Toolbar class="mb-6">
       <template #start>
         <Select
@@ -246,6 +263,27 @@ async function clearFilters() {
 
         <Column field="height" header="Height" sortable style="min-width: 16rem"></Column>
         <Column field="width" header="Width" sortable style="min-width: 12rem"></Column>
+
+        <Column :exportable="false" style="min-width: 12rem">
+          <template #body="slotProps">
+            <Button
+              v-tooltip="'Edit Part'"
+              icon="pi pi-pencil"
+              variant="outlined"
+              rounded
+              class="mr-2"
+              @click="editStand(slotProps.data)"
+            />
+            <Button
+              v-tooltip="'Copy Stand'"
+              icon="pi pi-copy"
+              variant="outlined"
+              rounded
+              class="mr-2"
+              @click="copyStand(slotProps.data)"
+            />
+          </template>
+        </Column>
       </DataTable>
     </div>
   </div>

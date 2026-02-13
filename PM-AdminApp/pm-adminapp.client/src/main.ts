@@ -20,6 +20,8 @@ import Image from 'primevue/image'
 import InputIcon from 'primevue/inputicon'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
+import Listbox from 'primevue/listbox'
+
 import Menu from 'primevue/menu'
 import Message from 'primevue/message'
 import MultiSelect from 'primevue/multiselect'
@@ -29,6 +31,7 @@ import Password from 'primevue/password'
 import Select from 'primevue/select'
 import SelectButton from 'primevue/selectbutton'
 import Skeleton from 'primevue/skeleton'
+import Slider from 'primevue/slider'
 import Tab from 'primevue/tab'
 import TabList from 'primevue/tablist'
 import TabPanel from 'primevue/tabpanel'
@@ -74,6 +77,7 @@ app.component('InputIcon', InputIcon)
 app.component('IconField', IconField)
 app.component('InputText', InputText)
 app.component('InputNumber', InputNumber)
+app.component('Listbox', Listbox)
 app.component('Menu', Menu)
 app.component('MultiSelect', MultiSelect)
 app.component('OverlayBadge', OverlayBadge)
@@ -82,6 +86,7 @@ app.component('Password', Password)
 app.component('Select', Select)
 app.component('SelectButton', SelectButton)
 app.component('Skeleton', Skeleton)
+app.component('Slider', Slider)
 app.component('TabPanel', TabPanel)
 app.component('Tabs', Tabs)
 app.component('TabList', TabList)

@@ -8,7 +8,7 @@ export function useStandTypes() {
   const brandStore = useBrandStore()
   const standTypes = ref<StandType[] | null>([])
 
-  async function getPartStandTypes() {
+  async function getStandTypes() {
     await StandTypeService.initialise().catch((error) =>
       console.error('Error initializing StandType Service:', error),
     )
@@ -21,5 +21,5 @@ export function useStandTypes() {
     return standTypes.value
   }
 
-  return { standTypes, getPartStandTypes }
+  return { standTypes, getStandTypes }
 }

@@ -9,11 +9,13 @@ import { Country } from '@/models/Countries/country.model'
 import { Region } from '@/models/Countries/region.model'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
 
+import { useMultiSelectLists } from '@/components/composables/multiSelectList.composable'
+import { useShadeManagement } from '@/components/composables/shademanagement.composable'
 import { Product } from '@/models/Products/product.model'
 import { ProductFilter } from '@/models/Products/productFilter.model'
+import { Shade } from '@/models/Products/shade.model'
 import { StandType } from '@/models/StandTypes/standType.model'
-
-import { useMultiSelectLists } from '@/components/composables/multiSelectList.composable'
+import shadeService from '@/services/Shades/ShadeService'
 import { useBrandStore } from '@/stores/brandStore'
 import { usePartStore } from '@/stores/partStore'
 import { useProductStore } from '@/stores/productStore'
@@ -67,10 +69,16 @@ const selectedProducts = ref<number[] | null>(null)
 const standTypesList = ref<StandType[] | null>(null)
 const selectedStandTypes = ref<number[] | null>(null)
 
-
 const productImageUrl = import.meta.env.VITE_APP_PRODUCTIMAGE_URL
 const productImageSrc = ref()
 const imageFile = ref<File | null>(null)
+const tabId = ref('0')
+
+
+// Shade Management
+const shademanagement = useShadeManagement()
+
+const { shades, shade, shadeDialog, submitted, shade_countrySelectList, shade_selectedCountries, shade_selectAllCountries } = shademanagement
 /////////////////////////////////////////////////////
 // Lifecycle Hooks
 /////////////////////////////////////////////////////
@@ -80,6 +88,10 @@ onMounted(async () => {
   var productFilter = new ProductFilter()
   productFilter.id = Number(router.currentRoute.value.params.id) || 0
    await productStore.initialize(productFilter.id)
+   await productStore.getShadesForProduct(productFilter.id).then((response) => {
+    shades.value = response
+    console.log('Shades loaded', shades.value)
+  })
   productModel.value = { ...product.value } as Product //clone(product.value)
 
   if (router.currentRoute.value.name === 'copyPart') {
@@ -102,7 +114,9 @@ onMounted(async () => {
   if (router.currentRoute.value.name === 'editProduct') {
     ms_selectedRegions.value = productModel.value.regions.map((c) => c.id)
     countrySelectList.value = await locationFilters.getCountriesForRegions(ms_selectedRegions.value)
+    shademanagement.setCountrySelectList(countrySelectList.value)
     ms_selectedCountries.value = productModel.value.countries.map((c) => c.id)
+    shademanagement.setSelectedCountries(ms_selectedCountries.value)
     // dateCreated.value = new Date(productModel.value.dateCreated) //added to bind date picker
   }
 
@@ -136,6 +150,7 @@ onMounted(async () => {
 
 async function onRegionChange(evt: any) {
   countrySelectList.value = await locationFilters.getCountriesForRegions(ms_selectedRegions.value)
+  shademanagement.setCountrySelectList(countrySelectList.value)
   //remove any countries no longer in the list
   let newSelectList = ms_selectedCountries.value?.filter((countryId) =>
     countrySelectList.value?.some((c) => c.id === countryId),
@@ -284,6 +299,70 @@ async function onFormSubmit({ valid }: any) {
   }
 }
 
+///////////////////////////////////////////////////
+// Shade Dialog Handlers
+//
+//////////////////////////////////////////////////
+
+const openNew = () => {
+  shade.value = {} as Shade
+  submitted.value = false
+  shadeDialog.value = true
+}
+const hideDialog = () => {
+  shadeDialog.value = false
+  submitted.value = false
+}
+
+function editShade(sh: Shade) {
+  shade.value = sh
+  shadeDialog.value = true
+}
+
+
+async function saveShade() {
+  submitted.value = true
+
+  const formData = new FormData()
+
+
+  if (shade?.value.shadeNumber?.trim()) {
+    formData.append('name', shade.value.shadeNumber)
+    formData.append('shelfLock', String(shade.value.published))
+    formData.append('id', String(shade.value.id ?? 0))
+    if (shade.value.id) {
+      await shadeService
+        .updateShade(formData)
+        .then((response) => {
+          if (response && response.data) {
+            console.log(response.data)
+          }
+        })
+        .catch((error) => {
+          console.error('Error updating shade:', error)
+        })
+      toast.add({
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'Shade Updated',
+        life: 3000,
+      })
+    } else {
+      shade.value.id = 0
+      // shades.value.push(shade.value)
+      toast.add({
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'Shade Created',
+        life: 3000,
+      })
+    }
+
+    shadeDialog.value = false
+    shade.value = new Shade()
+  }
+}
+
 </script>
 
 
@@ -310,14 +389,20 @@ async function onFormSubmit({ valid }: any) {
             <img :src="productImageSrc" class="cassette-icon max-w-40"></img>
         </div>
       </div>
+    <div class="w-full p-10">
+
+          <Button @click="tabId = '0'"  label="Product Details" class="" :outlined="tabId !== '0'" />
+          <Button @click="tabId = '1'"  label="Shades" class="" :outlined="tabId !== '1'" />
+    </div>
     </div>
 
+
     <div class="card grid grid-cols-1 gap-4 justify-center">
-<Tabs value="0">
-  <TabList>
+<Tabs v-model:value="tabId">
+  <!-- <TabList>
         <Tab value="0">Part Details</Tab>
         <Tab value="1">Shades</Tab>
-  </TabList>
+  </TabList> -->
   <TabPanels>
      <TabPanel value="0">
       <Form
@@ -544,18 +629,125 @@ async function onFormSubmit({ valid }: any) {
         <div class="p-10">
           <h3>Shades</h3>
               <div class="card">
-                <!-- <DataTable :value="productModel.shades" scrollable scrollHeight="400px" tableStyle="min-width: 50rem">
-                    <Column field="name" header="Name"></Column>
-                    <Column field="country.name" header="Country"></Column>
-                    <Column field="representative.name" header="Representative"></Column>
-                    <Column field="company" header="Company"></Column>
-                </DataTable> -->
+                <DataTable :value="shades" scrollable scrollHeight="400px" tableStyle="min-width: 50rem">
+                    <Column field="shadeNumber" header="Name"></Column>
+                    <Column field="shadeDescription" header="Description"></Column>
+                    <Column field="published" header="Published">
+                      <template #body="slotProps">
+                        <div class="flex align>-items-center gap-2">
+                          <span>{{ slotProps.data.published ? 'Yes' : 'No' }}</span>
+                          </div>
+                      </template>
+                    </Column>
+                    <Column field="countries" header="Countries">
+                    <template #body="slotProps">
+                        <div class="flex align-items-center gap-2">
+                          <Listbox :options="slotProps.data.countries" option-label="name" class="w-full" listStyle="max-height:100px">
+
+                          </Listbox>
+                        </div>
+                      </template>
+                    </Column>
+                    <Column :exportable="false" style="min-width: 12rem">
+                      <template #body="slotProps">
+                        <Button
+                          icon="pi pi-pencil"
+                          variant="outlined"
+                          rounded
+                          class="mr-2"
+                          @click="editShade(slotProps.data)"
+                        />
+                      </template>
+                    </Column>
+                </DataTable>
               </div>
         </div>
      </TabPanel>
   </TabPanels>
   </Tabs>
 
+    <Dialog
+      v-model:visible="shadeDialog"
+      :style="{ width: '450px' }"
+      header="Shade Details"
+      :modal="true"
+    >
+      <div class="flex flex-col gap-6">
+          <div>
+          <label for="name" class="block font-bold mb-3">Name</label>
+          <InputText
+            id="name"
+            v-model.trim="shade.shadeNumber"
+            required="true"
+            autofocus
+            :invalid="submitted && !shade.shadeNumber"
+            fluid
+          />
+          <small v-if="submitted && !shade.shadeNumber" class="text-red-500">Name is required.</small>
+        </div>
+                  <div>
+          <label for="description" class="block font-bold mb-3">Description</label>
+          <InputText
+            id="description"
+            v-model.trim="shade.shadeDescription"
+            required="true"
+            autofocus
+            :invalid="submitted && !shade.shadeDescription"
+            fluid
+          />
+          <small v-if="submitted && !shade.shadeDescription" class="text-red-500">Description is required.</small>
+        </div>
+        <div>
+          <label for="published" class="block font-bold mb-3">Published</label>
+          <ToggleSwitch name="published" v-model="shade.published" />
+        </div>
+              <div class="flex flex-col gap-2">
+                <div>
+                <label for="country">Country:</label>
+                <MultiSelect
+                  name="countries"
+                  v-model="shade_selectedCountries"
+                  :options="shade_countrySelectList ?? []"
+                  id="country"
+                  class="w-full"
+                  option-label="name"
+                  option-value="id"
+                  @change="shademanagement.onCountryChange($event)"
+                  :selectAll="shade_selectAllCountries"
+                  @selectall-change="shademanagement.onSelectAllCountriesChange($event)"
+                >
+                  <template #option="option">
+                    <div class="">
+                      <span>{{ option.option.name }}</span>
+                    </div>
+                  </template>
+                </MultiSelect>
+                <!-- <Message
+                  v-if="shade_selectedCountries?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.countries.error?.message }}</Message -->
+                >
+              </div>
+              <div class="flex gap-2 flex-wrap max-h-40 overflow-auto">
+                <Button
+                  label="Clear Selection"
+                  class="w-text-left"
+                  @click="shademanagement.clearCountrySelection"
+                />
+                <template v-for="country in shade.countries">
+                  <Chip class="flex-wrap" :label="country.name"></Chip>
+                </template>
+              </div>
+            </div>
+
+      </div>
+      <template #footer>
+        <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
+        <Button label="Save" icon="pi pi-check" @click="saveShade" />
+      </template>
+    </Dialog>
     </div>
   </div>
 </template>

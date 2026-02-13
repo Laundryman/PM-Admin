@@ -25,12 +25,13 @@ namespace LMXApi.Controllers
         private readonly IProductRepository _productRepository;
         private readonly IAsyncRepository<Country> _countryRepository;
         private readonly IAsyncRepository<Category> _categoryRepository;
+        private readonly IAsyncRepositoryLong<Shade> _shadeRepository;
 
 
 
         public ProductsController(IMapper mapper, IAsyncRepositoryLong<Product> asyncProductRepository,
             IAsyncRepository<Country> countryRepository, IAsyncRepository<Category> categoryRepository,
-            ILogger<ProductsController> logger, IProductRepository productRepository)
+            ILogger<ProductsController> logger, IProductRepository productRepository, IAsyncRepositoryLong<Shade> shadeRepository)
         {
             _logger = logger;
             _productRepository = productRepository;
@@ -38,6 +39,7 @@ namespace LMXApi.Controllers
             _countryRepository = countryRepository;
             _categoryRepository = categoryRepository;
             _mapper = mapper;
+            _shadeRepository = shadeRepository;
         }
 
 
@@ -150,6 +152,24 @@ namespace LMXApi.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Something went wrong inside GetProductById action: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet()]
+        public async Task<IActionResult> GetShades([FromQuery] int productId)
+        {
+            try
+            {
+                var spec = new ShadeSpecification(new ShadeFilter { ProductId = productId });
+                var shades = await _shadeRepository.ListAsync(spec);
+                var response = _mapper.Map<IReadOnlyList<ShadeDto>>(shades);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Something went wrong inside GetShades action: {ex.Message}");
+                
                 return StatusCode(500, "Internal server error");
             }
         }

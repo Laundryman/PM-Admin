@@ -64,7 +64,7 @@ namespace LMXApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Something went wrong inside GetPartTypes action: {ex.Message}");
+                _logger.LogWarning($"Something went wrong inside GetCategories action: {ex.Message}");
                 return StatusCode(500, "Internal server error");
             }
         }
