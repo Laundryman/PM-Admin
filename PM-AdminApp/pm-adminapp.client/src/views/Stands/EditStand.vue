@@ -806,29 +806,32 @@ async function onFormSubmit({ valid }: any) {
                         <Card v-if="!standModel.equalCols">
                           <template #content>
                             <template v-for="col in colsTable">
-                              <div class="grid grid-cols-3 gap-2 items-center mb-2">
-                                <div class="flex flex-wrap items-end gap-1">
+                              <div class="flex flex-row flex-wrap gap-2 items-center mb-2">
+                                <div class="p-2 shrink">
                                   <FloatLabel variant="in">
                                     <InputNumber
                                       type="number"
                                       v-model="col.position"
                                       inputId="col"
+                                      fluid
                                     />
+
                                     <label for="col">Column</label>
                                   </FloatLabel>
                                 </div>
-                                <div class="flex flex-col gap-1">
-                                  <FloatLabel variant="in">
+                                <div class="p-2 shrink">
+                                  <FloatLabel variant="in" class="w-50">
                                     <InputNumber
                                       type="number"
                                       v-model="col.width"
                                       inputId="col-w"
                                       class=""
+                                      fluid
                                     />
                                     <label for="col-w">Width</label>
                                   </FloatLabel>
                                 </div>
-                                <div class="flex flex-col gap-1 ml-10">
+                                <div class="ml-5 p-2">
                                   <Button
                                     icon="pi pi-plus"
                                     tooltip="Add Upright"
@@ -842,8 +845,8 @@ async function onFormSubmit({ valid }: any) {
                                   Uprights for Column {{ col.position }}
                                 </div>
                                 <div v-for="upright in col.uprights">
-                                  <div class="flex-grid grid-cols-3 gap-2 items-center mb-2">
-                                    <div class="flex flex-col gap-3" style="width">
+                                  <div class="flex flex-row flex-wrap gap-2 items-center mb-2">
+                                    <div class="p-5 shrink" style="width">
                                       <FloatLabel variant="in">
                                         <InputNumber
                                           type="number"
@@ -853,7 +856,7 @@ async function onFormSubmit({ valid }: any) {
                                         <label for="upr-pos">Upright</label>
                                       </FloatLabel>
                                     </div>
-                                    <div class="flex flex-col gap-3">
+                                    <div class="p-5 shrink">
                                       <FloatLabel variant="in">
                                         <InputNumber
                                           type="number"
@@ -947,8 +950,8 @@ async function onFormSubmit({ valid }: any) {
                         <Card v-if="!standModel.equalRows">
                           <template #content>
                             <template v-for="row in rowsTable">
-                              <div class="grid grid-cols-3 gap-2 items-center mb-2">
-                                <div class="flex flex-wrap items-end gap-1">
+                              <div class="flex flex-wrap flex-row gap-2 items-center mb-2">
+                                <div class="p-5 shrink">
                                   <FloatLabel variant="in">
                                     <InputNumber
                                       type="number"
@@ -958,7 +961,7 @@ async function onFormSubmit({ valid }: any) {
                                     <label for="row">Row</label>
                                   </FloatLabel>
                                 </div>
-                                <div class="flex flex-col gap-1">
+                                <div class="p-5 shrink">
                                   <FloatLabel variant="in">
                                     <InputNumber
                                       type="number"
