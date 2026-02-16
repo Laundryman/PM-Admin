@@ -123,6 +123,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true },
       },
       {
+        path: '/jobfolders',
+        name: 'jobfolders',
+        component: () => import('@/views/Settings/JobFolderListView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
         path: '/user',
         name: 'user',
         component: () => import('@/views/UserView.vue'),

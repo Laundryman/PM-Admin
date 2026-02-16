@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using PMApplication.Specifications.Filters;
 
-namespace LMXApi.Controllers
+namespace PM_AdminApp.Server.Controllers
 {
     [Authorize]
     [Route("api/[controller]/[action]")]

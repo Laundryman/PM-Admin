@@ -14,7 +14,7 @@ using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
 using Page = PMApplication.Dtos.Page;
 
-namespace LMXApi.Controllers
+namespace PM_AdminApp.Server.Controllers
 {
     [Authorize]
     [Route("api/standTypes/[action]")]

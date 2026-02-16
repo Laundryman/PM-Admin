@@ -34,9 +34,21 @@ const model = ref([
     ],
   },
   {
+    label: 'Jobs',
+    icon: 'pi pi-fw pi-table',
+    to: '/jobfolders',
+    items: [
+      {
+        label: 'Job Folders',
+        icon: 'pi pi-fw pi-check-square',
+        to: '/jobfolders',
+      },
+    ],
+  },
+  {
     label: 'Settings',
     icon: 'pi pi-fw pi-table',
-    to: '/Brands',
+    to: '/brands',
     items: [
       {
         label: 'Brands',

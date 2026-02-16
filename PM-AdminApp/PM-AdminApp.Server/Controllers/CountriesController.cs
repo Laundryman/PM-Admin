@@ -9,7 +9,7 @@ using PMApplication.Interfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
 
-namespace LMXApi.Controllers
+namespace PM_AdminApp.Server.Controllers
 {
     [Authorize]
     [Route("api/countries/[action]")]

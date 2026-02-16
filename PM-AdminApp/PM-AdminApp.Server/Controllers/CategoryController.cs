@@ -13,7 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LMXApi.Controllers
+namespace PM_AdminApp.Server.Controllers
 {
     [Authorize]
     [Route("api/categories/[action]")]

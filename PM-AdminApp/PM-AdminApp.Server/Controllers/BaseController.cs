@@ -5,7 +5,7 @@ using PMApplication.Interfaces;
 using AutoMapper;
 using PMApplication.Entities.CountriesAggregate;
 
-namespace LMXApi.Controllers
+namespace PM_AdminApp.Server.Controllers
 {
     public class BaseController : ControllerBase
     {

@@ -15,7 +15,7 @@ using System;
 using Page = PMApplication.Dtos.Page;
 
 
-namespace LMXApi.Controllers
+namespace PM_AdminApp.Server.Controllers
 {
     [Authorize]
     [Route("api/shades/[action]")]
