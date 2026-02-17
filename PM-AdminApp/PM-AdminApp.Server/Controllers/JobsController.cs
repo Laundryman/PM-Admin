@@ -8,6 +8,7 @@ using PMApplication.Entities.JobsAggregate;
 using PMApplication.Interfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
+using PMApplication.Dtos;
 
 namespace PM_AdminApp.Server.Controllers
 {
@@ -41,8 +42,8 @@ namespace PM_AdminApp.Server.Controllers
                 var spec = new JobFolderSpecification(filterDto);
                 var jobFolders = await _jobFolderRepository.ListAsync(spec);
 
-                var jfResponse = _mapper.Map<JobFolder>(jobFolders);
-                return Ok(jobFolders);
+                var jfResponse = _mapper.Map<List<JobFolderDto>>(jobFolders);
+                return Ok(jfResponse);
             }
             catch (Exception ex)
             {

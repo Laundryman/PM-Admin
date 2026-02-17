@@ -28,9 +28,8 @@ export default {
       if (token.value) {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
       }
-      await apiClient.post('/searchJobFolders', filter).then((response) => {
-        return response.data
-      })
+      let response = await apiClient.post('/searchJobFolders', filter)
+      return response.data
     } else {
       throw new Error('JobsService not initialized')
     }
@@ -41,7 +40,7 @@ export default {
       if (token.value) {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
       }
-      return apiClient.get('/getJobFolder', {
+      let response = await apiClient.get('/getJobFolder', {
         params: {
           id: id,
         },

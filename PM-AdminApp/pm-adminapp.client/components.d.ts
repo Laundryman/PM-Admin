@@ -56,7 +56,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('primevue/select')['default']
     Skeleton: typeof import('primevue/skeleton')['default']
-    Slider: typeof import('primevue/slider')['default']
     StatsWidget: typeof import('./src/components/dashboard/StatsWidget.vue')['default']
     TabPanel: typeof import('primevue/tabpanel')['default']
     TabPanels: typeof import('primevue/tabpanels')['default']
