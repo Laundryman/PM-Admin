@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useFolderManagement } from '@/components/composables/jobManagement.composable'
 import { useLocationFilters } from '@/components/composables/locationFilters'
 import { useMultiSelectLists } from '@/components/composables/multiSelectList.composable'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
@@ -21,6 +22,7 @@ import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const jobFolderFilter = ref(new JobFolderFilter())
+
 const jobFolders = ref<JobFolder[] | null>(null)
 const selectedJobFolders = ref()
 const expandedRows = ref()
@@ -28,16 +30,25 @@ const expandedRows = ref()
 const router = useRouter()
 const { regions, countries } = useLocationFilters()
 const multiSelectLists = useMultiSelectLists()
+
+const folderManagement = useFolderManagement()
+const {
+  folderDialog,
+  jobFolder,
+  folderSelectedRegion,
+  folder_regionSelectList,
+  folder_countrySelectList,
+  folder_selectedCountries,
+  folder_selectAllCountries,
+} = folderManagement
 const toast = useToast()
 const loading = ref(true)
 const layout = useSystemStore()
 const brandStore = useBrandStore()
 const brand = storeToRefs(brandStore).activeBrand
 
-const folderDialog = ref(false)
 const jobDialog = ref(false)
 const submitted = ref(false)
-const jobFolder = ref()
 const job = ref()
 const locationFilters = useLocationFilters()
 const selectedRegion = ref()
@@ -61,7 +72,7 @@ watch(brand, async (newBrand) => {
     let filter = new JobFolderFilter()
     filter.brandId = newBrand.id
     await jobsService.searchJobFolders(filter).then((response) => {
-      jobFolders.value = response
+      jobFolders.value = response.data
       console.log('Job Folders loaded for brand change', jobFolders.value)
     })
     let rFilter = new regionFilter()
@@ -94,7 +105,7 @@ onMounted(async () => {
   var filter = new JobFolderFilter()
   filter.brandId = brandid
   await jobsService.searchJobFolders(filter).then((response) => {
-    jobFolders.value = response
+    jobFolders.value = response.data
     console.log('Job Folders loaded', jobFolders.value)
   })
 })
@@ -106,7 +117,7 @@ async function clearFilters() {
   let filter = new JobFolderFilter()
   filter.brandId = layout.getActiveBrand?.id ?? 0
   await jobsService.searchJobFolders(filter).then((response) => {
-    jobFolders.value = response
+    jobFolders.value = response.data
     console.log('Job Folders loaded', jobFolders.value)
   })
   let rFilter = new regionFilter()
@@ -118,16 +129,24 @@ async function clearFilters() {
 }
 
 ////////////////////////////////////////////////////
-// Location Handlers
+// row Expansion handlers
 ////////////////////////////////////////////////////
-async function onRegionChange() {
+function onRowExpand(event: any) {
+  console.log('Row expanded', event.data)
+  jobFolder.value = event.data
+}
+
+////////////////////////////////////////////////////
+// Location Filter Handlers
+////////////////////////////////////////////////////
+async function onRegionFilterChange() {
   if (selectedRegion.value) {
     countries.value = await useLocationFilters().onRegionChange(selectedRegion.value)
     let filter = new JobFolderFilter()
     filter.brandId = layout.getActiveBrand?.id ?? 0
     filter.regionId = selectedRegion.value
     await jobsService.searchJobFolders(filter).then((response) => {
-      jobFolders.value = response
+      jobFolders.value = response.data
       console.log('Job Folders loaded', jobFolders.value)
     })
   } else {
@@ -135,13 +154,13 @@ async function onRegionChange() {
   }
 }
 
-async function onCountryChange() {
+async function onCountryFilterChange() {
   if (selectedCountry.value) {
     let filter = new JobFolderFilter()
     filter.brandId = layout.getActiveBrand?.id ?? 0
     filter.countryId = selectedCountry.value
     await jobsService.searchJobFolders(filter).then((response) => {
-      jobFolders.value = response
+      jobFolders.value = response.data
       console.log('Job Folders loaded', jobFolders.value)
     })
   } else {
@@ -149,23 +168,27 @@ async function onCountryChange() {
   }
 }
 
-function onSelectAllCountriesChange(event: any) {
-  ms_selectedCountries.value = event.checked
-    ? (countrySelectList.value?.map((item) => item.id) ?? [])
-    : []
-  selectAllCountries.value = event.checked
-  multiSelectLists.manageSelectedValues(
-    ms_selectedCountries.value,
-    countrySelectList.value ?? [],
-    jobFolder.value.countries ?? [],
-  )
-  jobFolder.value.countriesList = jobFolder.value.countries?.map((c: any) => c.id).join(',') || ''
-}
+////////////////////////////////////////////////
+// Job Folder Edit Handlers
+////////////////////////////////////////////////
 
-function clearCountrySelection() {
+// function onSelectAllCountriesChange(event: any) {
+//   ms_selectedCountries.value = event.checked
+//     ? (countrySelectList.value?.map((item) => item.id) ?? [])
+//     : []
+//   selectAllCountries.value = event.checked
+//   multiSelectLists.manageSelectedValues(
+//     ms_selectedCountries.value,
+//     countrySelectList.value ?? [],
+//     jobFolder.value.countries ?? [],
+//   )
+//   // jobFolder.value.countriesList = jobFolder.value.countries?.map((c: any) => c.id).join(',') || ''
+// }
+
+function clearCountryFilterSelection() {
   ms_selectedCountries.value = []
   jobFolder.value.countries = []
-  jobFolder.value.countriesList = ''
+  // jobFolder.value.countriesList = ''
 }
 
 ////////////////////////////////////////////
@@ -178,52 +201,61 @@ const hideFolderDialog = () => {
 async function saveFolder() {
   submitted.value = true
 
-  const formData = new FormData()
+  if (jobFolder?.value.name?.trim()) {
+    if (jobFolder?.value.id) {
+      await jobsService
+        .updateJobFolder(jobFolder.value)
+        .then((response) => {
+          if (response && response.data) {
+            console.log(response.data)
+          }
+        })
+        .catch((error) => {
+          console.error('Error updating job folder:', error)
+        })
+      toast.add({
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'Job Folder Updated',
+        life: 3000,
+      })
+    } else {
+      jobFolder.value.id = 0
 
-  //   if (brand?.value.name?.trim()) {
-  //     formData.append('name', brand.value.name)
-  //     formData.append('shelfLock', String(brand.value.shelfLock))
-  //     formData.append('disabled', String(brand.value.disabled))
-  //     formData.append('id', String(brand.value.id ?? 0))
-  //     formData.append('file', file.value ?? '')
-  //     if (brand.value.id) {
-  //       await brandService
-  //         .updateBrand(formData)
-  //         .then((response) => {
-  //           if (response && response.data) {
-  //             console.log(response.data)
-  //           }
-  //         })
-  //         .catch((error) => {
-  //           console.error('Error updating brand:', error)
-  //         })
-  //       toast.add({
-  //         severity: 'success',
-  //         summary: 'Successful',
-  //         detail: 'Brand Updated',
-  //         life: 3000,
-  //       })
-  //     } else {
-  //       brand.value.id = 0
-  //       brand.value.brandLogo = 'brand-placeholder.svg'
-  //       brands.value.push(brand.value)
-  //       toast.add({
-  //         severity: 'success',
-  //         summary: 'Successful',
-  //         detail: 'Brand Created',
-  //         life: 3000,
-  //       })
-  //     }
+      await jobsService.createJobFolder(jobFolder.value).then((response) => {
+        console.log('Job Folder created', response)
+        let newJobFolder = response
+        if (jobFolders.value) {
+          jobFolders.value.push(newJobFolder)
+        }
+      })
+      toast.add({
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'Job Folder Created',
+        life: 3000,
+      })
+    }
 
-  //     brandDialog.value = false
-  //     brand.value = new Brand()
-  //   }
+    folderDialog.value = false
+    jobFolder.value = new JobFolder()
+  }
 }
 function editFolder(folder: JobFolder) {
   jobFolder.value = folder
+  folderSelectedRegion.value = folder.regionId ?? null
+  folder_selectedCountries.value = folder.countries?.map((c) => c.id) ?? []
+  folderManagement.setRegionSelectList(regions.value ?? [])
+  folderManagement.onFolderRegionChange(folder.regionId ?? null)
+  folder_regionSelectList.value = regions.value ?? []
   folderDialog.value = true
 }
-
+function addJobFolder() {
+  folderManagement.setRegionSelectList(regions.value ?? [])
+  jobFolder.value = new JobFolder()
+  jobFolder.value.brandId = brandStore.activeBrand?.id ?? 0
+  folderDialog.value = true
+}
 ////////////////////////////////////////////
 // Job Dialog functions
 ////////////////////////////////////////////
@@ -236,54 +268,65 @@ async function saveJob() {
 
   const formData = new FormData()
 
-  //   if (brand?.value.name?.trim()) {
-  //     formData.append('name', brand.value.name)
-  //     formData.append('shelfLock', String(brand.value.shelfLock))
-  //     formData.append('disabled', String(brand.value.disabled))
-  //     formData.append('id', String(brand.value.id ?? 0))
-  //     formData.append('file', file.value ?? '')
-  //     if (brand.value.id) {
-  //       await brandService
-  //         .updateBrand(formData)
-  //         .then((response) => {
-  //           if (response && response.data) {
-  //             console.log(response.data)
-  //           }
-  //         })
-  //         .catch((error) => {
-  //           console.error('Error updating brand:', error)
-  //         })
-  //       toast.add({
-  //         severity: 'success',
-  //         summary: 'Successful',
-  //         detail: 'Brand Updated',
-  //         life: 3000,
-  //       })
-  //     } else {
-  //       brand.value.id = 0
-  //       brand.value.brandLogo = 'brand-placeholder.svg'
-  //       brands.value.push(brand.value)
-  //       toast.add({
-  //         severity: 'success',
-  //         summary: 'Successful',
-  //         detail: 'Brand Created',
-  //         life: 3000,
-  //       })
-  //     }
+  if (job?.value.jobCode?.trim()) {
+    if (jobDateRange.value && jobDateRange.value.length === 2) {
+      job.value.dateFrom = jobDateRange.value[0]
+      job.value.dateTo = jobDateRange.value[1]
+    }
+    job.value.uploadedBy = 0 // Replace with actual user info
+    job.value.uploadedOn = new Date()
+    job.value.brandId = brandStore.activeBrand?.id ?? 0
+    job.value.brandName = brandStore.activeBrand?.name ?? ''
 
-  //     brandDialog.value = false
-  //     brand.value = new Brand()
-  //   }
+    if (job.value.id) {
+      await jobsService
+        .updateJob(job.value)
+        .then((response) => {
+          if (response && response.data) {
+            console.log(response.data)
+          }
+        })
+        .catch((error) => {
+          console.error('Error updating job:', error)
+        })
+      toast.add({
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'Job Updated',
+        life: 3000,
+      })
+    } else {
+      job.value.id = 0
+      var newJob = await jobsService.createJob(job.value).then((response) => {
+        return response
+      })
+      if (jobFolder.value.jobs) {
+        jobFolder.value.jobs.push(newJob)
+      }
+      toast.add({
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'Job Created',
+        life: 3000,
+      })
+    }
+
+    jobDialog.value = false
+    job.value = new Job()
+  }
 }
 function editJob(jobModel: Job) {
   job.value = jobModel
   jobDateRange.value = [new Date(jobModel.dateFrom), new Date(jobModel.dateTo)]
+  job.value.jobFolderId = jobFolder?.value.id ?? 0
+  job.value.jobFolderName = jobFolder?.value.name ?? ''
   jobDialog.value = true
 }
 function addJob(folder: JobFolder) {
   job.value = new Job()
   job.value.jobFolderId = folder.id
   job.value.jobFolderName = folder.name
+  job.value.brandId = brandStore.activeBrand?.id ?? 0
   jobDateRange.value = [new Date(), new Date()]
   jobDialog.value = true
 }
@@ -298,7 +341,7 @@ function addJob(folder: JobFolder) {
         <Select
           v-model="selectedRegion"
           :options="regions ?? []"
-          @change="onRegionChange"
+          @change="onRegionFilterChange"
           option-label="name"
           option-value="id"
           placeholder="Select a region"
@@ -308,7 +351,7 @@ function addJob(folder: JobFolder) {
         <Select
           v-model="selectedCountry"
           :options="countries ?? []"
-          @change="onCountryChange"
+          @change="onCountryFilterChange"
           option-label="name"
           option-value="id"
           placeholder="Select a country"
@@ -325,7 +368,15 @@ function addJob(folder: JobFolder) {
         />
       </template>
 
-      <template #end> </template>
+      <template #end>
+        <Button
+          label="New"
+          icon="pi pi-plus"
+          severity="secondary"
+          class="mr-2"
+          @click="addJobFolder()"
+        />
+      </template>
     </Toolbar>
     <div class="card">
       <DataTable
@@ -346,6 +397,7 @@ function addJob(folder: JobFolder) {
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         :rowsPerPageOptions="[5, 10, 25]"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} job folders"
+        @row-expand="onRowExpand"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
@@ -447,42 +499,56 @@ function addJob(folder: JobFolder) {
           />
           <small v-if="submitted && !jobFolder.name" class="text-red-500">Name is required.</small>
         </div>
+        <div>
+          <label for="description" class="block font-bold mb-3">Description</label>
+          <InputText
+            id="description"
+            v-model.trim="jobFolder.description"
+            required="true"
+            autofocus
+            :invalid="submitted && !jobFolder.description"
+            fluid
+          />
+          <small v-if="submitted && !jobFolder.description" class="text-red-500"
+            >Description is required.</small
+          >
+        </div>
         <div class="bg-gray-50 col-span-2 p-10 mb-5">
           <fieldset legend="Location" class="col-span-2">
             <legend class="text-lg font-bold mb-2">Location</legend>
-            <div class="grid grid-cols-3 gap-10">
-              <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-10">
+              <div class="p-5 gap-2">
                 <label for="region">Region:</label>
-                <MultiSelect
+                <Select
                   name="region"
-                  v-model="ms_selectedRegions"
-                  :options="regionSelectList ?? []"
+                  v-model="folderSelectedRegion"
+                  :options="folder_regionSelectList ?? []"
                   id="region"
                   class="w-full"
                   option-label="name"
                   option-value="id"
-                  @change="onRegionChange"
+                  @change="folderManagement.onFolderRegionChange(folderSelectedRegion)"
                 >
                   <template #option="option">
                     <div class="flex align-items-center">
                       <span>{{ option.option.name }}</span>
                     </div>
                   </template>
-                </MultiSelect>
+                </Select>
               </div>
-              <div class="flex flex-col gap-2">
+              <div class="p-5 gap-2">
                 <label for="country">Country:</label>
                 <MultiSelect
                   name="countries"
-                  v-model="ms_selectedCountries"
-                  :options="countrySelectList ?? []"
+                  v-model="folder_selectedCountries"
+                  :options="folder_countrySelectList ?? []"
                   id="country"
                   class="w-full"
                   option-label="name"
                   option-value="id"
-                  @change="onCountryChange"
-                  :selectAll="selectAllCountries"
-                  @selectall-change="onSelectAllCountriesChange($event)"
+                  @change="folderManagement.onFolderCountryChange($event)"
+                  :selectAll="folder_selectAllCountries"
+                  @selectall-change="folderManagement.onSelectAllFolderCountriesChange($event)"
                 >
                   <template #option="option">
                     <div class="">
@@ -498,11 +564,11 @@ function addJob(folder: JobFolder) {
                   >{{ $form.countries.error?.message }}</Message
                 > -->
               </div>
-              <div class="flex gap-2 flex-wrap max-h-40 overflow-auto">
+              <div class="p-5">
                 <Button
                   label="Clear Selection"
                   class="w-text-left"
-                  @click="clearCountrySelection"
+                  @click="clearCountryFilterSelection"
                 />
                 <template v-for="country in jobFolder.countries">
                   <Chip class="flex-wrap" :label="country.name"></Chip>
@@ -511,10 +577,10 @@ function addJob(folder: JobFolder) {
             </div>
           </fieldset>
         </div>
-        <div>
+        <!-- <div>
           <label for="name" class="block font-bold mb-3">Disabled</label>
           <ToggleSwitch name="disabled" v-model="jobFolder.disabled" />
-        </div>
+        </div> -->
       </div>
       <template #footer>
         <Button label="Cancel" icon="pi pi-times" text @click="hideFolderDialog" />

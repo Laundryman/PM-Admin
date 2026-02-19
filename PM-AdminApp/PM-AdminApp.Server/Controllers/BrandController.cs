@@ -83,15 +83,17 @@ namespace PM_AdminApp.Server.Controllers
                             // Here you would typically save the file to a storage location and update the BrandLogo property
                             // For demonstration, we'll just set a placeholder path
                             var fileType = brand.file.FileName.Split('.')[1];
-                            var fileName = brand.Name.Replace(" ", "");
+                            string fileName = existingBrand.Name.Replace(" ", "");
                             existingBrand.BrandLogo = fileName + "." + fileType;
                             var blobService = new AzureBlobService(_blobServiceClient);
                             var storeName = _configuration["AzureBlob:StoreName"];
                             var brandContainerName = _configuration["AzureBlob:BrandStoreContainer"];
-                            var blobServiceClient = blobService.GetBlobServiceClient(storeName);
-
-                            var containerClient = blobService.GetBlobContainerClient(blobServiceClient, brandContainerName);
-                            await blobService.UploadFormFileAsync(containerClient, brand.file, existingBrand.BrandLogo);
+                            if (storeName != null && brandContainerName != null)
+                            {
+                                var blobServiceClient = blobService.GetBlobServiceClient(storeName);
+                                var containerClient = blobService.GetBlobContainerClient(blobServiceClient, brandContainerName);
+                                await blobService.UploadFormFileAsync(containerClient, brand.file, existingBrand.BrandLogo);
+                            }
                         }
                         _brandRepository.UpdateAsync(existingBrand).Wait();
                     }

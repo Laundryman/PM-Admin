@@ -1,3 +1,4 @@
+using Azure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
@@ -5,17 +6,17 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.Tokens;
 using PM_AdminApp.Server.Extensions;
+using PM_AdminApp.Server.GraphApi.Interfaces;
+using PM_AdminApp.Server.GraphApi.Services;
+using PM_AdminApp.Server.Settings;
 //using PlanMatr_API.Extensions;
 using PMApplication.Interfaces;
 using PMInfrastructure.Data;
 using PMInfrastructure.Repositories;
 using Serilog;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using System.Text;
-using Azure.Identity;
-using PM_AdminApp.Server.GraphApi.Interfaces;
-using PM_AdminApp.Server.GraphApi.Services;
-using PM_AdminApp.Server.Settings;
 using static System.Net.WebRequestMethods;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -82,7 +83,7 @@ builder.Services.AddScoped<IGraphSettings, GraphSettings>();
 builder.Services.AddPMServices();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(Program).Assembly));
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
