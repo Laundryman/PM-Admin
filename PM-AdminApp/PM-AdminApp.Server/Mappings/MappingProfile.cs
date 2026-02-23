@@ -78,6 +78,7 @@ namespace PM_AdminApp.Server.Mappings
             CreateMap<PlanmStandDto, Stand>();
             //CreateMap<Stand, PlanmStandDto>();
             CreateMap<StandDto, Stand>();
+            //CreateMap<StandUpdateDto, Stand>();
             CreateMap<Stand, StandDto>();
             CreateMap<PlanmStandColumnDto, StandColumn>();
             CreateMap<PlanmStandRowDto, StandRow>();
@@ -86,8 +87,8 @@ namespace PM_AdminApp.Server.Mappings
             CreateMap<StandColumnUpright, PlanmStandColumnUprightDto>();
             CreateMap<StandRow, PlanmStandRowDto>();
             CreateMap<StandType, ParentStandTypeDto>();
-            CreateMap<StandType, StandTypeDto>();
-            CreateMap<StandTypeDto, StandType>();
+            //CreateMap<StandType, StandTypeDto>();
+            //CreateMap<StandTypeDto, StandType>();
             CreateMap<StandTypeFilterDto, StandTypeFilter>();
             CreateMap<Sku, ExportSkuDto>();
 

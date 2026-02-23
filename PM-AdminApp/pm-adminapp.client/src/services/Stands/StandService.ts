@@ -38,7 +38,31 @@ export default {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
-    let response = await apiClient.get('/getStand', { params: { id: standId } })
+    let response = await apiClient
+      .get('/getStand', { params: { id: standId } })
+      .then((response) => {
+        return response
+      })
+      .catch((err) => {
+        console.error('Error fetching stand:', err)
+        throw err
+      })
+    return response.data
+  },
+
+  async saveStand(standData: Stand): Promise<Stand> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    let response = await apiClient
+      .post('/saveStand', standData)
+      .then((response) => {
+        return response
+      })
+      .catch((err) => {
+        console.error('Error saving stand:', err)
+        throw err
+      })
     return response.data
   },
 

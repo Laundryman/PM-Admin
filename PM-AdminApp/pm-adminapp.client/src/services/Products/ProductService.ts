@@ -63,6 +63,22 @@ export default {
     // }
   },
 
+  async saveProduct(productData: Product): Promise<Product> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    let response = await apiClient
+      .post('/saveProduct', productData)
+      .then((response) => {
+        return response
+      })
+      .catch((err) => {
+        console.error('Error saving product:', err)
+        throw err
+      })
+    return response.data
+  },
+
   async initialise() {
     const authStore = useAuthStore()
     if (!authStore.initialized) {

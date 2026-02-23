@@ -94,14 +94,6 @@ onMounted(async () => {
   })
   productModel.value = { ...product.value } as Product //clone(product.value)
 
-  if (router.currentRoute.value.name === 'copyPart') {
-    productModel.value.id = 0 //reset for copy
-    productModel.value.name = productModel.value.name + ' - Copy'
-    productModel.value.fullDescription = productModel.value.fullDescription + '-COPY'
-    productModel.value.productImage = ''
-
-    productImageSrc.value = ''
-  }
 
   if (router.currentRoute.value.name === 'newProduct') {
     productModel.value.brandId = brandStore.activeBrand?.id ?? 0
@@ -279,23 +271,24 @@ async function onFormSubmit({ valid }: any) {
     //manage file uploads
     // let partData = partForm.createPartFormData(partModel)
 
-    // await partStore
-    //   .savePart(partData, partModel.value.id ?? 0)
-    //   .then(() => {
-    //     toast.add({
-    //       severity: 'success',
-    //       summary: 'Form is submitted.',
-    //       life: 3000,
-    //     })
-    //     //router.push({ name: 'partList' })
-    //   })
-    //   .catch((error) => {
-    //     toast.add({
-    //       severity: 'error',
-    //       summary: 'Error saving part: ' + error,
-    //       life: 5000,
-    //     })
-    //   })
+    await productStore.saveProduct(productModel.value).then((response) => {
+      if (response) {
+        toast.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Product saved successfully.',
+          life: 3000,
+        })
+        router.push({ name: 'products' })
+      } else {
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'An error occurred while saving the product.',
+          life: 3000,
+        })
+      }
+    })
   }
 }
 

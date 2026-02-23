@@ -6,10 +6,12 @@ using PMApplication.Dtos.Filters;
 using PMApplication.Entities;
 using PMApplication.Entities.CountriesAggregate;
 using PMApplication.Entities.ProductAggregate;
+using PMApplication.Entities.StandAggregate;
 using PMApplication.Interfaces;
 using PMApplication.Interfaces.RepositoryInterfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
+using PMInfrastructure.Repositories;
 using Page = PMApplication.Dtos.Page;
 
 namespace PM_AdminApp.Server.Controllers
@@ -26,12 +28,13 @@ namespace PM_AdminApp.Server.Controllers
         private readonly IAsyncRepository<Country> _countryRepository;
         private readonly IAsyncRepository<Category> _categoryRepository;
         private readonly IAsyncRepositoryLong<Shade> _shadeRepository;
+        private readonly IAsyncRepository<Region> _regionRepository;
 
 
 
         public ProductsController(IMapper mapper, IAsyncRepositoryLong<Product> asyncProductRepository,
             IAsyncRepository<Country> countryRepository, IAsyncRepository<Category> categoryRepository,
-            ILogger<ProductsController> logger, IProductRepository productRepository, IAsyncRepositoryLong<Shade> shadeRepository)
+            ILogger<ProductsController> logger, IProductRepository productRepository, IAsyncRepositoryLong<Shade> shadeRepository, IAsyncRepository<Region> regionRepository)
         {
             _logger = logger;
             _productRepository = productRepository;
@@ -40,6 +43,7 @@ namespace PM_AdminApp.Server.Controllers
             _categoryRepository = categoryRepository;
             _mapper = mapper;
             _shadeRepository = shadeRepository;
+            _regionRepository = regionRepository;
         }
 
 
@@ -156,6 +160,50 @@ namespace PM_AdminApp.Server.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> SaveProduct(ProductUpdateDto updateProduct)
+        {
+            try
+            {
+                if (updateProduct == null)
+                {
+                    _logger.LogError("Part object sent from client is null.");
+                    return BadRequest("Part object is null");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    _logger.LogError("Invalid part object sent from client.");
+                    return BadRequest("Invalid model object");
+                }
+                //var stand = _mapper.Map<Stand>(updateProduct);
+
+                var id = updateProduct.Id;
+                var productFilter = new ProductFilter() { Id = id };
+                var spec = new ProductSpecification(productFilter);
+                var productEdit = await _productRepository.FirstAsync(spec);
+                if (productEdit == null)
+                {
+                    _logger.LogError($"Stand with id: {id}, hasn't been found in db.");
+                    return NotFound();
+                }
+
+                _mapper.Map(updateProduct, productEdit);
+                await _productRepository.UpdateAsync(productEdit);
+
+                //Now manage relationships.
+                //await UpdateStandCountryCollection(standEdit, updateProduct);
+                //await UpdateRegionsCollection(standEdit, updateProduct);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Something went wrong inside UpdateStand action: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+
         [HttpGet()]
         public async Task<IActionResult> GetShades([FromQuery] int productId)
         {
@@ -215,5 +263,66 @@ namespace PM_AdminApp.Server.Controllers
             return filteredProducts;
 
         }
+
+        private async Task UpdateRegionsCollection(Product origProduct, ProductUpdateDto updateProduct)
+        {
+            //var regionDtos = JsonConvert.DeserializeObject<List<RegionDto>>(updateProduct.Regions);
+            foreach (var region in updateProduct.Regions)
+            {
+                var origRegion = origProduct.Regions.FirstOrDefault(r => r.Id == region.Id);
+                if (origRegion == null)
+                {
+
+                    var dbRegion = await _regionRepository.GetByIdAsync(region.Id);
+                    origProduct.Regions.Add(dbRegion);
+                }
+            }
+            for (int i = origProduct.Regions.Count - 1; i >= 0; i--)
+            {
+                var origRegion = origProduct.Regions[i];
+                var updatedRegion = updateProduct.Regions.FirstOrDefault(r => r.Id == origRegion.Id);
+                if (updatedRegion == null)
+                {
+                    var dbRegion = await _regionRepository.GetByIdAsync(origRegion.Id);
+                    origProduct.Regions.Remove(dbRegion);
+                }
+            }
+
+            //update Part.RegionList string
+            origProduct.RegionsList = string.Join(",", origProduct.Regions.Select(r => r.Id));
+        }
+
+        private async Task UpdateStandCountryCollection(Product origProduct, ProductUpdateDto updateProduct)
+        {
+            //add new countries
+            //var standCountries = JsonConvert.DeserializeObject<List<CountryDto>>(updateProduct.Countries);
+            foreach (var country in updateProduct.Countries)
+            {
+                var origCountry = origProduct.Countries.FirstOrDefault(c => c.Id == country.Id);
+                if (origCountry == null)
+                {
+                    var dbCountry = await _countryRepository.GetByIdAsync(country.Id);
+                    if (dbCountry != null)
+                    {
+                        origProduct.Countries.Add(dbCountry);
+                    }
+                }
+            }
+            //remove deleted countries
+            for (int i = origProduct.Countries.Count - 1; i >= 0; i--)
+            {
+                var origCountry = origProduct.Countries[i];
+                var updatedCountry = updateProduct.Countries.FirstOrDefault(c => c.Id == origCountry.Id);
+                if (updatedCountry == null)
+                {
+                    var dbCountry = await _countryRepository.GetByIdAsync(origCountry.Id);
+                    origProduct.Countries.Remove(dbCountry);
+                }
+            }
+
+            //update Part.CountryList string
+            origProduct.CountriesList = string.Join(",", origProduct.Countries.Select(c => c.Id));
+        }
+
     }
 }

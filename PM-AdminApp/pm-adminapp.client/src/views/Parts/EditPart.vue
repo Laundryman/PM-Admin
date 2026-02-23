@@ -96,6 +96,7 @@ onMounted(async () => {
   partFilter.Id = Number(router.currentRoute.value.params.id) || 0
   await partStore.initialize(partFilter)
   partModel.value = { ...part.value } as Part //clone(part.value)
+
   if (router.currentRoute.value.name === 'copyPart') {
     partModel.value.id = 0 //reset for copy
     partModel.value.name = partModel.value.name + ' - Copy'
@@ -111,6 +112,9 @@ onMounted(async () => {
   if (router.currentRoute.value.name === 'newPart') {
     partModel.value.brandId = brandStore.activeBrand?.id ?? 0
   }
+
+  if (router.currentRoute.value.name === 'editPart')
+    initialisePartForm()
 
   if (partModel.value.packShotImageSrc != null && partModel.value.packShotImageSrc.length > 0) {
     cassettePhotoSrc.value = cassettePhotoUrl + partModel.value.packShotImageSrc
@@ -180,13 +184,12 @@ onMounted(async () => {
 
   if (router.currentRoute.value.name === 'editPart') selectedProducts.value = mapPubishedProducts()
 
-  // if (router.currentRoute.value.name === 'newPart')
-  //   initialisePartForm()
+
 })
 
 function initialisePartForm() {
   partform.value?.setValues({ ...partModel.value })
-  partform.value?.setFieldValue('countries', [])
+  // partform.value?.setFieldValue('countries', [])
 
   //default the selection to ALL COUNTRIES LP - so user sees something
   // selectedRegion.value =

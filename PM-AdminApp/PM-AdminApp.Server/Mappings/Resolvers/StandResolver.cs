@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Graph.Models;
+using PMApplication.Dtos;
 using PMApplication.Dtos.PlanModels;
 using PMApplication.Dtos.StandTypes;
 using PMApplication.Entities.PartAggregate;
@@ -28,6 +29,23 @@ namespace PM_AdminApp.Server.Mappings.Resolvers
     public class StandLayoutResolver : IValueResolver<Stand, PlanmStandDto, byte>
     {
         public byte Resolve(Stand source, PlanmStandDto destination, byte destMember, ResolutionContext context)
+        {
+            if (source.LayoutStyle == 0)
+            {
+                // Map the PartStatusId to a status string or enum as needed
+
+                return 1;
+            }
+            else
+            {
+                return (byte)source.LayoutStyle;
+            }
+        }
+    }
+
+    public class StandUpdateLayoutResolver : IValueResolver<StandUpdateDto, Stand, byte>
+    {
+        public byte Resolve(StandUpdateDto source, Stand destination, byte destMember, ResolutionContext context)
         {
             if (source.LayoutStyle == 0)
             {

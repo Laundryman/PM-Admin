@@ -5,6 +5,7 @@ import { useStandTypes } from '@/components/composables/standTypes.composable'
 import { Country } from '@/models/Countries/country.model'
 import { Region } from '@/models/Countries/region.model'
 import { StandType } from '@/models/StandTypes/standType.model'
+import type { FormInstance } from '@primevue/forms'
 
 import { regionFilter } from '@/models/Countries/regionFilter.model'
 import { Column, Row, Upright } from '@/models/Stands/columns.model'
@@ -14,11 +15,11 @@ import { StandFilter } from '@/models/Stands/standFilter.model'
 import { useBrandStore } from '@/stores/brandStore'
 import { useStandStore } from '@/stores/standStore'
 import { useSystemStore } from '@/stores/systemStore'
+import { Form } from '@primevue/forms'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
-
 /// consider this selector -> https://codepen.io/jmhmd/pen/JdPGgW
 const router = useRouter()
 const multiSelectLists = useMultiSelectLists()
@@ -53,6 +54,7 @@ const selectedStandType = ref<number | null>(null)
 const headerGraphicUrl = import.meta.env.VITE_APP_HEADERGRAPHIC_URL
 const headerGraphicSrc = ref()
 const imageFile = ref<File | null>(null)
+const standform = useTemplateRef<FormInstance>('stand-form')
 const initialValues = ref(new Stand())
 const tabId = ref('0')
 const standLayoutStylesList = ref([
@@ -64,12 +66,18 @@ const standLayoutStylesList = ref([
 // Lifecycle Hooks
 /////////////////////////////////////////////////////
 onMounted(async () => {
-  // await initialiseProductForm()
+  // await initialiseStandForm()
   layout.layoutState.disableBrandSelect = true
   var standFilter = new StandFilter()
   standFilter.id = Number(router.currentRoute.value.params.id) || 0
   await standStore.initialize(standFilter.id)
   standModel.value = { ...standStore.stand } as Stand //clone(product.value)
+  if (router.currentRoute.value.name === 'newStand') {
+    standModel.value.brandId = brandStore.activeBrand?.id ?? 0
+  }
+
+  if (router.currentRoute.value.name === 'editStand') initialiseStandForm()
+
   colsTable.value = standModel.value.columnList ?? []
   rowsTable.value = standModel.value.rowList ?? []
   let brandid = brandStore.activeBrand?.id ?? 0
@@ -79,7 +87,7 @@ onMounted(async () => {
     regionSelectList.value = response
   })
 
-  if (router.currentRoute.value.name === 'copyPart') {
+  if (router.currentRoute.value.name === 'copyStand') {
     standModel.value.id = 0 //reset for copy
     standModel.value.name = standModel.value.name + ' - Copy'
     standModel.value.description = standModel.value.description + '-COPY'
@@ -88,7 +96,7 @@ onMounted(async () => {
     headerGraphicSrc.value = ''
   }
 
-  if (router.currentRoute.value.name === 'newProduct') {
+  if (router.currentRoute.value.name === 'newStand') {
     standModel.value.brandId = brandStore.activeBrand?.id ?? 0
   }
 
@@ -112,6 +120,16 @@ onMounted(async () => {
     }
   })
 })
+
+function initialiseStandForm() {
+  standform.value?.setValues({ ...standModel.value })
+  // standform.value?.setFieldValue('countries', [])
+
+  //default the selection to ALL COUNTRIES LP - so user sees something
+  // selectedRegion.value =
+  //   regionSelectList.value?.find((region) => region.name === 'ALL COUNTRIES LP')?.id || null
+  // onRegionChange()
+}
 
 ////////////////////////////////////////////////////
 // Location Handlers
@@ -279,7 +297,7 @@ function changeRowLayout(event: any) {
 
 const resolver = ({ values }: any) => {
   const errors = {} as any
-
+  console.log('Validating form with values:', values)
   if (!values.name) {
     errors.name = [{ message: 'Name is required.' }]
   }
@@ -300,25 +318,24 @@ const resolver = ({ values }: any) => {
 
 async function onFormSubmit({ valid }: any) {
   if (valid) {
-    //manage file uploads
-    // let partData = partForm.createPartFormData(partModel)
-    // await partStore
-    //   .savePart(partData, partModel.value.id ?? 0)
-    //   .then(() => {
-    //     toast.add({
-    //       severity: 'success',
-    //       summary: 'Form is submitted.',
-    //       life: 3000,
-    //     })
-    //     //router.push({ name: 'partList' })
-    //   })
-    //   .catch((error) => {
-    //     toast.add({
-    //       severity: 'error',
-    //       summary: 'Error saving part: ' + error,
-    //       life: 5000,
-    //     })
-    //   })
+    await standStore.saveStand(standModel.value).then((response) => {
+      if (response) {
+        toast.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Stand saved successfully.',
+          life: 3000,
+        })
+        router.push({ name: 'stands' })
+      } else {
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'An error occurred while saving the stand.',
+          life: 3000,
+        })
+      }
+    })
   }
 }
 </script>
@@ -384,21 +401,17 @@ async function onFormSubmit({ valid }: any) {
       </div>
 
       <div class="card grid grid-cols-1 gap-4 justify-center">
-        <Tabs v-model:value="tabId">
-          <!-- <TabList>
-        <Tab value="0">Part Details</Tab>
-        <Tab value="1">Shades</Tab>
-  </TabList> -->
-          <TabPanels>
-            <TabPanel value="0">
-              <Form
-                ref="product-form"
-                v-slot="$form"
-                :initialValues
-                :resolver
-                @submit="onFormSubmit"
-                class="grid grid-cols-2 gap- w-full p-20 pt-0"
-              >
+        <Form
+          ref="stand-form"
+          v-slot="$form"
+          :initialValues
+          :resolver
+          @submit="onFormSubmit"
+          class=""
+        >
+          <Tabs v-model:value="tabId">
+            <TabPanels>
+              <TabPanel value="0">
                 <div class="bg-gray-50 col-span-2 p-10 mb-5">
                   <fieldset legend="Part Details" class="col-span-2 mb-12">
                     <legend class="text-lg font-bold mb-2">Details</legend>
@@ -740,262 +753,263 @@ async function onFormSubmit({ valid }: any) {
                 </div>
 
                 <Button type="submit" severity="secondary" label="Submit" />
-              </Form>
-            </TabPanel>
-            <TabPanel value="1">
-              <div class="card grid grid-cols-2 gap-4">
-                <div class="col-span-2">
-                  <h2>Layout</h2>
-                  <div class="flex flex-col gap-2 max-w-sm">
-                    <label for="layoutStyle">Layout Style:</label>
-                    <Select
-                      v-model="standModel.layoutStyle"
-                      :options="standLayoutStylesList ?? []"
-                      id="layoutStyle"
-                      name="layoutStyle"
-                      class="w-full border--500! border-2!"
-                      option-label="name"
-                      option-value="id"
-                    >
-                      <template #option="option">
-                        <div class="flex align-items-center">
-                          <span>{{ option.option.name }}</span>
-                        </div>
-                      </template>
-                    </Select>
+              </TabPanel>
+              <TabPanel value="1">
+                <div class="card grid grid-cols-2 gap-4">
+                  <div class="col-span-2">
+                    <h2>Layout</h2>
+                    <div class="flex flex-col gap-2 max-w-sm">
+                      <label for="layoutStyle">Layout Style:</label>
+                      <Select
+                        v-model="standModel.layoutStyle"
+                        :options="standLayoutStylesList ?? []"
+                        id="layoutStyle"
+                        name="layoutStyle"
+                        class="w-full border--500! border-2!"
+                        option-label="name"
+                        option-value="id"
+                      >
+                        <template #option="option">
+                          <div class="flex align-items-center">
+                            <span>{{ option.option.name }}</span>
+                          </div>
+                        </template>
+                      </Select>
+                    </div>
                   </div>
-                </div>
-                <div class="bg-gray-50 col-span-1 p-10 mb-5">
-                  <fieldset legend="Dimensions" class="col-span-2">
-                    <legend class="text-lg font-bold mb-2">Columns</legend>
-                    <div v-if="standModel.layoutStyle == 1 || standModel.layoutStyle == 3">
-                      <div class="grid grid-cols-4 gap-10">
-                        <div class="flex flex-col gap-1">
-                          <label for="cols">No. Columns:</label>
-                          <InputNumber
-                            name="cols"
-                            placeholder="No. Columns"
-                            fluid
-                            v-model="standModel.cols"
-                          />
+                  <div class="bg-gray-50 col-span-1 p-10 mb-5">
+                    <fieldset legend="Dimensions" class="col-span-2">
+                      <legend class="text-lg font-bold mb-2">Columns</legend>
+                      <div v-if="standModel.layoutStyle == 1 || standModel.layoutStyle == 3">
+                        <div class="grid grid-cols-4 gap-10">
+                          <div class="flex flex-col gap-1">
+                            <label for="cols">No. Columns:</label>
+                            <InputNumber
+                              name="cols"
+                              placeholder="No. Columns"
+                              fluid
+                              v-model="standModel.cols"
+                            />
+                          </div>
+
+                          <div class="flex flex-col gap-1">
+                            <label for="equalCols">Equal Width:</label>
+                            <ToggleButton
+                              v-model="standModel.equalCols"
+                              name="equalCols"
+                              placeholder=""
+                              onIcon="pi pi-check"
+                              offIcon="pi pi-times"
+                              @change="changeColLayout($event)"
+                            />
+                          </div>
+                          <div class="flex flex-col gap-1">
+                            <label for="defaultColWidth">Column Width:</label>
+                            <InputNumber
+                              name="defaultColWidth"
+                              placeholder="Column Width"
+                              fluid
+                              v-model="standModel.defaultColWidth"
+                            />
+                          </div>
                         </div>
 
-                        <div class="flex flex-col gap-1">
-                          <label for="equalCols">Equal Width:</label>
-                          <ToggleButton
-                            v-model="standModel.equalCols"
-                            name="equalCols"
-                            placeholder=""
-                            onIcon="pi pi-check"
-                            offIcon="pi pi-times"
-                            @change="changeColLayout($event)"
-                          />
-                        </div>
-                        <div class="flex flex-col gap-1">
-                          <label for="defaultColWidth">Column Width:</label>
-                          <InputNumber
-                            name="defaultColWidth"
-                            placeholder="Column Width"
-                            fluid
-                            v-model="standModel.defaultColWidth"
-                          />
-                        </div>
-                      </div>
+                        <div class="flex gap-2 flex-wrap pt-1">
+                          <Card v-if="!standModel.equalCols">
+                            <template #content>
+                              <template v-for="col in colsTable">
+                                <div class="flex flex-row flex-wrap gap-2 items-center mb-2">
+                                  <div class="p-2 shrink">
+                                    <FloatLabel variant="in">
+                                      <InputNumber
+                                        type="number"
+                                        v-model="col.position"
+                                        inputId="col"
+                                        fluid
+                                      />
 
-                      <div class="flex gap-2 flex-wrap pt-1">
-                        <Card v-if="!standModel.equalCols">
-                          <template #content>
-                            <template v-for="col in colsTable">
-                              <div class="flex flex-row flex-wrap gap-2 items-center mb-2">
-                                <div class="p-2 shrink">
-                                  <FloatLabel variant="in">
-                                    <InputNumber
-                                      type="number"
-                                      v-model="col.position"
-                                      inputId="col"
-                                      fluid
-                                    />
-
-                                    <label for="col">Column</label>
-                                  </FloatLabel>
+                                      <label for="col">Column</label>
+                                    </FloatLabel>
+                                  </div>
+                                  <div class="p-2 shrink">
+                                    <FloatLabel variant="in" class="w-50">
+                                      <InputNumber
+                                        type="number"
+                                        v-model="col.width"
+                                        inputId="col-w"
+                                        class=""
+                                        fluid
+                                      />
+                                      <label for="col-w">Width</label>
+                                    </FloatLabel>
+                                  </div>
+                                  <div class="ml-5 p-2">
+                                    <Button
+                                      icon="pi pi-plus"
+                                      tooltip="Add Upright"
+                                      class="h-10 w-40"
+                                      @click="addUpright(col.position ?? 0)"
+                                    ></Button>
+                                  </div>
                                 </div>
-                                <div class="p-2 shrink">
-                                  <FloatLabel variant="in" class="w-50">
-                                    <InputNumber
-                                      type="number"
-                                      v-model="col.width"
-                                      inputId="col-w"
-                                      class=""
-                                      fluid
-                                    />
-                                    <label for="col-w">Width</label>
-                                  </FloatLabel>
-                                </div>
-                                <div class="ml-5 p-2">
-                                  <Button
-                                    icon="pi pi-plus"
-                                    tooltip="Add Upright"
-                                    class="h-10 w-40"
-                                    @click="addUpright(col.position ?? 0)"
-                                  ></Button>
-                                </div>
-                              </div>
-                              <div v-if="col.uprights" class="border p-5 mb-10">
-                                <div class="font-bold mb-4">
-                                  Uprights for Column {{ col.position }}
-                                </div>
-                                <div v-for="upright in col.uprights">
-                                  <div class="flex flex-row flex-wrap gap-2 items-center mb-2">
-                                    <div class="p-5 shrink" style="width">
-                                      <FloatLabel variant="in">
-                                        <InputNumber
-                                          type="number"
-                                          v-model="upright.position"
-                                          inputId="upr-pos"
-                                        />
-                                        <label for="upr-pos">Upright</label>
-                                      </FloatLabel>
-                                    </div>
-                                    <div class="p-5 shrink">
-                                      <FloatLabel variant="in">
-                                        <InputNumber
-                                          type="number"
-                                          inputId="upr-w"
-                                          v-model="upright.width"
-                                          size="5"
-                                        />
-                                        <label for="upr-w">Width</label>
-                                      </FloatLabel>
-                                    </div>
-                                    <div class="flex flex-col gap-1 ml-10">
-                                      <Button
-                                        icon="pi pi-trash"
-                                        class="h-10 w-40"
-                                        @click="
-                                          delUpright(col.position ?? 0, upright.position ?? 0)
-                                        "
-                                      ></Button>
+                                <div v-if="col.uprights" class="border p-5 mb-10">
+                                  <div class="font-bold mb-4">
+                                    Uprights for Column {{ col.position }}
+                                  </div>
+                                  <div v-for="upright in col.uprights">
+                                    <div class="flex flex-row flex-wrap gap-2 items-center mb-2">
+                                      <div class="p-5 shrink" style="width">
+                                        <FloatLabel variant="in">
+                                          <InputNumber
+                                            type="number"
+                                            v-model="upright.position"
+                                            inputId="upr-pos"
+                                          />
+                                          <label for="upr-pos">Upright</label>
+                                        </FloatLabel>
+                                      </div>
+                                      <div class="p-5 shrink">
+                                        <FloatLabel variant="in">
+                                          <InputNumber
+                                            type="number"
+                                            inputId="upr-w"
+                                            v-model="upright.width"
+                                            size="5"
+                                          />
+                                          <label for="upr-w">Width</label>
+                                        </FloatLabel>
+                                      </div>
+                                      <div class="flex flex-col gap-1 ml-10">
+                                        <Button
+                                          icon="pi pi-trash"
+                                          class="h-10 w-40"
+                                          @click="
+                                            delUpright(col.position ?? 0, upright.position ?? 0)
+                                          "
+                                        ></Button>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
-                              </div>
+                              </template>
                             </template>
-                          </template>
-                        </Card>
-                      </div>
-                    </div>
-                    <!-- Column layout container -->
-                    <div v-if="standModel.layoutStyle == 2">
-                      <div class="grid grid-cols-4 gap-10">
-                        <div class="flex flex-col gap-1">
-                          <label for="cols">No. Pitches:</label>
-                          <InputNumber
-                            name="cols"
-                            placeholder="No. Pitches"
-                            fluid
-                            v-model="standModel.horizontalPitchCount"
-                          />
+                          </Card>
                         </div>
+                      </div>
+                      <!-- Column layout container -->
+                      <div v-if="standModel.layoutStyle == 2">
+                        <div class="grid grid-cols-4 gap-10">
+                          <div class="flex flex-col gap-1">
+                            <label for="cols">No. Pitches:</label>
+                            <InputNumber
+                              name="cols"
+                              placeholder="No. Pitches"
+                              fluid
+                              v-model="standModel.horizontalPitchCount"
+                            />
+                          </div>
 
-                        <div class="flex flex-col gap-1">
-                          <label for="defaultPitchSize">Pitch Size:</label>
-                          <InputNumber
-                            name="defaultPitchSize"
-                            placeholder="Pitch Size"
-                            fluid
-                            v-model="standModel.horizontalPitchSize"
-                          />
+                          <div class="flex flex-col gap-1">
+                            <label for="defaultPitchSize">Pitch Size:</label>
+                            <InputNumber
+                              name="defaultPitchSize"
+                              placeholder="Pitch Size"
+                              fluid
+                              v-model="standModel.horizontalPitchSize"
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </fieldset>
-                </div>
-                <div class="bg-gray-50 col-span-1 p-10 mb-5">
-                  <fieldset legend="Dimensions" class="col-span-2">
-                    <legend class="text-lg font-bold mb-2">Rows</legend>
-                    <div v-if="standModel.layoutStyle == 1">
-                      <div class="grid grid-cols-4 gap-10">
-                        <div class="flex flex-col gap-1">
-                          <label for="rows">No. Rows:</label>
-                          <InputNumber
-                            name="rows"
-                            placeholder="No. Rows"
-                            fluid
-                            v-model="standModel.rows"
-                          />
-                        </div>
+                    </fieldset>
+                  </div>
+                  <div class="bg-gray-50 col-span-1 p-10 mb-5">
+                    <fieldset legend="Dimensions" class="col-span-2">
+                      <legend class="text-lg font-bold mb-2">Rows</legend>
+                      <div v-if="standModel.layoutStyle == 1">
+                        <div class="grid grid-cols-4 gap-10">
+                          <div class="flex flex-col gap-1">
+                            <label for="rows">No. Rows:</label>
+                            <InputNumber
+                              name="rows"
+                              placeholder="No. Rows"
+                              fluid
+                              v-model="standModel.rows"
+                            />
+                          </div>
 
-                        <div class="flex flex-col gap-1">
-                          <label for="equalRows">Equal Height:</label>
-                          <ToggleButton
-                            v-model="standModel.equalRows"
-                            name="equalRows"
-                            placeholder="Row Layout"
-                            onIcon="pi pi-check"
-                            offIcon="pi pi-times"
-                            @change="changeRowLayout($event)"
-                          />
+                          <div class="flex flex-col gap-1">
+                            <label for="equalRows">Equal Height:</label>
+                            <ToggleButton
+                              v-model="standModel.equalRows"
+                              name="equalRows"
+                              placeholder="Row Layout"
+                              onIcon="pi pi-check"
+                              offIcon="pi pi-times"
+                              @change="changeRowLayout($event)"
+                            />
+                          </div>
+                          <div class="flex flex-col gap-1">
+                            <label for="defaultRowHeight">Row Height:</label>
+                            <InputNumber
+                              name="defaultRowHeight"
+                              placeholder="Row Height"
+                              fluid
+                              v-model="standModel.defaultRowHeight"
+                            />
+                          </div>
                         </div>
-                        <div class="flex flex-col gap-1">
-                          <label for="defaultRowHeight">Row Height:</label>
-                          <InputNumber
-                            name="defaultRowHeight"
-                            placeholder="Row Height"
-                            fluid
-                            v-model="standModel.defaultRowHeight"
-                          />
-                        </div>
-                      </div>
-                      <div class="flex gap-2 flex-wrap pt-1">
-                        <Card v-if="!standModel.equalRows">
-                          <template #content>
-                            <template v-for="row in rowsTable">
-                              <div class="flex flex-wrap flex-row gap-2 items-center mb-2">
-                                <div class="p-5 shrink">
-                                  <FloatLabel variant="in">
-                                    <InputNumber
-                                      type="number"
-                                      v-model="row.position"
-                                      inputId="row"
-                                    />
-                                    <label for="row">Row</label>
-                                  </FloatLabel>
+                        <div class="flex gap-2 flex-wrap pt-1">
+                          <Card v-if="!standModel.equalRows">
+                            <template #content>
+                              <template v-for="row in rowsTable">
+                                <div class="flex flex-wrap flex-row gap-2 items-center mb-2">
+                                  <div class="p-5 shrink">
+                                    <FloatLabel variant="in">
+                                      <InputNumber
+                                        type="number"
+                                        v-model="row.position"
+                                        inputId="row"
+                                      />
+                                      <label for="row">Row</label>
+                                    </FloatLabel>
+                                  </div>
+                                  <div class="p-5 shrink">
+                                    <FloatLabel variant="in">
+                                      <InputNumber
+                                        type="number"
+                                        v-model="row.height"
+                                        inputId="row-h"
+                                      />
+                                      <label for="row-h">Height</label>
+                                    </FloatLabel>
+                                  </div>
                                 </div>
-                                <div class="p-5 shrink">
-                                  <FloatLabel variant="in">
-                                    <InputNumber
-                                      type="number"
-                                      v-model="row.height"
-                                      inputId="row-h"
-                                    />
-                                    <label for="row-h">Height</label>
-                                  </FloatLabel>
-                                </div>
-                              </div>
+                              </template>
                             </template>
-                          </template>
-                        </Card>
-                      </div>
-                    </div>
-                    <div v-if="standModel.layoutStyle == 2 || standModel.layoutStyle == 3">
-                      <div class="grid grid-cols-4 gap-10">
-                        <div class="flex flex-col gap-1">
-                          <label for="defaultPitchSize">Vertical Pitch:</label>
-                          <InputNumber
-                            name="defaultPitchSize"
-                            placeholder="Vertical Pitch"
-                            fluid
-                            v-model="standModel.shelfIncrement"
-                          />
+                          </Card>
                         </div>
                       </div>
-                    </div>
-                  </fieldset>
+                      <div v-if="standModel.layoutStyle == 2 || standModel.layoutStyle == 3">
+                        <div class="grid grid-cols-4 gap-10">
+                          <div class="flex flex-col gap-1">
+                            <label for="defaultPitchSize">Vertical Pitch:</label>
+                            <InputNumber
+                              name="defaultPitchSize"
+                              placeholder="Vertical Pitch"
+                              fluid
+                              v-model="standModel.shelfIncrement"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </fieldset>
+                  </div>
                 </div>
-              </div>
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
+                <Button type="submit" severity="secondary" label="Submit" />
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+        </Form>
       </div>
     </div>
   </div>

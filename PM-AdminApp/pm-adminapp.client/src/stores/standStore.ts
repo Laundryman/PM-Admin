@@ -25,11 +25,24 @@ export const useStandStore = defineStore('standStore', () => {
       })
   }
 
+  async function saveStand(standData: Stand) {
+    return await StandService.saveStand(standData)
+      .then((response) => {
+        stand.value = response
+        return response
+      })
+      .catch((err) => {
+        error.value = err.message
+        return null
+      })
+  }
+
   return {
     initialized,
     stand,
     error,
     initialize,
+    saveStand,
     stands,
     standList,
   }

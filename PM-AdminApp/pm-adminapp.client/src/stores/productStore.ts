@@ -45,6 +45,18 @@ export const useProductStore = defineStore('productStore', () => {
     })
   }
 
+  async function saveProduct(productData: Product) {
+    return await ProductService.saveProduct(productData)
+      .then((response) => {
+        product.value = response
+        return response
+      })
+      .catch((err) => {
+        error.value = err.message
+        return null
+      })
+  }
+
   return {
     initialized,
     product,
@@ -54,6 +66,7 @@ export const useProductStore = defineStore('productStore', () => {
     productList,
     getProductsByCategory,
     getShadesForProduct,
+    saveProduct,
   }
 })
 

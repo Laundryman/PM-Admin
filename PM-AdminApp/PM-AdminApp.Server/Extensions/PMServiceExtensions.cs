@@ -1,9 +1,13 @@
-﻿using PMApplication.Interfaces;
+﻿using PM_AdminApp.Server.Mappings.Resolvers;
+using PMApplication.Interfaces;
 using PMApplication.Interfaces.RepositoryInterfaces;
 using PMApplication.Interfaces.ServiceInterfaces;
 using PMApplication.Services;
 using PMInfrastructure.Data;
 using PMInfrastructure.Repositories;
+using System.Diagnostics;
+using System.Reflection.Metadata;
+using System.Text;
 
 namespace PM_AdminApp.Server.Extensions
 {
@@ -29,6 +33,7 @@ namespace PM_AdminApp.Server.Extensions
             services.AddTransient<IPlanogramService, PlanogramService>();
             services.AddScoped<IRegionService, RegionService>();
             services.AddScoped<IStandService, StandService>();
+            services.AddScoped(typeof(StandCountResolver));
             return services;
         }
 

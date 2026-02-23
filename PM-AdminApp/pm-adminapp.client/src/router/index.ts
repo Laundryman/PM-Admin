@@ -87,6 +87,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true },
       },
       {
+        path: '/stands/new/',
+        name: 'newStand',
+        component: () => import('@/views/Stands/EditStand.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
         path: '/clusters',
         name: 'clusters',
         component: () => import('@/views/Clusters/ClusterListView.vue'),
