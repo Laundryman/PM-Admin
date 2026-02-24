@@ -40,11 +40,9 @@ const multiSelectLists = useMultiSelectLists()
 const partTypeComposable = usePartTypes()
 const standTypeComposable = useStandTypes()
 
-const productform = useTemplateRef<FormInstance>('product-form')
 const { product } = storeToRefs(productStore)
-    const productModel = ref<Product>(new Product())
+const productModel = ref<Product>(new Product())
 
-const initialValues = ref(new Product())
 
 const brand = storeToRefs(layout).getActiveBrand
 const toast = useToast()
@@ -73,6 +71,8 @@ const productImageUrl = import.meta.env.VITE_APP_PRODUCTIMAGE_URL
 const productImageSrc = ref()
 const imageFile = ref<File | null>(null)
 const tabId = ref('0')
+const productForm = useTemplateRef<FormInstance>('product-form')
+const initialValues = ref(new Product())
 
 
 // Shade Management
@@ -98,6 +98,9 @@ onMounted(async () => {
   if (router.currentRoute.value.name === 'newProduct') {
     productModel.value.brandId = brandStore.activeBrand?.id ?? 0
   }
+
+  if (router.currentRoute.value.name === 'editProduct') initialiseProductForm()
+
 
   if (productModel.value.productImage != null && productModel.value.productImage.length > 0) {
     productImageSrc.value = productImageUrl + productModel.value.productImage
@@ -135,6 +138,10 @@ onMounted(async () => {
 
 
 })
+
+function initialiseProductForm() {
+  productForm.value?.setValues({ ...productModel.value })
+}
 
 ////////////////////////////////////////////////////
 // Location Handlers
@@ -251,8 +258,8 @@ const resolver = ({ values }: any) => {
   if (!values.name) {
     errors.name = [{ message: 'Name is required.' }]
   }
-  if (!values.description) {
-    errors.description = [{ message: 'Description is required.' }]
+  if (!values.fullDescription) {
+    errors.fullDescription = [{ message: 'Description is required.' }]
   }
   if (!values.categoryId) {
     errors.categoryId = [{ message: 'Category is required.' }]
@@ -269,7 +276,7 @@ const resolver = ({ values }: any) => {
 async function onFormSubmit({ valid }: any) {
   if (valid) {
     //manage file uploads
-    // let partData = partForm.createPartFormData(partModel)
+    //let productData = productForm.createProductFormData(productModel)
 
     await productStore.saveProduct(productModel.value).then((response) => {
       if (response) {
@@ -297,7 +304,7 @@ async function onFormSubmit({ valid }: any) {
 //
 //////////////////////////////////////////////////
 
-const openNew = () => {
+const addShade = () => {
   shade.value = {} as Shade
   submitted.value = false
   shadeDialog.value = true
@@ -373,7 +380,7 @@ async function saveShade() {
     </div>
     <div class="w-full sticky bg-white top-16 block p-10 z-10">
       <h2>Edit Product</h2>
-      <div class="card grid gap-2 grid-cols-2">
+      <div class="grid gap-2 grid-cols-2 ml-10">
         <div class="flex flex-col gap-1">
           <span class="font-bold text-xl">{{ productModel.name }}</span>
           <span class="text-gray-600">Description: {{ productModel.fullDescription }}</span>
@@ -382,10 +389,11 @@ async function saveShade() {
             <img :src="productImageSrc" class="cassette-icon max-w-40"></img>
         </div>
       </div>
-    <div class="w-full p-10">
+    <div class="w-full p-10 flex gap-2">
 
           <Button @click="tabId = '0'"  label="Product Details" class="" :outlined="tabId !== '0'" />
           <Button @click="tabId = '1'"  label="Shades" class="" :outlined="tabId !== '1'" />
+          <Button v-if="tabId == '1'" label="New" icon="pi pi-plus" severity="secondary" class="mr-2" @click="addShade" />
     </div>
     </div>
 
@@ -620,7 +628,12 @@ async function saveShade() {
      </TabPanel>
      <TabPanel value="1">
         <div class="p-10">
+          <div class="flex flex-row">
           <h3>Shades</h3>
+          <!-- <div class="flex-1 ml-10">
+          <Button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" @click="addShade" />
+          </div> -->
+          </div>
               <div class="card">
                 <DataTable :value="shades" scrollable scrollHeight="400px" tableStyle="min-width: 50rem">
                     <Column field="shadeNumber" header="Name"></Column>
@@ -649,6 +662,13 @@ async function saveShade() {
                           rounded
                           class="mr-2"
                           @click="editShade(slotProps.data)"
+                        />
+                                                <Button
+                          icon="pi pi-plus"
+                          variant="outlined"
+                          rounded
+                          class="mr-2"
+                          @click="addShade()"
                         />
                       </template>
                     </Column>

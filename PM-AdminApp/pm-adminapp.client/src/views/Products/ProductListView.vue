@@ -25,11 +25,13 @@ const loading = ref(true)
 const layout = useSystemStore()
 const brandStore = useBrandStore()
 const brand = storeToRefs(brandStore).activeBrand
+const showPublishedOnly = ref(false)
 const searchText = ref('')
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   categoryName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   parentCategoryName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  published: { value: null, matchMode: FilterMatchMode.EQUALS },
 })
 
 watch(brand, async (newBrand) => {
@@ -114,6 +116,18 @@ async function onCountryChange() {
   }
 }
 
+// async function filterPublished() {
+//   let filter = new ProductFilter()
+//   filter.brandId = layout.getActiveBrand?.id ?? 0
+//   if (showPublishedOnly.value) {
+//     filter.isPublished = true
+//   }
+//   await productService.searchProducts(filter).then((response) => {
+//     products.value = response
+//     console.log('Products loaded', products.value)
+//   })
+// }
+
 async function clearFilters() {
   selectedRegion.value = null
   selectedCountry.value = null
@@ -174,7 +188,12 @@ function copyProduct(product: searchProductInfo) {
           class="mr-2"
         />
 
-        <!-- <Button label="Clear" icon="pi pi-filter" @click="clearFilters" /> -->
+        <!-- <ToggleButton
+          v-model="showPublishedOnly"
+          onLabel="Show Published"
+          offLabel="Show All"
+          @click="filterPublished()"
+        /> -->
         <Button
           type="button"
           icon="pi pi-filter-slash"
@@ -200,7 +219,8 @@ function copyProduct(product: searchProductInfo) {
           'facings',
           'stock',
         ]"
-        filterDisplay="row"
+        filterDisplay="menu"
+        showGridlines
         :value="products"
         dataKey="id"
         :paginator="true"
@@ -252,6 +272,30 @@ function copyProduct(product: searchProductInfo) {
             />
           </template>
         </Column>
+        <column field="published" header="Published" data-type="boolean" style="min-width: 20rem">
+          <!-- <template #body="slotProps">
+            <span v-if="slotProps.data.published" class="text-green-500 font-bold"
+              ><i class="pi pi-check"
+            /></span>
+            <span v-else class="text-red-500 font-bold"><i class="pi pi-times" /></span>
+          </template> -->
+          <template #body="{ data }">
+            <i
+              class="pi"
+              :class="{
+                'pi-check-circle text-green-500 ': data.published,
+                'pi-times-circle text-red-500': !data.published,
+              }"
+            ></i>
+          </template>
+          <template #filter="{ filterModel }">
+            <Checkbox
+              v-model="filterModel.value"
+              :indeterminate="filterModel.value === null"
+              binary
+            />
+          </template>
+        </column>
         <Column :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button

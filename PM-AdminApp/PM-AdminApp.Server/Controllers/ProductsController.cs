@@ -192,8 +192,8 @@ namespace PM_AdminApp.Server.Controllers
                 await _productRepository.UpdateAsync(productEdit);
 
                 //Now manage relationships.
-                //await UpdateStandCountryCollection(standEdit, updateProduct);
-                //await UpdateRegionsCollection(standEdit, updateProduct);
+                await UpdateCountryCollection(productEdit, updateProduct);
+                await UpdateRegionsCollection(productEdit, updateProduct);
                 return Ok();
             }
             catch (Exception ex)
@@ -292,7 +292,7 @@ namespace PM_AdminApp.Server.Controllers
             origProduct.RegionsList = string.Join(",", origProduct.Regions.Select(r => r.Id));
         }
 
-        private async Task UpdateStandCountryCollection(Product origProduct, ProductUpdateDto updateProduct)
+        private async Task UpdateCountryCollection(Product origProduct, ProductUpdateDto updateProduct)
         {
             //add new countries
             //var standCountries = JsonConvert.DeserializeObject<List<CountryDto>>(updateProduct.Countries);
