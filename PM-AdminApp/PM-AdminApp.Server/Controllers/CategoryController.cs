@@ -92,7 +92,7 @@ namespace PM_AdminApp.Server.Controllers
         private List<CategoryDto> CreateCategorySelectList(IReadOnlyList<Category> list)
         {
             var selectList = new List<CategoryDto>();
-            var categorySelect = new CategoryDto("Select Category");
+            var categorySelect = new CategoryDto() { Name = "Select Category" };
             categorySelect.Id = 0;
 
             selectList.Add(categorySelect);

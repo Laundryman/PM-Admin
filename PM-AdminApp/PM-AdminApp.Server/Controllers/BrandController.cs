@@ -61,7 +61,6 @@ namespace PM_AdminApp.Server.Controllers
 
         [HttpPost]
         [Consumes("multipart/form-data")]
-        //public IActionResult UpdateBrand([FromForm] string id, [FromForm] string name, [FromForm] string shelfLock, [FromForm] string disabled, [FromForm] IFormFile file = null)
         public async Task<IActionResult> UpdateBrand([FromForm] BrandUploadDto brand)
         {
             try

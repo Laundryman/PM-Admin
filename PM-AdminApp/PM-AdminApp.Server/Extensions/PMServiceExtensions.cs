@@ -1,4 +1,5 @@
-﻿using PM_AdminApp.Server.Mappings.Resolvers;
+﻿using PlanMatr_API.Mappings.Resolvers;
+using PM_AdminApp.Server.Mappings.Resolvers;
 using PMApplication.Interfaces;
 using PMApplication.Interfaces.RepositoryInterfaces;
 using PMApplication.Interfaces.ServiceInterfaces;
@@ -34,6 +35,10 @@ namespace PM_AdminApp.Server.Extensions
             services.AddScoped<IRegionService, RegionService>();
             services.AddScoped<IStandService, StandService>();
             services.AddScoped(typeof(StandCountResolver));
+            services.AddScoped(typeof(ShelfPositionResolver));
+            services.AddScoped(typeof(ShelfStatusEnumResolver));
+            services.AddScoped(typeof(ClusterShelfPositionResolver));
+            services.AddScoped(typeof(ClusterShelfStatusEnumResolver));
             return services;
         }
 
