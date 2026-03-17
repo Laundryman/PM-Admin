@@ -24,6 +24,7 @@ interface SystemState {
   activeCluster: searchClusterInfo | null
   brandsLoaded?: boolean
   plannerLoaded?: boolean
+  dataLoading: boolean
   disableBrandSelect?: boolean
 }
 
@@ -61,6 +62,7 @@ export const useSystemStore = defineStore('layout', () => {
     activeCluster: null,
     brandsLoaded: false,
     plannerLoaded: false,
+    dataLoading: false,
     disableBrandSelect: false,
   })
 
@@ -79,6 +81,10 @@ export const useSystemStore = defineStore('layout', () => {
 
   function togglePlannerLayout() {
     systemState.value.plannerLoaded = !systemState.value.plannerLoaded
+  }
+
+  function toggleLoading() {
+    systemState.value.dataLoading = !systemState.value.dataLoading
   }
 
   function executeDarkModeToggle() {
@@ -131,8 +137,8 @@ export const useSystemStore = defineStore('layout', () => {
     toggleDarkMode,
     setActiveBrand,
     setActiveCluster,
-    getActiveBrand,
     togglePlannerLayout,
+    toggleLoading,
   }
 })
 

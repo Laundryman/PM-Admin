@@ -30,7 +30,7 @@ namespace PM_AdminApp.Server.Mappings
 
             CreateMap<CategoryFilterDto, CategoryFilter>();
             CreateMap<Category, ParentCategoryDto>();
-            //CreateMap<Category, CategoryMenuDto>();
+            CreateMap<CategoryDto, Category>();
             CreateMap<Cluster, PlanmClusterDto>();
             //CreateMap<ClusterPart, PlanmPartInfo>();
             //CreateMap<ClusterShelf, PlanmPartInfo>();

@@ -29,6 +29,8 @@ export default {
       if (token.value) {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
       }
+      apiClient.defaults.headers['Content-Type'] = 'application/json'
+
       // let catFilter = new standTypeFilter()
       // catFilter.GetParents = true
       return apiClient.post('/getStandTypes', filter)
@@ -41,6 +43,8 @@ export default {
       if (token.value) {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
       }
+      apiClient.defaults.headers['Content-Type'] = 'application/json'
+
       filter.getParents = true
       return apiClient.post('/getStandTypes', filter)
     } else {
@@ -66,6 +70,7 @@ export default {
       if (token.value) {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
       }
+      apiClient.defaults.headers['Content-Type'] = 'application/json'
       return apiClient.get('/getStandType', {
         params: {
           id: id,
@@ -82,7 +87,7 @@ export default {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
       }
       apiClient.defaults.headers['Content-Type'] = 'multipart/form-data'
-      await apiClient
+      var response = await apiClient
         .post('/updateStandType', formData)
         .then((response) => {
           return response.data
@@ -90,6 +95,7 @@ export default {
         .catch((error) => {
           throw error
         })
+      return response
     } else {
       throw new Error('StandTypeService not initialized')
     }

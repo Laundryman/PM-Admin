@@ -59,7 +59,11 @@ onMounted(async () => {
   // let brandid = layout.getActiveBrand?.id ?? 0
   let rFilter = new regionFilter()
   rFilter.brandId = brandid
-  await useLocationFilters().getRegions(rFilter)
+  await useLocationFilters()
+    .getRegions(rFilter)
+    .then((response) => {
+      regions.value = response
+    })
 
   var filter = new PartFilter()
   filter.brandId = brandid
@@ -115,13 +119,13 @@ async function clearFilters() {
   selectedCountry.value = null
   countries.value = []
   let filter = new PartFilter()
-  filter.brandId = layout.getActiveBrand?.id ?? 0
+  filter.brandId = brandStore.activeBrand?.id ?? 0
   await partService.searchParts(filter).then((response) => {
     parts.value = response
     console.log('Parts loaded', parts.value)
   })
   let rFilter = new regionFilter()
-  rFilter.brandId = layout.getActiveBrand?.id ?? 0
+  rFilter.brandId = brandStore.activeBrand?.id ?? 0
   await countryService.getRegions(rFilter).then((response) => {
     regions.value = response
     console.log('Regions loaded', regions.value)
@@ -261,7 +265,7 @@ function copyPart(part: SearchPartInfo) {
               v-model="filterModel.value"
               type="text"
               @input="filterCallback()"
-              placeholder="Search by country"
+              placeholder="Search by category"
             />
           </template>
         </Column>

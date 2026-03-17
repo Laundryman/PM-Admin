@@ -44,7 +44,7 @@ const partForm = usePartForm()
 const layout = useSystemStore()
 const router = useRouter()
 
-const brand = storeToRefs(layout).getActiveBrand
+//const brand = storeToRefs(layout).getActiveBrand
 const toast = useToast()
 const regionSelectList = ref<Region[] | null>(null)
 const selectedRegion = ref()
@@ -80,9 +80,10 @@ const { part } = storeToRefs(partStore)
 const partModel = ref<Part>(new Part())
 
 const initialValues = ref(new Part())
+const loading = ref(true)
 
-//const initialValues = ref({})
 onMounted(async () => {
+  layout.toggleLoading()
   if (!brandStore.activeBrand) {
     toast.add({
       severity: 'warn',
@@ -183,6 +184,7 @@ onMounted(async () => {
   })
 
   if (router.currentRoute.value.name === 'editPart') selectedProducts.value = mapPubishedProducts()
+  layout.toggleLoading()
 
 
 })
@@ -1150,4 +1152,5 @@ async function onFormSubmit({ valid }: any) {
       </Form>
     </div>
   </div>
+
 </template>

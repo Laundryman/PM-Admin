@@ -115,7 +115,7 @@ async function clearFilters() {
   selectedCountry.value = null
   countries.value = []
   let filter = new JobFolderFilter()
-  filter.brandId = layout.getActiveBrand?.id ?? 0
+  filter.brandId = brandStore.activeBrand?.id ?? 0
   await jobsService.searchJobFolders(filter).then((response) => {
     jobFolders.value = response.data
     console.log('Job Folders loaded', jobFolders.value)
@@ -143,7 +143,7 @@ async function onRegionFilterChange() {
   if (selectedRegion.value) {
     countries.value = await useLocationFilters().onRegionChange(selectedRegion.value)
     let filter = new JobFolderFilter()
-    filter.brandId = layout.getActiveBrand?.id ?? 0
+    filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.regionId = selectedRegion.value
     await jobsService.searchJobFolders(filter).then((response) => {
       jobFolders.value = response.data
@@ -157,7 +157,7 @@ async function onRegionFilterChange() {
 async function onCountryFilterChange() {
   if (selectedCountry.value) {
     let filter = new JobFolderFilter()
-    filter.brandId = layout.getActiveBrand?.id ?? 0
+    filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.countryId = selectedCountry.value
     await jobsService.searchJobFolders(filter).then((response) => {
       jobFolders.value = response.data

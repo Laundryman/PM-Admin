@@ -52,7 +52,11 @@ onMounted(async () => {
   let brandid = brandStore.activeBrand?.id ?? 0
   let rFilter = new regionFilter()
   rFilter.brandId = brandid
-  await useLocationFilters().getRegions(rFilter)
+  await useLocationFilters()
+    .getRegions(rFilter)
+    .then((response) => {
+      regions.value = response
+    })
 
   var filter = new clusterFilter()
   filter.brandId = brandid
@@ -78,7 +82,7 @@ async function onRegionChange() {
   if (selectedRegion.value) {
     countries.value = await useLocationFilters().onRegionChange(selectedRegion.value)
     let filter = new clusterFilter()
-    filter.brandId = layout.getActiveBrand?.id ?? 0
+    filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.regionId = selectedRegion.value
     await clusterService.searchClusters(filter).then((response) => {
       clusters.value = response
@@ -92,7 +96,7 @@ async function onRegionChange() {
 async function onCountryChange() {
   if (selectedCountry.value) {
     let filter = new clusterFilter()
-    filter.brandId = layout.getActiveBrand?.id ?? 0
+    filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.countryId = selectedCountry.value
     await clusterService.searchClusters(filter).then((response) => {
       clusters.value = response
@@ -108,13 +112,13 @@ async function clearFilters() {
   selectedCountry.value = null
   countries.value = []
   let filter = new clusterFilter()
-  filter.brandId = layout.getActiveBrand?.id ?? 0
+  filter.brandId = brandStore.activeBrand?.id ?? 0
   await clusterService.searchClusters(filter).then((response) => {
     clusters.value = response
     console.log('Clusters loaded', clusters.value)
   })
   let rFilter = new regionFilter()
-  rFilter.brandId = layout.getActiveBrand?.id ?? 0
+  rFilter.brandId = brandStore.activeBrand?.id ?? 0
   await countryService.getRegions(rFilter).then((response) => {
     regions.value = response
     console.log('Regions loaded', regions.value)

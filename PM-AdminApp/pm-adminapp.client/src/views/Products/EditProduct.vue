@@ -44,7 +44,6 @@ const { product } = storeToRefs(productStore)
 const productModel = ref<Product>(new Product())
 
 
-const brand = storeToRefs(layout).getActiveBrand
 const toast = useToast()
 const regionSelectList = ref<Region[] | null>(null)
 const selectedRegion = ref()
@@ -83,7 +82,7 @@ const { shades, shade, shadeDialog, submitted, shade_countrySelectList, shade_se
 // Lifecycle Hooks
 /////////////////////////////////////////////////////
 onMounted(async () => {
-  // await initialiseProductForm()
+  layout.toggleLoading()
   layout.layoutState.disableBrandSelect = true
   var productFilter = new ProductFilter()
   productFilter.id = Number(router.currentRoute.value.params.id) || 0
@@ -134,9 +133,7 @@ onMounted(async () => {
     console.log('Parent Categories loaded', parentCategories.value)
   })
 
-
-
-
+  layout.toggleLoading()
 })
 
 function initialiseProductForm() {

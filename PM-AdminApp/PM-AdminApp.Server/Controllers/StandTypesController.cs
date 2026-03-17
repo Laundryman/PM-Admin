@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PMApplication.Dtos;
@@ -10,6 +11,7 @@ using PMApplication.Entities.ProductAggregate;
 using PMApplication.Entities.StandAggregate;
 using PMApplication.Interfaces;
 using PMApplication.Interfaces.RepositoryInterfaces;
+using PMApplication.Services;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
 using Page = PMApplication.Dtos.Page;
@@ -27,15 +29,19 @@ namespace PM_AdminApp.Server.Controllers
         private readonly IStandTypeRepository _standTypeRepository;
         private readonly IAsyncRepository<Country> _countryRepository;
         private readonly IAsyncRepository<Category> _categoryRepository;
+        private readonly BlobServiceClient _blobServiceClient;
+        private readonly IConfiguration _configuration;
 
 
 
         public StandTypesController(IMapper mapper, IAsyncRepository<StandType> asyncStandTypeRepository,
             IAsyncRepository<Country> countryRepository, IAsyncRepository<Category> categoryRepository,
-            ILogger<StandTypesController> logger, IStandTypeRepository standTypeRepository)
+            ILogger<StandTypesController> logger, IStandTypeRepository standTypeRepository, BlobServiceClient blobServiceClient, IConfiguration configuration)
         {
             _logger = logger;
             _standTypeRepository = standTypeRepository;
+            _blobServiceClient = blobServiceClient;
+            _configuration = configuration;
             _asyncStandTypeRepository = asyncStandTypeRepository;
             _countryRepository = countryRepository;
             _categoryRepository = categoryRepository;
@@ -63,6 +69,82 @@ namespace PM_AdminApp.Server.Controllers
             catch (Exception ex)
             {
                 _logger.LogWarning($"Something went wrong inside GetStandTypes action: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddStandType(StandTypeDto standTypeDto)
+        {
+            try
+            {
+                var standType = _mapper.Map<StandType>(standTypeDto);
+                var createdStandType = await _standTypeRepository.AddAsync(standType);
+                return Ok(createdStandType);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Something went wrong inside AddStandType action: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpPost]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UpdateStandType([FromForm]StandTypeUploadDto standTypeDto)
+        {
+            try
+            {
+                var standType = await _standTypeRepository.GetByIdAsync(standTypeDto.Id);
+                if (standType == null)
+                {
+                    _logger.LogWarning($"StandType with id: {standTypeDto.Id}, hasn't been found in db.");
+                    return NotFound();
+                }
+                standType.Name = standTypeDto.Name;
+                standType.Description = standTypeDto.Description;
+                StandType parentStandType = new StandType();
+                if (standTypeDto.ParentStandTypeId != null)
+                {
+                    standType.ParentStandTypeId = standTypeDto.ParentStandTypeId;
+                    parentStandType = await _standTypeRepository.GetByIdAsync((int)standTypeDto.ParentStandTypeId);
+                }
+                else if (standType.ParentStandTypeId != null)
+                {
+                    parentStandType = await _standTypeRepository.GetByIdAsync((int)standType.ParentStandTypeId);
+                }
+
+                if (standTypeDto.ParentStandTypeId != null) 
+                    standType.StandImage = standTypeDto.StandImage;
+
+                if (standTypeDto.File != null && standTypeDto.File.Length > 0)
+                {
+                    // Here you would typically save the file to a storage location and update the BrandLogo property
+                    // For demonstration, we'll just set a placeholder path
+                    var fileType = standTypeDto.File.FileName.Split('.')[1];
+                    string fileName = standType.Name.Replace(" ", "");
+                    standType.StandImage = fileName + "." + fileType;
+                    var blobService = new AzureBlobService(_blobServiceClient);
+                    var storeName = _configuration["AzureBlob:StoreName"];
+                    var brandContainerName = _configuration["AzureBlob:StandTypeContainer"];
+                    if (storeName != null && brandContainerName != null)
+                    {
+                        var blobServiceClient = blobService.GetBlobServiceClient(storeName);
+                        var containerClient = blobService.GetBlobContainerClient(blobServiceClient, brandContainerName);
+                        await blobService.UploadFormFileAsync(containerClient, standTypeDto.File, standType.StandImage);
+                    }
+                }
+
+
+
+                await _standTypeRepository.UpdateAsync(standType);
+                var returnData = _mapper.Map<StandTypeDto>(standType);
+                returnData.ParentStandType = _mapper.Map<StandTypeDto>(parentStandType);
+                return Ok(returnData);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Something went wrong inside UpdateStandType action: {ex.Message}");
                 return StatusCode(500, "Internal server error");
             }
         }

@@ -3,6 +3,7 @@ import { Category } from '@/models/Categories/category.model'
 import { default as categoryService } from '@/services/Categories/CategoryService'
 import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api'
+import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref } from 'vue'
 
@@ -13,6 +14,7 @@ const submitted = ref(false)
 const category = ref(new Category())
 const expandedRows = ref()
 const toast = useToast()
+const confirm = useConfirm()
 function onRowGroupExpand(event: any) {
   toast.add({
     severity: 'info',
@@ -74,55 +76,46 @@ function onFileSelect(event: any) {
   // reader.readAsDataURL(file)
 }
 
-const openNew = () => {
-  category.value = {} as Category
-  submitted.value = false
-  categoryDialog.value = true
-}
 const hideDialog = () => {
   categoryDialog.value = false
   submitted.value = false
 }
-async function saveCategory() {
+async function saveCategory(cat: Category) {
   submitted.value = true
 
-  const formData = new FormData()
-  if (file.value) {
-    formData.append('file', file.value)
-    // await brandService.uploadBrandImage(formData).then((response) => {
-    //   if (response && response.data) {
-    //     brand.value.brandLogo = response.data.fileName
-    //   }
-    // })
-  }
-
-  if (category?.value.name?.trim()) {
-    formData.append('name', category.value.name)
-    // formData.append('shelfLock', String(category.value.shelfLock))
-    // formData.append('disabled', String(category.value.disabled))
-    formData.append('id', String(category.value.id ?? 0))
-    formData.append('file', file.value ?? '')
-    if (category.value.id) {
+  if (cat?.name?.trim()) {
+    if (cat.id) {
       await categoryService
-        .updateCategory(formData)
+        .updateCategory(cat)
         .then((response) => {
           if (response && response.data) {
             console.log(response.data)
           }
         })
         .catch((error) => {
-          console.error('Error updating brand:', error)
+          console.error('Error updating category:', error)
         })
       toast.add({
         severity: 'success',
         summary: 'Successful',
-        detail: 'Brand Updated',
+        detail: 'Category Updated',
         life: 3000,
       })
     } else {
-      category.value.id = 0
-      // category.value.categoryLogo = 'category-placeholder.svg'
-      categories.value.push(category.value)
+      cat.id = 0
+      await categoryService
+        .addCategory(cat)
+        .then((newCat) => {
+          categories.value
+            .find((c: Category) => c.id === newCat.parentCategoryId)
+            ?.subCategories?.push(newCat)
+
+          // console.log(response.data)
+        })
+        .catch((error) => {
+          console.error('Error creating category:', error)
+        })
+      categories.value.push(cat)
       toast.add({
         severity: 'success',
         summary: 'Successful',
@@ -139,19 +132,96 @@ function editCategory(cat: Category) {
   category.value = cat
   categoryDialog.value = true
 }
+function deleteCategory(cat: Category) {
+  category.value = cat
+  categoryService
+    .deleteCategory(cat.id)
+    .then((response) => {
+      var subCats = categories.value.find(
+        (c: Category) => c.id == cat.parentCategoryId,
+      ).subCategories
+      subCats.splice(
+        subCats.findIndex((sc: Category) => sc.id == cat.id),
+        1,
+      )
 
-function calculatePCatTotal(name: string) {
-  let total = 0
+      categories.value.find((c: Category) => c.id == cat.parentCategoryId).subCategories = subCats
+      toast.add({
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'Category Deleted',
+        life: 6000,
+      })
+    })
+    .catch((error) => {
+      console.error('Error deleting category:', error)
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to delete category',
+        life: 6000,
+      })
+    })
+}
+function addCategory() {
+  category.value = {} as Category
+  category.value.parentCategoryId = 0
+  category.value.parentCategoryName = ''
+  categoryDialog.value = true
+}
 
-  if (categories.value) {
-    for (let cat of categories.value) {
-      if (cat.parentCategoryName === name) {
-        total++
-      }
-    }
-  }
+function addChildCategory(cat: Category) {
+  category.value = {} as Category
+  category.value.parentCategoryId = cat.id
+  category.value.parentCategoryName = cat.name
+  categoryDialog.value = true
+}
 
-  return total
+// function confirmSave(event: Event, cat: Category) {
+//   confirm.require({
+//     target: event.currentTarget as HTMLElement,
+//     message: 'Are you sure you want to proceed?',
+//     icon: 'pi pi-exclamation-triangle',
+//     rejectProps: {
+//       label: 'Cancel',
+//       severity: 'secondary',
+//       outlined: true,
+//     },
+//     acceptProps: {
+//       label: 'Save',
+//     },
+//     accept: async () => {
+//       // toast.add({ severity: 'info', summary: 'Confirmed', detail: 'You have accepted', life: 3000 })
+//       var newCat = await saveCategory(cat)
+//     },
+//     reject: () => {
+//       toast.add({ severity: 'error', summary: 'Rejected', detail: 'You have rejected', life: 3000 })
+//     },
+//   })
+// }
+
+function confirmDelete(event: Event, cat: Category) {
+  confirm.require({
+    target: event.currentTarget as HTMLElement,
+    message: 'Are you sure you want to delete this category?',
+    icon: 'pi pi-exclamation-triangle',
+    rejectProps: {
+      label: 'Cancel',
+      severity: 'secondary',
+      outlined: true,
+    },
+    acceptProps: {
+      label: 'Delete',
+      severity: 'danger',
+    },
+    accept: () => {
+      // toast.add({ severity: 'info', summary: 'Confirmed', detail: 'You have accepted', life: 3000 })
+      deleteCategory(cat)
+    },
+    reject: () => {
+      toast.add({ severity: 'error', summary: 'Rejected', detail: 'You have rejected', life: 3000 })
+    },
+  })
 }
 </script>
 
@@ -160,7 +230,13 @@ function calculatePCatTotal(name: string) {
     <div class="card">
       <Toolbar class="mb-6">
         <template #start>
-          <Button label="New" icon="pi pi-plus" class="mr-2" @click="openNew" />
+          <Button
+            label="New"
+            icon="pi pi-plus"
+            class="mr-2"
+            @click="addCategory()"
+            v-tooltip="'Add Parent Category'"
+          />
         </template>
 
         <template #end> </template>
@@ -208,7 +284,16 @@ function calculatePCatTotal(name: string) {
               variant="outlined"
               rounded
               class="mr-2"
+              v-tooltip="'Edit Category'"
               @click="editCategory(slotProps.data)"
+            />
+            <Button
+              icon="pi pi-plus"
+              variant="outlined"
+              rounded
+              class="mr-2"
+              v-tooltip="'Add Child Category'"
+              @click="addChildCategory(slotProps.data)"
             />
           </template>
         </Column>
@@ -223,10 +308,49 @@ function calculatePCatTotal(name: string) {
                 style="min-width: 16rem"
               ></Column>
               <Column field="name" header="Name" sortable></Column>
+              <Column :exportable="false" style="min-width: 12rem">
+                <template #body="childSlotProps">
+                  <Button
+                    icon="pi pi-trash"
+                    variant="outlined"
+                    rounded
+                    class="mr-2"
+                    v-tooltip="'Delete Category'"
+                    @click="confirmDelete($event, childSlotProps.data)"
+                  />
+                </template>
+              </Column>
             </DataTable>
           </div>
         </template>
       </DataTable>
     </div>
+    <Dialog
+      v-model:visible="categoryDialog"
+      :style="{ width: '450px' }"
+      header="Category Details"
+      :modal="true"
+    >
+      <div class="flex flex-col gap-6">
+        <div>
+          <label for="name" class="block font-bold mb-3">Name</label>
+          <InputText
+            id="name"
+            v-model.trim="category.name"
+            required="true"
+            autofocus
+            :invalid="submitted && !category.name"
+            fluid
+          />
+          <small v-if="submitted && !category.name" class="text-red-500">Name is required.</small>
+        </div>
+      </div>
+      <template #footer>
+        <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
+        <Button label="Save" icon="pi pi-check" @click="saveCategory(category)" />
+      </template>
+    </Dialog>
   </div>
+  <Toast></Toast>
+  <ConfirmPopup></ConfirmPopup>
 </template>

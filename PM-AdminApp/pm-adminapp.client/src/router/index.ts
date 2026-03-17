@@ -93,6 +93,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true },
       },
       {
+        path: '/planograms',
+        name: 'planograms',
+        component: () => import('@/views/planograms/planogramListView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
         path: '/clusters',
         name: 'clusters',
         component: () => import('@/views/Clusters/ClusterListView.vue'),

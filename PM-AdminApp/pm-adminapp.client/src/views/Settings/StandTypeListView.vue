@@ -2,11 +2,14 @@
 import { StandType } from '@/models/StandTypes/standType.model'
 import { standTypeFilter } from '@/models/StandTypes/standTypeFilter.model'
 import standTypeService from '@/services/StandTypes/StandTypeService'
+import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, watch } from 'vue'
+
+const standImageUrl = import.meta.env.VITE_APP_STANDIMAGE_URL
 
 const standTypes = ref()
 const selectedStandType = ref()
@@ -16,8 +19,8 @@ const standType = ref(new StandType())
 const expandedRows = ref()
 const toast = useToast()
 const layout = useSystemStore()
-const brand = storeToRefs(layout).getActiveBrand
-
+const brandStore = useBrandStore()
+const brand = storeToRefs(brandStore).activeBrand
 watch(brand, async (newBrand) => {
   if (newBrand) {
     let filter = new standTypeFilter()
@@ -55,7 +58,7 @@ onMounted(async () => {
   layout.layoutState.disableBrandSelect = false
   await standTypeService.initialise()
   var filter = new standTypeFilter()
-  let brandid = layout.getActiveBrand?.id ?? 0
+  let brandid = brandStore.activeBrand?.id ?? 0
 
   filter.brandId = brandid
   await standTypeService.getParentStandTypes(filter).then((data) => {
@@ -101,40 +104,60 @@ async function saveStandType() {
   }
 
   if (standType?.value.name?.trim()) {
-    formData.append('name', standType.value.name)
-    // formData.append('shelfLock', String(category.value.shelfLock))
-    // formData.append('disabled', String(category.value.disabled))
     formData.append('id', String(standType.value.id ?? 0))
+    formData.append('name', standType.value.name)
+    formData.append('description', String(standType.value.description))
+    formData.append('lock', String(standType.value.lock))
+    formData.append('hidePrices', String(standType.value.hidePrices))
     formData.append('file', file.value ?? '')
     if (standType.value.id) {
       await standTypeService
         .updateStandType(formData)
         .then((response) => {
-          if (response && response.data) {
-            console.log(response.data)
-          }
+          var updatedStandType = response
+          standTypes.value
+            .find((c: StandType) => c.id === updatedStandType.parentStandTypeId)
+            .childStandTypes.splice(
+              standTypes.value
+                .find((c: StandType) => c.id === updatedStandType.parentStandTypeId)
+                .childStandTypes.findIndex((cs: StandType) => cs.id === updatedStandType.id),
+              1,
+              updatedStandType,
+            )
+          standTypes.value
+            .find((c: StandType) => c.id === updatedStandType.parentStandTypeId)
+            .childStandTypes.push(updatedStandType)
         })
         .catch((error) => {
-          console.error('Error updating brand:', error)
+          console.log('Error updating standType:', error)
         })
       toast.add({
         severity: 'success',
         summary: 'Successful',
-        detail: 'Brand Updated',
+        detail: 'StandType Updated',
         life: 3000,
       })
     } else {
-      standType.value.id = 0
-      // category.value.categoryLogo = 'category-placeholder.svg'
-      standTypes.value.push(standType.value)
+      // await standTypeService
+      //   .addStandType(formData)
+      //   .then((response) => {
+      //     if (response && response.data) {
+      //       standType.value = response.data
+      //     }
+      //   })
+      //   .catch((error) => {
+      //     console.error('Error creating standType:', error)
+      //   })
+      standTypes.value.push(standType)
       toast.add({
         severity: 'success',
         summary: 'Successful',
-        detail: 'Category Created',
+        detail: 'StandType Created',
         life: 3000,
       })
     }
 
+    file.value = null
     standTypeDialog.value = false
     standType.value = new StandType()
   }
@@ -146,6 +169,10 @@ function editStandType(cat: StandType) {
 
 const getLockIcon = (lock: boolean) => {
   return lock ? 'pi pi-lock' : 'pi pi-lock-open'
+}
+
+const getHideIcon = (hide: boolean) => {
+  return hide ? 'pi pi-cross' : 'pi pi-tick'
 }
 </script>
 
@@ -195,7 +222,7 @@ const getLockIcon = (lock: boolean) => {
 
         <Column field="name" header="Name" sortable style="min-width: 16rem"></Column>
 
-        <Column :exportable="false" style="min-width: 12rem">
+        <!-- <Column :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
               icon="pi pi-pencil"
@@ -205,7 +232,7 @@ const getLockIcon = (lock: boolean) => {
               @click="editStandType(slotProps.data)"
             />
           </template>
-        </Column>
+        </Column> -->
         <template #expansion="slotProps">
           <div class="p-4">
             <!-- <h5>{{ slotProps.data.name }}</h5> -->
@@ -226,6 +253,17 @@ const getLockIcon = (lock: boolean) => {
                   </div>
                 </template>
               </Column>
+              <Column field="hidePrices" header="Show Prices" sortable>
+                <template #body="{ data }">
+                  <i
+                    class="pi"
+                    :class="{
+                      'pi-check-circle text-green-500 ': !data.hidePrices,
+                      'pi-times-circle text-red-500': data.hidePrices,
+                    }"
+                  ></i>
+                </template>
+              </Column>
               <Column field="standCount" header="No. Stands" sortable></Column>
               <Column :exportable="false" style="min-width: 12rem">
                 <template #body="slotProps">
@@ -243,5 +281,61 @@ const getLockIcon = (lock: boolean) => {
         </template>
       </DataTable>
     </div>
+    <Dialog
+      v-model:visible="standTypeDialog"
+      :style="{ width: '450px' }"
+      header="StandType Details"
+      :modal="true"
+    >
+      <div class="flex flex-col gap-6">
+        <img
+          v-if="standType.standImage"
+          :src="`${standImageUrl}${standType.standImage}`"
+          :alt="standType.standImage"
+          class="block m-auto pb-4"
+        />
+        <div class="card flex flex-wrap gap-6 items-center justify-between">
+          <FileUpload
+            ref="fileupload"
+            mode="basic"
+            @select="onFileSelect"
+            customUpload
+            accept="image/*"
+            :maxFileSize="1000000"
+          />
+          <!-- <Button label="Upload" @click="upload" severity="secondary" /> -->
+        </div>
+
+        <label for="name" class="block font-bold mb-3">Name</label>
+        <InputText
+          id="name"
+          v-model.trim="standType.name"
+          required="true"
+          autofocus
+          :invalid="submitted && !standType.name"
+          fluid
+        />
+        <small v-if="submitted && !standType.name" class="text-red-500">Name is required.</small>
+        <label for="description" class="block font-bold mb-3">Description</label>
+        <InputText
+          id="description"
+          v-model.trim="standType.description"
+          required="true"
+          autofocus
+          :invalid="submitted && !standType.description"
+          fluid
+        />
+        <label for="locked" class="block font-bold mb-3">Lock</label>
+        <ToggleButton v-model="standType.lock" onLabel="Locked" offLabel="Unlocked" />
+        <label for="hidePrices" class="block font-bold mb-3">Hide Prices</label>
+        <ToggleButton v-model="standType.hidePrices" onLabel="Yes" offLabel="No" />
+      </div>
+      <template #footer>
+        <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
+        <Button label="Save" icon="pi pi-check" @click="saveStandType()" />
+      </template>
+    </Dialog>
   </div>
+  <Toast></Toast>
+  <ConfirmPopup></ConfirmPopup>
 </template>

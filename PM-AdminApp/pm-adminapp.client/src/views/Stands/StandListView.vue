@@ -91,7 +91,7 @@ async function onRegionChange() {
   if (selectedRegion.value) {
     countries.value = await useLocationFilters().onRegionChange(selectedRegion.value)
     let filter = new StandFilter()
-    filter.brandId = layout.getActiveBrand?.id ?? 0
+    filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.regionId = selectedRegion.value
     await standService.searchStands(filter).then((response) => {
       stands.value = response
@@ -105,7 +105,7 @@ async function onRegionChange() {
 async function onCountryChange() {
   if (selectedCountry.value) {
     let filter = new StandFilter()
-    filter.brandId = layout.getActiveBrand?.id ?? 0
+    filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.countryId = selectedCountry.value
     await standService.searchStands(filter).then((response) => {
       stands.value = response
@@ -121,7 +121,7 @@ async function clearFilters() {
   selectedCountry.value = null
   countries.value = []
   let filter = new StandFilter()
-  filter.brandId = layout.getActiveBrand?.id ?? 0
+  filter.brandId = brandStore.activeBrand?.id ?? 0
   await standService.searchStands(filter).then((response) => {
     stands.value = response
     console.log('Stands loaded', stands.value)

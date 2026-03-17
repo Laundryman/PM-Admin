@@ -1,4 +1,5 @@
 // import { useAuthStore } from '@/stores/auth'
+import type { Category } from '@/models/Categories/category.model'
 import { categoryFilter } from '@/models/Categories/categoryFilter.model'
 import { Auth, msal } from '@/services/Identity/auth'
 import { useAuthStore } from '@/stores/auth'
@@ -76,15 +77,50 @@ export default {
       throw new Error('CategoryService not initialized')
     }
   },
-
-  async updateCategory(formData: FormData): Promise<any> {
+  async addCategory(category: Category): Promise<any> {
     if (initialized.value !== false) {
       if (token.value) {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
       }
-      apiClient.defaults.headers['Content-Type'] = 'multipart/form-data'
-      await apiClient
-        .post('/updateCategory', formData)
+      var newCat = await apiClient
+        .post('/addCategory', category)
+        .then((response) => {
+          return response.data
+        })
+        .catch((error) => {
+          throw error
+        })
+      return newCat
+    } else {
+      throw new Error('CategoryService not initialized')
+    }
+  },
+  async updateCategory(category: Category): Promise<any> {
+    if (initialized.value !== false) {
+      if (token.value) {
+        apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+      }
+      var updatedCat = await apiClient
+        .post('/updateCategory', category)
+        .then((response) => {
+          return response.data
+        })
+        .catch((error) => {
+          throw error
+        })
+      return updatedCat
+    } else {
+      throw new Error('CategoryService not initialized')
+    }
+  },
+
+  async deleteCategory(id: number) {
+    if (initialized.value !== false) {
+      if (token.value) {
+        apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+      }
+      return apiClient
+        .delete(`/deleteCategory/${id}`)
         .then((response) => {
           return response.data
         })

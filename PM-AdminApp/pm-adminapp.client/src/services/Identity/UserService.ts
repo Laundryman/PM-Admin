@@ -123,7 +123,7 @@ export default {
     let updatedUser = new Object() as any
     updatedUser = {
       Id: user.id,
-      DisplayName: user.displayName,
+      DisplayName: user.userName,
       GivenName: user.givenName,
       Surname: user.surname,
       // MailNickname: user.mailNickName,
@@ -156,7 +156,51 @@ export default {
   },
 
   async createUser(user: User) {
-    return await apiClient.put('/users', user)
+    let newUser = new Object() as any
+    newUser = {
+      displayName: user.userName,
+      givenName: user.givenName,
+      surname: user.surname,
+      //MailNickname: user.userEmailAddress,
+      accountEnabled: true,
+      identities: [
+        {
+          signInType: 'emailAddress',
+          issuer: 'planmatr.onmicrosoft.com',
+          issuerAssignedId: user.userEmailAddress,
+        },
+      ],
+      mail: user.userEmailAddress,
+      passwordProfile: {
+        password: user.password,
+        forceChangePasswordNextSignIn: true,
+      },
+      passwordPolicies: 'DisablePasswordExpiration',
+    }
+    if (user.brandIds != null && user.brandIds.length > 0) {
+      newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands'] = user.brandIds.join(',')
+    } else if (user.brandIds != null && user.brandIds.length == 1) {
+      newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands'] = user.brandIds
+    }
+
+    newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId'] = user.diamCountryId
+
+    if (user.roleIds != null && user.roleIds.length > 0) {
+      newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles'] = user.roleIds.join(',')
+    } else if (user.roleIds != null && user.roleIds.length == 1) {
+      newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles'] = user.roleIds
+    }
+    newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress'] = user.userEmailAddress
+
+    var resp = await apiClient
+      .post('/users', newUser)
+      .then((response) => {
+        return response
+      })
+      .catch((error) => {
+        throw error
+      })
+    return resp
   },
 
   deleteUser(id: string) {

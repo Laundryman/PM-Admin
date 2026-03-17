@@ -217,7 +217,7 @@ const savePassword = () => {
 async function saveUser() {
   submitted.value = true
   if (currentUser?.value?.newUserName?.trim()) {
-    currentUser.value.UserName = currentUser.value.newUserName
+    currentUser.value.userName = currentUser.value.newUserName
   }
   if (currentUser?.value?.userName?.trim()) {
     // if (selectedBrands.value !== undefined) {
@@ -258,7 +258,7 @@ async function saveUser() {
         })
         .finally(() => {})
     } else {
-      currentUser.value.Password = newPassword.value
+      currentUser.value.password = newPassword.value
       UserService.createUser(currentUser.value)
         .then((response) => {
           users.value.push(response.data)

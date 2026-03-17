@@ -35,6 +35,9 @@ namespace PM_AdminApp.Server.Extensions
             services.AddScoped<IRegionService, RegionService>();
             services.AddScoped<IStandService, StandService>();
             services.AddScoped(typeof(StandCountResolver));
+            services.AddScoped(typeof(StandLayoutResolver));
+            services.AddScoped(typeof(StandRowResolver));
+            services.AddScoped(typeof(StandUpdateLayoutResolver));
             services.AddScoped(typeof(ShelfPositionResolver));
             services.AddScoped(typeof(ShelfStatusEnumResolver));
             services.AddScoped(typeof(ClusterShelfPositionResolver));

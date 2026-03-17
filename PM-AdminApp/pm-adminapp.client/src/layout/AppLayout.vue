@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { default as loadingSpinner } from '@/components/loading/loadingSpinner.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
@@ -15,7 +16,9 @@ const { layoutConfig, layoutState } = useSystemStore()
 const { isSidebarActive } = storeToRefs(layoutStore)
 const auth = useAuthStore()
 const outsideClickListener = ref()
-
+const loading = computed(() => {
+  return layoutState.dataLoading
+})
 watch(isSidebarActive, (newVal) => {
   if (newVal) {
     bindOutsideClickListener()
@@ -86,4 +89,5 @@ function isOutsideClicked(event: MouseEvent) {
     <div class="layout-mask animate-fadein"></div>
   </div>
   <Toast />
+  <loadingSpinner :loading="loading" :can-cancel="false" :is-full-page="true" />
 </template>

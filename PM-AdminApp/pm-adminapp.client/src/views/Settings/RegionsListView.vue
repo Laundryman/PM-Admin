@@ -2,6 +2,7 @@
 import { Region } from '@/models/Countries/region.model'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
 import countryService from '@/services/Countries/CountryService'
+import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api'
 import { storeToRefs } from 'pinia'
@@ -14,6 +15,7 @@ const region = ref(new Region())
 const brandDialog = ref(false)
 const submitted = ref(false)
 const toast = useToast()
+const brandStore = useBrandStore()
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
 })
@@ -21,7 +23,7 @@ const src = ref()
 const file = ref()
 
 const layout = useSystemStore()
-const brand = storeToRefs(layout).getActiveBrand
+const brand = storeToRefs(brandStore).activeBrand
 
 watch(brand, async (newBrand) => {
   if (newBrand) {
@@ -37,7 +39,7 @@ watch(brand, async (newBrand) => {
 onMounted(async () => {
   const layout = useSystemStore()
   await countryService.initialise()
-  let brandid = layout.getActiveBrand?.id ?? 0
+  let brandid = brandStore.activeBrand?.id ?? 0
   let filter = new regionFilter()
   filter.brandId = brandid
   await countryService.getRegions(filter).then((response) => {

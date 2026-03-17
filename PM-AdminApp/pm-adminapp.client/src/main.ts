@@ -22,6 +22,8 @@ import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
 import Listbox from 'primevue/listbox'
 
+import ConfirmationService from 'primevue/confirmationservice'
+import DialogService from 'primevue/dialogservice'
 import Menu from 'primevue/menu'
 import Message from 'primevue/message'
 import MultiSelect from 'primevue/multiselect'
@@ -43,8 +45,6 @@ import Toast from 'primevue/toast'
 import ToastService from 'primevue/toastservice'
 import ToggleButton from 'primevue/togglebutton'
 import ToggleSwitch from 'primevue/toggleswitch'
-
-import ConfirmationService from 'primevue/confirmationservice'
 import Toolbar from 'primevue/toolbar'
 import Tooltip from 'primevue/tooltip'
 import App from './App.vue'
@@ -57,6 +57,7 @@ app.use(pinia)
 app.use(router)
 app.use(ToastService)
 app.use(ConfirmationService)
+app.use(DialogService)
 app.use(PrimeVue, {
   theme: {
     preset: PMAdmin,

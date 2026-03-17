@@ -206,7 +206,7 @@ namespace PM_AdminApp.Server.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
-
+        [ApiExplorerSettings(IgnoreApi = true)]
         private List<RegionDto> CreateSelectList(IReadOnlyList<Region> list)
         {
             var selectList = new List<RegionDto>();

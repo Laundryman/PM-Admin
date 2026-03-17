@@ -179,7 +179,7 @@ namespace PM_AdminApp.Server.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
-
+        [ApiExplorerSettings(IgnoreApi = true)]
         private async Task UpdateRegionsCollection(Stand origStand, StandUpdateDto updateStand)
         {
             //var regionDtos = JsonConvert.DeserializeObject<List<RegionDto>>(updateStand.Regions);
@@ -207,7 +207,7 @@ namespace PM_AdminApp.Server.Controllers
             //update Part.RegionList string
             origStand.RegionsList = string.Join(",", origStand.Regions.Select(r => r.Id));
         }
-
+        [ApiExplorerSettings(IgnoreApi = true)]
         private async Task UpdateStandCountryCollection(Stand origStand, StandUpdateDto updateStand)
         {
             //add new countries

@@ -17,6 +17,18 @@ const model = ref([
     ],
   },
   {
+    label: 'Planograms',
+    icon: 'pi pi-fw pi-table',
+    to: '/planograms',
+    items: [
+      {
+        label: 'Planograms',
+        icon: 'pi pi-fw pi-check-square',
+        to: '/planograms',
+      },
+    ],
+  },
+  {
     label: 'Carcasses',
     icon: 'pi pi-fw pi-table',
     to: '/stands',

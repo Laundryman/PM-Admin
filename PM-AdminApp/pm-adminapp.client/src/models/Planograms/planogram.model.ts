@@ -1,0 +1,33 @@
+export class Planogram {
+  id!: number
+  clusterId!: number
+  name!: string
+  standId!: number
+  orderRef!: string
+  description!: string
+  statusId!: number
+  countryId!: number
+  scratchPadId!: number
+  hasComments!: boolean
+  planogramPreviewSrc!: string
+  legacyUserId!: number
+  dateCreated!: Date
+  dateUpdated!: Date
+  dateSubmitted!: Date
+  currentVersion!: number
+  template!: string
+  legacyLastUpdatedBy!: number
+  archived!: boolean
+  legacyArchivedBy!: number
+  archivedDate!: Date
+  jobNumber!: string
+  brandId!: number
+  userId!: number
+  lastUpdatedBy!: number
+  legacyArchivedId!: number
+  userName!: string
+  lubName!: string
+  archivedByName!: string
+  archivedBy!: number
+  jobId!: number
+}

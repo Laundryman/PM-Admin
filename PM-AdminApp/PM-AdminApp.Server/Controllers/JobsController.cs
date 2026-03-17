@@ -247,7 +247,7 @@ namespace PM_AdminApp.Server.Controllers
 
         }
 
-
+        [HttpPost]
         public async Task<IActionResult> CreateJob(JobDto jobDto)
         {
             try

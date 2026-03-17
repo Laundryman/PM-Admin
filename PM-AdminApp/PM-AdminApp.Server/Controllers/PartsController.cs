@@ -363,6 +363,7 @@ namespace PM_AdminApp.Server.Controllers
         //        origPart.Brand = brand;
         //    }
         //}
+        [ApiExplorerSettings(IgnoreApi = true)]
         private async Task UpdatePartCountryCollection(Part origPart, PartUploadDto updatePart)
         {
             //add new countries
@@ -394,7 +395,7 @@ namespace PM_AdminApp.Server.Controllers
             //update Part.CountryList string
             origPart.CountriesList = string.Join(",", origPart.Countries.Select(c => c.Id));
         }
-
+        [ApiExplorerSettings(IgnoreApi = true)]
         private async Task UpdatePartProductsCollection(Part origPart, PartUploadDto updatePart)
         {
             var partProducts = JsonConvert.DeserializeObject<List<ProductDto>>(updatePart.Products ?? "[]");
@@ -418,7 +419,7 @@ namespace PM_AdminApp.Server.Controllers
                 }
             }
         }
-
+        [ApiExplorerSettings(IgnoreApi = true)]
         private async Task UpdateStandTypesCollection(Part origPart, PartUploadDto updatePart)
         {
             var standTypes = JsonConvert.DeserializeObject<List<StandTypeDto>>(updatePart.StandTypes ?? "[]");
@@ -443,7 +444,7 @@ namespace PM_AdminApp.Server.Controllers
             }
         }
 
-
+        [ApiExplorerSettings(IgnoreApi = true)]
         private async Task UpdateRegionsCollection(Part origPart, PartUploadDto updatePart)
         {
             var regionDtos = JsonConvert.DeserializeObject<List<RegionDto>>(updatePart.Regions ?? "[]");
@@ -471,7 +472,7 @@ namespace PM_AdminApp.Server.Controllers
             origPart.RegionsList = string.Join(",", origPart.Regions.Select(r => r.Id));
         }
 
-
+        [ApiExplorerSettings(IgnoreApi = true)]
         private async Task UpdatePartImages(Part origPart, PartUploadDto updatePart)
         {
             //handle file upload if a new file is provided
@@ -516,6 +517,6 @@ namespace PM_AdminApp.Server.Controllers
                 await blobService.UploadFormFileAsync(containerClient, updatePart.iconFile, origPart.SvgLineGraphic);
             }
         }
-        ///Consider this perhaps -> https://medium.com/@hamidmusayev/synchronizing-entity-framework-core-child-collections-a-clean-and-reusable-approach-2ebd8e853f4d
+
     }
 }
