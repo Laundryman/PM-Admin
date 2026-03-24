@@ -81,6 +81,26 @@ export default {
     }
   },
 
+  async addStandType(formData: FormData): Promise<any> {
+    if (initialized.value !== false) {
+      if (token.value) {
+        apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+      }
+      apiClient.defaults.headers['Content-Type'] = 'multipart/form-data'
+      var response = await apiClient
+        .post('/addStandType', formData)
+        .then((response) => {
+          return response.data
+        })
+        .catch((error) => {
+          throw error
+        })
+      return response
+    } else {
+      throw new Error('StandTypeService not initialized')
+    }
+  },
+
   async updateStandType(formData: FormData): Promise<any> {
     if (initialized.value !== false) {
       if (token.value) {

@@ -66,18 +66,28 @@ export const Auth = {
       .loginPopup(request)
       .then((result) => {
         // could do something with the AuthResult here if you need to
-        console.log('Logged in with', result)
-
-        // set active account
-        return this.setAccount(result.account)
+        if (!result.account) {
+          throw new Error('No account found in authentication result')
+        } else {
+          if (result.account.idTokenClaims?.roles) {
+            if (result.account.idTokenClaims?.roles.includes('System.Admin')) {
+              console.log('User has System.Admin role')
+              return this.setAccount(result.account)
+            }
+            throw new Error('User does not have required System.Admin role')
+          } else {
+            throw new Error('No roles found in token claims')
+          }
+        }
       })
+
       .catch((error: BrowserAuthError) => {
         // if we get stuck, clear session and attempt to log in again
         if (error.errorCode === 'interaction_in_progress') {
           this.reset()
           return this.login()
         }
-        throw new Error(error.errorMessage)
+        throw new Error(error.message)
       })
   },
 

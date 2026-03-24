@@ -67,7 +67,7 @@ export default {
           $select:
             'identities,id,displayname,userName, givenName,surname,mail,mailNickname,userPrincipalName, ' +
             'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles, extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands, extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress',
-          $filter: "creationType eq 'LocalAccount'",
+          // $filter: "creationType eq 'LocalAccount'",
           $top: '100',
           // $orderBy: 'displayName',
         },

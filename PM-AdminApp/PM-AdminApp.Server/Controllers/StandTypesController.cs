@@ -74,13 +74,55 @@ namespace PM_AdminApp.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddStandType(StandTypeDto standTypeDto)
+        public async Task<IActionResult> AddStandType(StandTypeUploadDto standTypeDto)
         {
             try
             {
-                var standType = _mapper.Map<StandType>(standTypeDto);
+                var standType = new StandType
+                {
+                    Name = standTypeDto.Name,
+                    Description = standTypeDto.Description,
+                    BrandId = standTypeDto.BrandId,
+                    Lock = standTypeDto.Lock,
+                    HidePrices = standTypeDto.HidePrices,
+                    ParentStandTypeId = standTypeDto.ParentStandTypeId
+                };
+
+                StandType parentStandType = new StandType();
+                if (standTypeDto.ParentStandTypeId != null)
+                {
+                    standType.ParentStandTypeId = standTypeDto.ParentStandTypeId;
+                    parentStandType = await _standTypeRepository.GetByIdAsync((int)standTypeDto.ParentStandTypeId);
+                }
+                else if (standType.ParentStandTypeId != null)
+                {
+                    parentStandType = await _standTypeRepository.GetByIdAsync((int)standType.ParentStandTypeId);
+                }
+                if (standTypeDto.File != null && standTypeDto.File.Length > 0)
+                {
+                    // Here you would typically save the file to a storage location and update the BrandLogo property
+                    // For demonstration, we'll just set a placeholder path
+                    var fileType = standTypeDto.File.FileName.Split('.')[1];
+                    string fileName = standType.Name.Replace(" ", "");
+                    standType.StandImage = fileName + "." + fileType;
+                    var blobService = new AzureBlobService(_blobServiceClient);
+                    var storeName = _configuration["AzureBlob:StoreName"];
+                    var brandContainerName = _configuration["AzureBlob:StandTypeContainer"];
+                    if (storeName != null && brandContainerName != null)
+                    {
+                        var blobServiceClient = blobService.GetBlobServiceClient(storeName);
+                        var containerClient = blobService.GetBlobContainerClient(blobServiceClient, brandContainerName);
+                        await blobService.UploadFormFileAsync(containerClient, standTypeDto.File, standType.StandImage);
+                    }
+                }
+
+                if (standTypeDto.ParentStandTypeId != null)
+                    standType.ParentStandType = parentStandType;
+                
                 var createdStandType = await _standTypeRepository.AddAsync(standType);
-                return Ok(createdStandType);
+                var returnData = _mapper.Map<StandTypeDto>(standType);
+                returnData.ParentStandType = _mapper.Map<StandTypeDto>(parentStandType);
+                return Ok(returnData);
             }
             catch (Exception ex)
             {

@@ -138,17 +138,19 @@ async function saveStandType() {
         life: 3000,
       })
     } else {
-      // await standTypeService
-      //   .addStandType(formData)
-      //   .then((response) => {
-      //     if (response && response.data) {
-      //       standType.value = response.data
-      //     }
-      //   })
-      //   .catch((error) => {
-      //     console.error('Error creating standType:', error)
-      //   })
-      standTypes.value.push(standType)
+      formData.append('brandId', standType.value.brandId)
+      formData.append('parentStandTypeId', String(standType.value.parentStandTypeId))
+      await standTypeService
+        .addStandType(formData)
+        .then((response) => {
+          var updatedStandType = response
+          standTypes.value
+            .find((c: StandType) => c.id === updatedStandType.parentStandTypeId)
+            .childStandTypes.push(updatedStandType)
+        })
+        .catch((error) => {
+          console.log('Error creating standType:', error)
+        })
       toast.add({
         severity: 'success',
         summary: 'Successful',
@@ -167,6 +169,27 @@ function editStandType(cat: StandType) {
   standTypeDialog.value = true
 }
 
+function addStandType(cat: StandType) {
+  if (brand.value) {
+    standType.value = new StandType()
+    standType.value.brandId = brand.value.id
+    standType.value.brandName = brand.value.name
+    standType.value.parentStandTypeId = cat.parentStandTypeId
+    standType.value.parentStandType = cat.parentStandType
+    standType.value.hidePrices = false
+    standType.value.lock = false
+    standTypeDialog.value = true
+  } else {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Please select a brand before adding a StandType.',
+      life: 3000,
+    })
+    return
+  }
+}
+
 const getLockIcon = (lock: boolean) => {
   return lock ? 'pi pi-lock' : 'pi pi-lock-open'
 }
@@ -181,7 +204,7 @@ const getHideIcon = (hide: boolean) => {
     <div class="card">
       <Toolbar class="mb-6">
         <template #start>
-          <Button label="New" icon="pi pi-plus" class="mr-2" @click="openNew" />
+          <!-- <Button label="New" icon="pi pi-plus" class="mr-2" @click="openNew" /> -->
         </template>
 
         <template #end> </template>
@@ -274,6 +297,13 @@ const getHideIcon = (hide: boolean) => {
                     class="mr-2"
                     @click="editStandType(slotProps.data)"
                   />
+                  <Button
+                    icon="pi pi-plus"
+                    variant="outlined"
+                    rounded
+                    class="mr-2"
+                    @click="addStandType(slotProps.data)"
+                  />
                 </template>
               </Column>
             </DataTable>
@@ -287,6 +317,13 @@ const getHideIcon = (hide: boolean) => {
       header="StandType Details"
       :modal="true"
     >
+      <p v-if="brand" class="block font-bold mb-0" style="margin: 0 0">
+        Brand: <span class="text-lg font-medium">{{ brand?.name }}</span>
+      </p>
+      <p v-if="standType.parentStandType" class="block font-bold mb-3">
+        Parent StandType:
+        <span class="text-lg font-medium">{{ standType.parentStandType?.name }}</span>
+      </p>
       <div class="flex flex-col gap-6">
         <img
           v-if="standType.standImage"
@@ -294,7 +331,7 @@ const getHideIcon = (hide: boolean) => {
           :alt="standType.standImage"
           class="block m-auto pb-4"
         />
-        <div class="card flex flex-wrap gap-6 items-center justify-between">
+        <div class="card flex flex-wrap gap-6 items-center justify-between mb-0">
           <FileUpload
             ref="fileupload"
             mode="basic"
@@ -305,6 +342,18 @@ const getHideIcon = (hide: boolean) => {
           />
           <!-- <Button label="Upload" @click="upload" severity="secondary" /> -->
         </div>
+        <!-- <label for="brandName" class="block font-bold mb-3">Brand</label>
+        <InputText id="brandName" disabled v-model.trim="brand.name" fluid />
+
+        <label for="parentType" class="block font-bold mb-3">Parent StandType</label>
+        <InputText
+          id="parentType"
+          type="text"
+          disabled
+          v-model.trim="standType.parentStandTypeName"
+          fluid
+          class="border-0"
+        /> -->
 
         <label for="name" class="block font-bold mb-3">Name</label>
         <InputText

@@ -17,16 +17,11 @@ const apiClient = axios.create({
 })
 
 export default {
-  async getRoles(searchText?: string, top?: number): Promise<Role[]> {
+  async getRoles(): Promise<Role[]> {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
-    const response = await apiClient.get('/getRoles', {
-      params: {
-        searchText: searchText,
-        top: top,
-      },
-    })
+    const response = await apiClient.get('/getRoles')
     return response.data
   },
   async initialise() {
