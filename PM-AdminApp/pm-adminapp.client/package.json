@@ -11,7 +11,8 @@
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "test:unit": "vitest",
-    "build-only": "vite build",
+    "build-only": "vite build --mode demo --emptyOutDir",
+    "build-only-dev": "vite build --mode development --emptyOutDir",
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix --cache",
     "format": "prettier --write src/"
@@ -21,6 +22,7 @@
     "@primeuix/themes": "^1.2.5",
     "@primevue/forms": "^4.5.4",
     "@tailwindcss/vite": "^4.1.17",
+    "@vueuse/core": "^14.2.1",
     "axios": "^1.13.2",
     "chart.js": "^4.5.1",
     "pinia": "^3.0.3",

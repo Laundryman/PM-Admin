@@ -22,8 +22,10 @@ const selectedBrandId = ref<number | null>(null)
 async function changeBrand(event: SelectChangeEvent) {
   const brand = await brandStore.brands.find((b: Brand) => b.id === event.value)
 
-  brandStore.activeBrand = brand ?? null
-  console.log('Active Brand changed to:', brandStore.activeBrand)
+  if (brand) {
+    brandStore.activeBrand = brand ?? null
+    console.log('Active Brand changed to:', brandStore.activeBrand)
+  }
 }
 
 onMounted(async () => {

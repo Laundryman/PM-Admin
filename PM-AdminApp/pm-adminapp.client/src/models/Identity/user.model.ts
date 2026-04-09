@@ -18,7 +18,7 @@ export class User {
   roleNameFilterList!: String
   givenName!: String
   surname!: String
-  email!: String
+  mail!: String
   userName!: String
   newUserName!: String
   displayName!: String

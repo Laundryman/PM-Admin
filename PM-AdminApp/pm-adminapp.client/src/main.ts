@@ -8,6 +8,7 @@ import 'primeicons/primeicons.css'
 import { AnimateOnScroll, BadgeDirective, FocusTrap, Ripple, StyleClass } from 'primevue'
 import Button from 'primevue/button'
 import Chart from 'primevue/chart'
+import Checkbox from 'primevue/checkbox'
 import Chip from 'primevue/chip'
 import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
@@ -66,6 +67,7 @@ app.use(PrimeVue, {
 
 app.component('Button', Button)
 app.component('Chart', Chart)
+app.component('Checkbox', Checkbox)
 app.component('Chip', Chip)
 app.component('Column', Column)
 app.component('Divider', Divider)

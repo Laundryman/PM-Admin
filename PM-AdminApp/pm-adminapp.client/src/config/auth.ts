@@ -19,7 +19,7 @@ export const config: Configuration = {
   },
   cache: {
     cacheLocation: 'localStorage', // Configures cache location. "sessionStorage" is more secure, but "localStorage" gives you SSO.
-    storeAuthStateInCookie: false, // set this to true if you have to support IE
+    storeAuthStateInCookie: true, // set this to true if you have to support IE
   },
   // optional
   system: {

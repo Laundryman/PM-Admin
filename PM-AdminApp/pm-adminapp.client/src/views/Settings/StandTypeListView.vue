@@ -138,7 +138,7 @@ async function saveStandType() {
         life: 3000,
       })
     } else {
-      formData.append('brandId', standType.value.brandId)
+      formData.append('brandId', String(standType.value.brandId))
       formData.append('parentStandTypeId', String(standType.value.parentStandTypeId))
       await standTypeService
         .addStandType(formData)
@@ -375,9 +375,14 @@ const getHideIcon = (hide: boolean) => {
           fluid
         />
         <label for="locked" class="block font-bold mb-3">Lock</label>
-        <ToggleButton v-model="standType.lock" onLabel="Locked" offLabel="Unlocked" />
+        <ToggleButton v-model="standType.lock" name="locked" onLabel="Locked" offLabel="Unlocked" />
         <label for="hidePrices" class="block font-bold mb-3">Hide Prices</label>
-        <ToggleButton v-model="standType.hidePrices" onLabel="Yes" offLabel="No" />
+        <ToggleButton
+          v-model="standType.hidePrices"
+          name="hidePrices"
+          onLabel="Yes"
+          offLabel="No"
+        />
       </div>
       <template #footer>
         <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />

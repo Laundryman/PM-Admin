@@ -127,7 +127,7 @@ const filters = ref({
   userName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   surname: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   givenName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  // Email: { value: null, matchMode: FilterMatchMode.STARTS_WITH }
+  userEmailAddress: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   'country.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   brandNameList: { value: null, matchMode: FilterMatchMode.CONTAINS },
   roleNameList: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -163,26 +163,27 @@ const createUser = () => {
 
 const changePassword = (usr: any) => {
   currentUser.value = { ...usr }
-  selectedBrands.value = currentUser.value.BrandIds.split(',')
-  selectedRoles.value = currentUser.value.RoleIds.split(',')
-  selectedCountry.value = currentUser.value.DiamCountryId
+  selectedBrands.value = currentUser.value.brandIds
+  selectedRoles.value = currentUser.value.roleIds
+  selectedCountry.value = currentUser.value.diamCountryId
 
   passwordDialog.value = true
 }
 
 const hideDialog = () => {
   userDialog.value = false
+  passwordDialog.value = false
   submitted.value = false
 }
 
 const savePassword = () => {
   submitted.value = true
-  if (currentUser?.value?.UserName?.trim()) {
-    if (currentUser.value.Id) {
-      currentUser.value.Password = newPassword.value
+  if (currentUser?.value?.userName?.trim()) {
+    if (currentUser.value.id) {
+      currentUser.value.password = newPassword.value
       UserService.changePassword(currentUser.value)
         .then((response) => {
-          //users.value[findIndexById(currentUser.value.Id)] = currentUser.value
+          //users.value[findIndexById(currentUser.value.id)] = currentUser.value
           //users.value = [...users.value]
           toast.add({
             severity: 'success',
@@ -228,7 +229,6 @@ async function saveUser() {
     // }
     if (currentUser.value.id) {
       await UserService.initialise()
-      await UserService.saveUser(currentUser.value)
       await UserService.saveUser(currentUser.value)
         .then(async (response) => {
           var updatedUser = await UserService.getUser(currentUser.value.id)
@@ -278,10 +278,8 @@ async function saveUser() {
         .catch((error) => {
           console.log(error)
           var errMessage = 'Could not create user'
-          if (error.response.data.includes('User with the same username already exists')) {
-            errMessage = 'A user with this username already exists'
-          } else if (error.response.data.includes('password does not comply')) {
-            errMessage = 'The password does not comply with password complexity requirements'
+          if (error.response.data.error.message) {
+            errMessage = error.response.data.error.message
           }
 
           toast.add({
@@ -362,6 +360,7 @@ const getCountryName = (countryId: string) => {
         'givenName',
         'surname',
         'userName',
+        'userEmailAddress',
         'country.name',
         'brandNameList',
         'roleNameList',
@@ -450,6 +449,28 @@ const getCountryName = (countryId: string) => {
       >
         <template #body="{ data }">
           {{ data.userName }}
+        </template>
+        <template #filter="{ filterModel, filterCallback }">
+          <InputText
+            v-model="filterModel.value"
+            type="text"
+            @input="filterCallback()"
+            class="p-column-filter"
+            autocomplete="one-time-code"
+            placeholder="Filter columns"
+          />
+        </template>
+      </Column>
+      <Column
+        field="userEmailAddress"
+        filterField="userEmailAddress"
+        header="User Email Address"
+        sortable
+        :filterMatchModeOptions="matchModeOptions"
+        style="max-width: 10rem"
+      >
+        <template #body="{ data }">
+          {{ data.userEmailAddress }}
         </template>
         <template #filter="{ filterModel, filterCallback }">
           <InputText
@@ -565,7 +586,7 @@ const getCountryName = (countryId: string) => {
       </div>
     </template>
     <span class="font-semibold block mb-8">Update user information.</span>
-    <div class="flex items-center gap-4 mb-4" v-if="currentUser.userName">
+    <div class="flex items-center gap-4 mb-4" v-if="currentUser.displayName">
       <label for="name">User Name</label>
       <InputText
         id="name"
@@ -707,7 +728,7 @@ const getCountryName = (countryId: string) => {
     :modal="true"
     class="p-fluid"
   >
-    <h2>Change Password for {{ currentUser.UserName }}</h2>
+    <h4>Change Password for {{ currentUser.userName }}</h4>
     <div class="field">
       <label for="Password">New Password</label>
       <Password v-model="newPassword" :inputProps="{ autocomplete: 'one-time-code' }" toggleMask>

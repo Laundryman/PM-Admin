@@ -8,6 +8,7 @@
     <SpaRoot>..\pm-adminapp.client</SpaRoot>
     <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
     <SpaProxyServerUrl>https://localhost:53681</SpaProxyServerUrl>
+    <Configurations>Debug;Release;Demo</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

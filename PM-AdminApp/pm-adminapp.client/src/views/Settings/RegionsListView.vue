@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useMultiSelectLists } from '@/components/composables/multiSelectList.composable'
+import { Country } from '@/models/Countries/country.model'
 import { Region } from '@/models/Countries/region.model'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
 import countryService from '@/services/Countries/CountryService'
+
 import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api'
@@ -9,10 +12,9 @@ import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, watch } from 'vue'
 
-const brandImageUrl = import.meta.env.VITE_APP_BRANDIMAGE_URL
 const regions = ref()
 const region = ref(new Region())
-const brandDialog = ref(false)
+const regionDialog = ref(false)
 const submitted = ref(false)
 const toast = useToast()
 const brandStore = useBrandStore()
@@ -24,11 +26,16 @@ const file = ref()
 
 const layout = useSystemStore()
 const brand = storeToRefs(brandStore).activeBrand
+const multiSelectLists = useMultiSelectLists()
+const countrySelectList = ref<Country[] | null>(null)
+const selectedCountries = ref<number[] | null>(null) // MultiSelect binding
+const selectAllCountries = ref(false)
 
 watch(brand, async (newBrand) => {
   if (newBrand) {
     let filter = new regionFilter()
     filter.brandId = newBrand.id
+    filter.loadChildren = true
     await countryService.getRegions(filter).then((response) => {
       regions.value = response
       console.log('Regions loaded for brand change', response)
@@ -39,9 +46,14 @@ watch(brand, async (newBrand) => {
 onMounted(async () => {
   const layout = useSystemStore()
   await countryService.initialise()
+  await countryService.getCountries().then((response) => {
+    countrySelectList.value = response
+    console.log('Countries loaded for region management', response)
+  })
   let brandid = brandStore.activeBrand?.id ?? 0
   let filter = new regionFilter()
   filter.brandId = brandid
+  filter.loadChildren = true
   await countryService.getRegions(filter).then((response) => {
     regions.value = response
     console.log('Regions loaded', response)
@@ -64,67 +76,51 @@ function onFileSelect(event: any) {
 const openNew = () => {
   region.value = {} as Region
   submitted.value = false
-  brandDialog.value = true
+  regionDialog.value = true
 }
 const hideDialog = () => {
-  brandDialog.value = false
+  regionDialog.value = false
   submitted.value = false
 }
-async function saveRegion() {
+async function saveRegion(rg: Region) {
   submitted.value = true
 
-  const formData = new FormData()
-  if (file.value) {
-    formData.append('file', file.value)
-    // await brandService.uploadBrandImage(formData).then((response) => {
-    //   if (response && response.data) {
-    //     brand.value.brandLogo = response.data.fileName
-    //   }
-    // })
+  if (region.value.id) {
+    await countryService
+      .saveRegion(rg)
+      .then((response) => {
+        if (response && response) {
+          console.log(response)
+        }
+      })
+      .catch((error) => {
+        console.error('Error updating region:', error)
+      })
+    toast.add({
+      severity: 'success',
+      summary: 'Successful',
+      detail: 'Region Updated',
+      life: 3000,
+    })
+  } else {
+    region.value.id = 0
+    // region.value.brandLogo = 'brand-placeholder.svg'
+    regions.value.push(region.value)
+    toast.add({
+      severity: 'success',
+      summary: 'Successful',
+      detail: 'Region Created',
+      life: 3000,
+    })
   }
 
-  if (region?.value.name?.trim()) {
-    formData.append('name', region.value.name)
-    // formData.append('shelfLock', String(brand.value.shelfLock))
-    // formData.append('disabled', String(brand.value.disabled))
-    // formData.append('id', String(brand.value.id ?? 0))
-    // formData.append('file', file.value ?? '')
-    if (region.value.id) {
-      await countryService
-        .updateRegion(formData)
-        .then((response) => {
-          if (response && response) {
-            console.log(response)
-          }
-        })
-        .catch((error) => {
-          console.error('Error updating region:', error)
-        })
-      toast.add({
-        severity: 'success',
-        summary: 'Successful',
-        detail: 'Region Updated',
-        life: 3000,
-      })
-    } else {
-      region.value.id = 0
-      // region.value.brandLogo = 'brand-placeholder.svg'
-      regions.value.push(region.value)
-      toast.add({
-        severity: 'success',
-        summary: 'Successful',
-        detail: 'Region Created',
-        life: 3000,
-      })
-    }
-
-    brandDialog.value = false
-    region.value = new Region()
-  }
+  regionDialog.value = false
+  region.value = new Region()
 }
 function editRegion(rg: Region) {
   region.value = rg
-  brandDialog.value = true
+  selectedCountries.value = region.value.countries?.map((c) => c.id) ?? []
+  regionDialog.value = true
 }
 
 const findIndexById = (id: number) => {
@@ -137,6 +133,39 @@ const findIndexById = (id: number) => {
   }
 
   return index
+}
+
+async function onCountryChange(evt: any) {
+  // manageSelectedCountries(evt.value)
+  multiSelectLists.manageSelectedValues(
+    evt.value,
+    countrySelectList.value ?? [],
+    region.value.countries ?? [],
+  )
+  console.log('Selected Countries after region change', selectedCountries.value)
+  console.log('Part Model Countries after region change', region.value.countries)
+  let someArray = region.value.countries ?? []
+
+  region.value.countryList = region.value.countries?.map((c) => c.id).join(',') || ''
+}
+
+function onSelectAllCountriesChange(event: any) {
+  selectedCountries.value = event.checked
+    ? (countrySelectList.value?.map((item) => item.id) ?? [])
+    : []
+  selectAllCountries.value = event.checked
+  multiSelectLists.manageSelectedValues(
+    selectedCountries.value,
+    countrySelectList.value ?? [],
+    region.value.countries ?? [],
+  )
+  region.value.countryList = region.value.countries?.map((c) => c.id).join(',') || ''
+}
+
+function clearCountrySelection() {
+  selectedCountries.value = []
+  region.value.countries = []
+  region.value.countryList = ''
 }
 </script>
 
@@ -175,18 +204,20 @@ const findIndexById = (id: number) => {
         </template>
 
         <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-        <Column header="Image" style="min-width: 16rem">
+        <Column field="name" header="Name" sortable style="min-width: 16rem"></Column>
+        <Column field="countries" header="Countries">
           <template #body="slotProps">
-            <img
-              :src="`${brandImageUrl}${slotProps.data.brandLogo}`"
-              :alt="slotProps.data.brandLogo"
-              class="rounded"
-              style="width: 104px"
-            />
+            <div class="flex align-items-center gap-2">
+              <Listbox
+                :options="slotProps.data.countries"
+                option-label="name"
+                class="w-full"
+                listStyle="max-height:100px"
+              >
+              </Listbox>
+            </div>
           </template>
         </Column>
-        <Column field="name" header="Name" sortable style="min-width: 16rem"></Column>
-
         <!-- <Column field="category" header="Category" sortable style="min-width: 10rem"></Column> -->
         <!-- <Column field="inventoryStatus" header="Status" sortable style="min-width: 12rem">
           <template #body="slotProps">
@@ -211,9 +242,9 @@ const findIndexById = (id: number) => {
     </div>
 
     <Dialog
-      v-model:visible="brandDialog"
+      v-model:visible="regionDialog"
       :style="{ width: '450px' }"
-      header="Brand Details"
+      header="Region Details"
       :modal="true"
     >
       <div class="flex flex-col gap-6">
@@ -229,10 +260,40 @@ const findIndexById = (id: number) => {
           />
           <small v-if="submitted && !region.name" class="text-red-500">Name is required.</small>
         </div>
+        <div class="flex flex-col gap-2">
+          <div>
+            <label for="country">Country:</label>
+            <MultiSelect
+              name="countries"
+              v-model="selectedCountries"
+              :options="countrySelectList ?? []"
+              id="country"
+              class="w-full"
+              option-label="name"
+              option-value="id"
+              @change="onCountryChange($event)"
+              :selectAll="selectAllCountries"
+              @selectall-change="onSelectAllCountriesChange($event)"
+            >
+              <template #option="option">
+                <div class="">
+                  <span>{{ option.option.name }}</span>
+                </div>
+              </template>
+            </MultiSelect>
+          </div>
+          <div class="flex gap-2 flex-wrap max-h-40 overflow-auto">
+            <Button label="Clear Selection" class="w-text-left" @click="clearCountrySelection" />
+            <template v-for="country in region.countries ?? []" :key="country.id">
+              <Chip class="flex-wrap" :label="country.name"></Chip>
+            </template>
+          </div>
+        </div>
       </div>
+
       <template #footer>
         <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
-        <Button label="Save" icon="pi pi-check" @click="saveRegion" />
+        <Button label="Save" icon="pi pi-check" @click="saveRegion(region)" />
       </template>
     </Dialog>
   </div>

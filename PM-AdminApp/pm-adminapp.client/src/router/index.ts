@@ -135,6 +135,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true },
       },
       {
+        path: '/countries',
+        name: 'countries',
+        component: () => import('@/views/Settings/CountriesListView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
         path: '/jobfolders',
         name: 'jobfolders',
         component: () => import('@/views/Settings/JobFolderListView.vue'),

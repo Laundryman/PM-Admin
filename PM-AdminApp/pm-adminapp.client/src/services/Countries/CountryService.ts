@@ -39,14 +39,29 @@ export default {
     let response = await apiClient.post('/getRegions', filter)
     return response.data
   },
-
-  async updateRegion(formData: FormData): Promise<Region> {
+  async updateCountry(formData: FormData): Promise<Country> {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
-    let response = await apiClient.put('/updateRegion', formData)
+    let response = await apiClient.put('/updateCountry', formData)
     return response.data
   },
+  async saveRegion(regionData: Region): Promise<Region> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    let response = await apiClient
+      .post('/saveRegion', regionData)
+      .then((response) => {
+        return response
+      })
+      .catch((err) => {
+        console.error('Error saving region:', err)
+        throw err
+      })
+    return response.data
+  },
+
   async initialise() {
     const authStore = useAuthStore()
     if (!authStore.initialized) {

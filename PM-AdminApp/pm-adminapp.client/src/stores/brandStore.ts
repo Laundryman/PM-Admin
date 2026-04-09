@@ -1,6 +1,7 @@
 import type { Brand } from '@/models/Brands/brand.model'
 import brandService from '@/services/Brands/BrandService'
-import { acceptHMRUpdate, defineStore } from 'pinia'
+import { useLocalStorage } from '@vueuse/core'
+import { acceptHMRUpdate, defineStore, skipHydrate } from 'pinia'
 
 import { ref } from 'vue'
 
@@ -8,7 +9,7 @@ export const useBrandStore = defineStore('brandStore', () => {
   const brands = ref<Brand[]>([])
   const brandsLoaded = ref<boolean>(false)
   const loadingBrands = ref<boolean>(true)
-  const activeBrand = ref<Brand | null>(null)
+  const activeBrand = useLocalStorage('activeBrand', {} as Brand)
   const selectBrandPH = ref<string>('Loading Brands...')
 
   async function loadBrands() {
@@ -42,7 +43,7 @@ export const useBrandStore = defineStore('brandStore', () => {
     brands,
     brandsLoaded,
     loadingBrands,
-    activeBrand,
+    activeBrand: skipHydrate(activeBrand),
     selectBrandPH,
     loadBrands,
   }

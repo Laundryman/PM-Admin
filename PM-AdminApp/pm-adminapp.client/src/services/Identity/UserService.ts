@@ -77,14 +77,24 @@ export default {
         const users = response.data.value
         users.forEach((user: any) => {
           this.updateExtensionFields(user)
-          // if (user.identities) {
-          //   let usernameId = user.identities.find(
-          //     (identity: any) => identity.signInType === 'userName',
-          //   )
-          //   if (usernameId) {
-          //     user.userName = usernameId.issuerAssignedId
-          //   }
-          // }
+          if (user.identities) {
+            let usernameId = user.identities.find(
+              (identity: any) => identity.signInType === 'userName',
+            )
+            if (usernameId) {
+              user.userName = usernameId.issuerAssignedId
+            } else {
+              let usernameId = user.identities.find(
+                (identity: any) => identity.signInType === 'emailAddress',
+              )
+              if (usernameId) {
+                user.userName = usernameId.issuerAssignedId
+              }
+            }
+            if (!user.userName) {
+              user.userName = user.mailNickname || user.mail || user.userPrincipalName || 'Unknown'
+            }
+          }
           // if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']) {
           //   user.roleIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
           //     .split(',')
@@ -158,22 +168,28 @@ export default {
   async createUser(user: User) {
     let newUser = new Object() as any
     newUser = {
+      accountEnabled: true,
       displayName: user.userName,
+      mailNickname: user.userEmailAddress.substring(0, user.userEmailAddress.indexOf('@')),
       givenName: user.givenName,
       surname: user.surname,
-      //MailNickname: user.userEmailAddress,
-      accountEnabled: true,
+      userPrincipalName: user.mailNickName + '@' + import.meta.env.VITE_APP_TENANT_NAME,
       identities: [
         {
           signInType: 'emailAddress',
           issuer: 'planmatr.onmicrosoft.com',
           issuerAssignedId: user.userEmailAddress,
         },
+        {
+          signInType: 'userName',
+          issuer: 'planmatr.onmicrosoft.com',
+          issuerAssignedId: user.userName,
+        },
       ],
       mail: user.userEmailAddress,
       passwordProfile: {
         password: user.password,
-        forceChangePasswordNextSignIn: true,
+        forceChangePasswordNextSignIn: false,
       },
       passwordPolicies: 'DisablePasswordExpiration',
     }

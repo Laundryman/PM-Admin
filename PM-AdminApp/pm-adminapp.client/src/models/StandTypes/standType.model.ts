@@ -4,6 +4,7 @@ export class StandType {
   description!: string
   parentStandTypeId!: number
   parentStandTypeName!: string
+  parentStandType!: StandType
   brandId!: number
   brandName!: string
   brandLogo!: string

@@ -4,8 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using AutoMapper;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -40,15 +42,18 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockCategoryRepository = new Mock<IAsyncRepository<Category>>();
             var mockLogger = new Mock<ILogger<StandTypesController>>();
             var mockStandTypeRepository = new Mock<IStandTypeRepository>();
-
-            // Act
-            var controller = new StandTypesController(
+            var mockBlobServiceClient = new Mock<BlobServiceClient>();
+            var mockConfiguration = new Mock<IConfiguration>();
+// Act
+        var controller = new StandTypesController(
                 mockMapper.Object,
                 mockAsyncStandTypeRepository.Object,
                 mockCountryRepository.Object,
                 mockCategoryRepository.Object,
                 mockLogger.Object,
-                mockStandTypeRepository.Object);
+                mockStandTypeRepository.Object,
+                mockBlobServiceClient.Object,
+                mockConfiguration.Object);
 
             // Assert
             Assert.IsNotNull(controller);
@@ -69,6 +74,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockCategoryRepository = new Mock<IAsyncRepository<Category>>();
             var mockLogger = new Mock<ILogger<StandTypesController>>();
             var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockBlobServiceClient = new Mock<BlobServiceClient>();
+            var mockConfiguration = new Mock<IConfiguration>();
+
 
             var controller = new StandTypesController(
                 mockMapper.Object,
@@ -76,7 +84,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCountryRepository.Object,
                 mockCategoryRepository.Object,
                 mockLogger.Object,
-                mockStandTypeRepository.Object);
+                mockStandTypeRepository.Object,
+                mockBlobServiceClient.Object,
+                mockConfiguration.Object
+                );
 
             var filterDto = new StandTypeFilterDto { GetParents = true, Id = 1 };
             var standTypeFilter = new StandTypeFilter { Id = 1 };
@@ -118,6 +129,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockCategoryRepository = new Mock<IAsyncRepository<Category>>();
             var mockLogger = new Mock<ILogger<StandTypesController>>();
             var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockBlobServiceClient = new Mock<BlobServiceClient>();
+            var mockConfiguration = new Mock<IConfiguration>();
 
             var controller = new StandTypesController(
                 mockMapper.Object,
@@ -125,7 +138,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCountryRepository.Object,
                 mockCategoryRepository.Object,
                 mockLogger.Object,
-                mockStandTypeRepository.Object);
+                mockStandTypeRepository.Object, 
+                mockBlobServiceClient.Object,
+                mockConfiguration.Object
+                );
 
             var filterDto = new StandTypeFilterDto { GetParents = false, Id = 1 };
             var standTypeFilter = new StandTypeFilter { Id = 1 };
@@ -167,6 +183,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockCategoryRepository = new Mock<IAsyncRepository<Category>>();
             var mockLogger = new Mock<ILogger<StandTypesController>>();
             var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockBlobServiceClient = new Mock<BlobServiceClient>();
+            var mockConfiguration = new Mock<IConfiguration>();
 
             var controller = new StandTypesController(
                 mockMapper.Object,
@@ -174,7 +192,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCountryRepository.Object,
                 mockCategoryRepository.Object,
                 mockLogger.Object,
-                mockStandTypeRepository.Object);
+                mockStandTypeRepository.Object,
+                mockBlobServiceClient.Object,
+                mockConfiguration.Object);
 
             var filterDto = new StandTypeFilterDto { GetParents = true };
             var standTypeFilter = new StandTypeFilter();
@@ -214,6 +234,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockCategoryRepository = new Mock<IAsyncRepository<Category>>();
             var mockLogger = new Mock<ILogger<StandTypesController>>();
             var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockBlobServiceClient = new Mock<BlobServiceClient>();
+            var mockConfiguration = new Mock<IConfiguration>();
 
             var controller = new StandTypesController(
                 mockMapper.Object,
@@ -221,7 +243,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCountryRepository.Object,
                 mockCategoryRepository.Object,
                 mockLogger.Object,
-                mockStandTypeRepository.Object);
+                mockStandTypeRepository.Object,
+                mockBlobServiceClient.Object,
+                mockConfiguration.Object
+                );
 
             var filterDto = new StandTypeFilterDto { GetParents = false };
             var standTypeFilter = new StandTypeFilter();
@@ -261,6 +286,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockCategoryRepository = new Mock<IAsyncRepository<Category>>();
             var mockLogger = new Mock<ILogger<StandTypesController>>();
             var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockBlobServiceClient = new Mock<BlobServiceClient>();
+            var mockConfiguration = new Mock<IConfiguration>();
 
             var controller = new StandTypesController(
                 mockMapper.Object,
@@ -268,7 +295,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCountryRepository.Object,
                 mockCategoryRepository.Object,
                 mockLogger.Object,
-                mockStandTypeRepository.Object);
+                mockStandTypeRepository.Object,
+                mockBlobServiceClient.Object,
+                mockConfiguration.Object);
 
             var filterDto = new StandTypeFilterDto { GetParents = true };
             var exceptionMessage = "Mapping failed";
@@ -309,6 +338,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockCategoryRepository = new Mock<IAsyncRepository<Category>>();
             var mockLogger = new Mock<ILogger<StandTypesController>>();
             var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockBlobServiceClient = new Mock<BlobServiceClient>();
+            var mockConfiguration = new Mock<IConfiguration>();
 
             var controller = new StandTypesController(
                 mockMapper.Object,
@@ -316,7 +347,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCountryRepository.Object,
                 mockCategoryRepository.Object,
                 mockLogger.Object,
-                mockStandTypeRepository.Object);
+                mockStandTypeRepository.Object,
+                mockBlobServiceClient.Object,
+                mockConfiguration.Object
+                );
 
             var filterDto = new StandTypeFilterDto { GetParents = false };
             var standTypeFilter = new StandTypeFilter();
@@ -360,6 +394,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockCategoryRepository = new Mock<IAsyncRepository<Category>>();
             var mockLogger = new Mock<ILogger<StandTypesController>>();
             var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockBlobServiceClient = new Mock<BlobServiceClient>();
+            var mockConfiguration = new Mock<IConfiguration>();
 
             var controller = new StandTypesController(
                 mockMapper.Object,
@@ -367,7 +403,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCountryRepository.Object,
                 mockCategoryRepository.Object,
                 mockLogger.Object,
-                mockStandTypeRepository.Object);
+                mockStandTypeRepository.Object,
+                mockBlobServiceClient.Object,
+                mockConfiguration.Object
+                );
 
             var filterDto = new StandTypeFilterDto { GetParents = true };
             var standTypeFilter = new StandTypeFilter();
@@ -413,6 +452,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockCategoryRepository = new Mock<IAsyncRepository<Category>>();
             var mockLogger = new Mock<ILogger<StandTypesController>>();
             var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockBlobServiceClient = new Mock<BlobServiceClient>();
+            var mockConfiguration = new Mock<IConfiguration>();
 
             var controller = new StandTypesController(
                 mockMapper.Object,
@@ -420,7 +461,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCountryRepository.Object,
                 mockCategoryRepository.Object,
                 mockLogger.Object,
-                mockStandTypeRepository.Object);
+                mockStandTypeRepository.Object,
+                mockBlobServiceClient.Object,
+                mockConfiguration.Object);
 
             var filterDto = new StandTypeFilterDto { GetParents = false };
             var standTypeFilter = new StandTypeFilter();
