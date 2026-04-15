@@ -10,6 +10,7 @@ import { Region } from '@/models/Countries/region.model'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
 
 import { useMultiSelectLists } from '@/components/composables/multiSelectList.composable'
+import { useProductForm } from '@/components/composables/productForm.composable'
 import { useShadeManagement } from '@/components/composables/shademanagement.composable'
 import { Product } from '@/models/Products/product.model'
 import { ProductFilter } from '@/models/Products/productFilter.model'
@@ -48,14 +49,14 @@ const toast = useToast()
 const regionSelectList = ref<Region[] | null>(null)
 const selectedRegion = ref()
 const ms_selectedRegions = ref<number[] | null>(null) // MultiSelect binding
-const ms_selectedCountries = ref<number[] | null>(null) // MultiSelect binding
+const ms_selectedCountries = ref<number[]>([]) // MultiSelect binding
 const selectAllCountries = ref(false)
 const selectAllProducts = ref(false)
 const selectAllStandTypes = ref(false)
 
 const partTypes = ref<{ id: number; name: string }[] | null>(null)
 const selectedPartType = ref<number | null>(null)
-const countrySelectList = ref<Country[] | null>(null)
+const countrySelectList = ref<Country[]>([])
 const parentCategories = ref<Category[] | null>(null)
 const childCategories = ref<Category[] | null>(null)
 const selectedParentCategory = ref<number | null>(null)
@@ -70,7 +71,8 @@ const productImageUrl = import.meta.env.VITE_APP_PRODUCTIMAGE_URL
 const productImageSrc = ref()
 const imageFile = ref<File | null>(null)
 const tabId = ref('0')
-const productForm = useTemplateRef<FormInstance>('product-form')
+const productForm = useProductForm()
+const productFormTemplateRef = useTemplateRef<FormInstance>('product-form')
 const initialValues = ref(new Product())
 
 
@@ -86,11 +88,16 @@ onMounted(async () => {
   layout.layoutState.disableBrandSelect = true
   var productFilter = new ProductFilter()
   productFilter.id = Number(router.currentRoute.value.params.id) || 0
-   await productStore.initialize(productFilter.id)
-   await productStore.getShadesForProduct(productFilter.id).then((response) => {
-    shades.value = response
-    console.log('Shades loaded', shades.value)
-  })
+  await productStore.initialize(productFilter.id)
+  if (productFilter.id != 0) {
+    await productStore.getShadesForProduct(productFilter.id).then((response) => {
+      shades.value = response
+      console.log('Shades loaded', shades.value)
+    })
+  }
+  else {
+    shades.value = []
+  }
   productModel.value = { ...product.value } as Product //clone(product.value)
 
 
@@ -108,8 +115,8 @@ onMounted(async () => {
   if (router.currentRoute.value.name === 'editProduct') {
     ms_selectedRegions.value = productModel.value.regions.map((c) => c.id)
     countrySelectList.value = await locationFilters.getCountriesForRegions(ms_selectedRegions.value)
-    shademanagement.setCountrySelectList(countrySelectList.value)
     ms_selectedCountries.value = productModel.value.countries.map((c) => c.id)
+    shademanagement.setCountrySelectList(countrySelectList.value, ms_selectedCountries.value) // pass country list to shade management composable - need to filter only selected contries on the product
     shademanagement.setSelectedCountries(ms_selectedCountries.value)
     // dateCreated.value = new Date(productModel.value.dateCreated) //added to bind date picker
   }
@@ -137,7 +144,7 @@ onMounted(async () => {
 })
 
 function initialiseProductForm() {
-  productForm.value?.setValues({ ...productModel.value })
+  productFormTemplateRef.value?.setValues({ ...productModel.value })
 }
 
 ////////////////////////////////////////////////////
@@ -146,7 +153,6 @@ function initialiseProductForm() {
 
 async function onRegionChange(evt: any) {
   countrySelectList.value = await locationFilters.getCountriesForRegions(ms_selectedRegions.value)
-  shademanagement.setCountrySelectList(countrySelectList.value)
   //remove any countries no longer in the list
   let newSelectList = ms_selectedCountries.value?.filter((countryId) =>
     countrySelectList.value?.some((c) => c.id === countryId),
@@ -156,6 +162,8 @@ async function onRegionChange(evt: any) {
   } else {
     ms_selectedCountries.value = []
   }
+  shademanagement.setCountrySelectList(countrySelectList.value, ms_selectedCountries.value) // pass country list to shade management composable - need to filter only selected contries on the product
+
   multiSelectLists.manageSelectedValues(evt.value, regionSelectList.value ?? [], productModel.value.regions ?? [])
   multiSelectLists.manageSelectedValues(
     ms_selectedCountries.value ?? [],
@@ -272,10 +280,12 @@ const resolver = ({ values }: any) => {
 
 async function onFormSubmit({ valid }: any) {
   if (valid) {
-    //manage file uploads
-    //let productData = productForm.createProductFormData(productModel)
-
-    await productStore.saveProduct(productModel.value).then((response) => {
+    let productData = productForm.createProductFormData(productModel)
+    if (imageFile.value) {
+      productData.append('imageFile', imageFile.value)
+    }
+    var productId = productModel.value.id ?? 0
+    await productStore.saveProduct(productData, productId).then((response) => {
       if (response) {
         toast.add({
           severity: 'success',
@@ -302,8 +312,12 @@ async function onFormSubmit({ valid }: any) {
 //////////////////////////////////////////////////
 
 const addShade = () => {
-  shade.value = {} as Shade
+  shade.value = new Shade()
+  shade.value.productId = productModel.value.id
   submitted.value = false
+  shademanagement.setCountrySelectList(countrySelectList.value, ms_selectedCountries.value) // pass country list to shade management composable - need to filter only selected contries on the product
+  shademanagement.setSelectedCountries([]) // clear selected countries for new shade
+
   shadeDialog.value = true
 }
 const hideDialog = () => {
@@ -313,30 +327,27 @@ const hideDialog = () => {
 
 function editShade(sh: Shade) {
   shade.value = sh
+
   shadeDialog.value = true
 }
 
 
-async function saveShade() {
+async function saveShade(updateShade: Shade) {
   submitted.value = true
+  await shadeService.initialise();
 
-  const formData = new FormData()
 
-
-  if (shade?.value.shadeNumber?.trim()) {
-    formData.append('name', shade.value.shadeNumber)
-    formData.append('shelfLock', String(shade.value.published))
-    formData.append('id', String(shade.value.id ?? 0))
-    if (shade.value.id) {
+  if (updateShade.shadeNumber?.trim()) {
+    if (updateShade.id) {
       await shadeService
-        .updateShade(formData)
+        .updateShade(updateShade)
         .then((response) => {
-          if (response && response.data) {
-            console.log(response.data)
+          if (response && response) {
+            console.log(response)
           }
         })
         .catch((error) => {
-          console.error('Error updating shade:', error)
+          console.log('Error updating shade:', error)
         })
       toast.add({
         severity: 'success',
@@ -345,8 +356,24 @@ async function saveShade() {
         life: 3000,
       })
     } else {
-      shade.value.id = 0
-      // shades.value.push(shade.value)
+      updateShade.id = 0
+      updateShade.countries = shade_selectedCountries.value?.map((countryId) => {
+        return countrySelectList.value?.find((c) => c.id === countryId)
+      }) as Country[]
+      updateShade.countriesList = updateShade.countries?.map((c) => c.id).join(',') || ''
+      await shadeService
+        .createShade(updateShade)
+        .then((response) => {
+          if (response ) {
+            // shade.value.id = response.data.id
+            shade.value = response
+            console.log(response)
+            shades.value?.push(shade.value)
+          }
+        })
+        .catch((error) => {
+          console.log('Error creating shade:', error)
+        })
       toast.add({
         severity: 'success',
         summary: 'Successful',
@@ -755,7 +782,7 @@ async function saveShade() {
       </div>
       <template #footer>
         <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
-        <Button label="Save" icon="pi pi-check" @click="saveShade" />
+        <Button label="Save" icon="pi pi-check" @click="saveShade(shade)" />
       </template>
     </Dialog>
     </div>

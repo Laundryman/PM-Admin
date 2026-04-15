@@ -269,21 +269,21 @@ function copyStand(stand: searchStandInfo) {
         <Column :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
-              v-tooltip="'Edit Part'"
+              v-tooltip="'Edit Stand'"
               icon="pi pi-pencil"
               variant="outlined"
               rounded
               class="mr-2"
               @click="editStand(slotProps.data)"
             />
-            <Button
+            <!-- <Button
               v-tooltip="'Copy Stand'"
               icon="pi pi-copy"
               variant="outlined"
               rounded
               class="mr-2"
               @click="copyStand(slotProps.data)"
-            />
+            /> -->
           </template>
         </Column>
       </DataTable>

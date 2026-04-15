@@ -28,6 +28,7 @@ export default {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
+    apiClient.defaults.headers['Content-Type'] = 'application/json'
     let response = await apiClient.post('/searchProducts', filter)
     return response.data
     // } else {
@@ -63,17 +64,35 @@ export default {
     // }
   },
 
-  async saveProduct(productData: Product): Promise<Product> {
+  async saveProduct(productData: FormData): Promise<Product> {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
+    apiClient.defaults.headers['Content-Type'] = 'multipart/form-data'
     let response = await apiClient
       .post('/saveProduct', productData)
       .then((response) => {
         return response
       })
       .catch((err) => {
-        console.error('Error saving product:', err)
+        console.log('Error saving product:', err)
+        throw err
+      })
+    return response.data
+  },
+
+  async createProduct(productData: FormData): Promise<Product> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    apiClient.defaults.headers['Content-Type'] = 'multipart/form-data'
+    let response = await apiClient
+      .post('/createProduct', productData)
+      .then((response) => {
+        return response
+      })
+      .catch((err) => {
+        console.log('Error creating product:', err)
         throw err
       })
     return response.data

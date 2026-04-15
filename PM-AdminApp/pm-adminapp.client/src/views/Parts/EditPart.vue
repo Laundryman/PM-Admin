@@ -75,7 +75,7 @@ const renderFile = ref<File | null>(null)
 // const icon = ref<string | null>(null)
 const iconFile = ref<File | null>(null)
 
-const partform = useTemplateRef<FormInstance>('part-form')
+const partFormTemplateRef = useTemplateRef<FormInstance>('part-form')
 const { part } = storeToRefs(partStore)
 const partModel = ref<Part>(new Part())
 
@@ -190,7 +190,7 @@ onMounted(async () => {
 })
 
 function initialisePartForm() {
-  partform.value?.setValues({ ...partModel.value })
+  partFormTemplateRef.value?.setValues({ ...partModel.value })
   // partform.value?.setFieldValue('countries', [])
 
   //default the selection to ALL COUNTRIES LP - so user sees something

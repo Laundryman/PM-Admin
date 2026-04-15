@@ -203,7 +203,9 @@ function copyProduct(product: searchProductInfo) {
         />
       </template>
 
-      <template #end> </template>
+      <template #end>
+        <Button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" @click="openNew" />
+      </template>
     </Toolbar>
     <div class="card">
       <DataTable

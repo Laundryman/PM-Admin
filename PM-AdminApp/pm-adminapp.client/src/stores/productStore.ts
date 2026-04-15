@@ -1,4 +1,4 @@
-import type { Product } from '@/models/Products/product.model'
+import { Product } from '@/models/Products/product.model'
 import type { ProductFilter } from '@/models/Products/productFilter.model'
 import type { searchProductInfo } from '@/models/Products/searchProductInfo.model'
 import type { Shade } from '@/models/Products/shade.model'
@@ -15,16 +15,22 @@ export const useProductStore = defineStore('productStore', () => {
 
   async function initialize(id: number) {
     if (initialized.value != true) await ProductService.initialise()
-    return await ProductService.getProduct(id)
-      .then((data: Product) => {
-        product.value = data
-        initialized.value = true
-        return data
-      })
-      .catch((err) => {
-        error.value = err.message
-        initialized.value = false
-      })
+    if (id != 0) {
+      return await ProductService.getProduct(id)
+        .then((data: Product) => {
+          product.value = data
+          initialized.value = true
+          return data
+        })
+        .catch((err) => {
+          error.value = err.message
+          initialized.value = false
+        })
+    } else {
+      product.value = new Product()
+      initialized.value = true
+      return product.value
+    }
   }
 
   async function getProductsByCategory(productFilter: ProductFilter) {
@@ -45,16 +51,28 @@ export const useProductStore = defineStore('productStore', () => {
     })
   }
 
-  async function saveProduct(productData: Product) {
-    return await ProductService.saveProduct(productData)
-      .then((response) => {
-        product.value = response
-        return response
-      })
-      .catch((err) => {
-        error.value = err.message
-        return null
-      })
+  async function saveProduct(productData: FormData, productId: number): Promise<Product | null> {
+    if (productId == 0) {
+      return await ProductService.createProduct(productData)
+        .then((response) => {
+          product.value = response
+          return response
+        })
+        .catch((err) => {
+          error.value = err.message
+          return null
+        })
+    } else {
+      return await ProductService.saveProduct(productData)
+        .then((response) => {
+          product.value = response
+          return response
+        })
+        .catch((err) => {
+          error.value = err.message
+          return null
+        })
+    }
   }
 
   return {

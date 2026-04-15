@@ -16,6 +16,7 @@ import DatePicker from 'primevue/datepicker'
 import Dialog from 'primevue/dialog'
 import Divider from 'primevue/divider'
 import FileUpload from 'primevue/fileupload'
+import FloatLabel from 'primevue/floatlabel'
 import IconField from 'primevue/iconfield'
 import Image from 'primevue/image'
 import InputIcon from 'primevue/inputicon'
@@ -75,6 +76,7 @@ app.component('DataTable', DataTable)
 app.component('DatePicker', DatePicker)
 app.component('Dialog', Dialog)
 app.component('FileUpload', FileUpload)
+app.component('FloatLabel', FloatLabel)
 app.component('Image', Image)
 app.component('InputIcon', InputIcon)
 app.component('IconField', IconField)

@@ -1,14 +1,18 @@
 ﻿using AutoMapper;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using PMApplication.Dtos;
 using PMApplication.Dtos.Filters;
 using PMApplication.Entities;
 using PMApplication.Entities.CountriesAggregate;
+using PMApplication.Entities.PartAggregate;
 using PMApplication.Entities.ProductAggregate;
 using PMApplication.Entities.StandAggregate;
 using PMApplication.Interfaces;
 using PMApplication.Interfaces.RepositoryInterfaces;
+using PMApplication.Services;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
 using PMInfrastructure.Repositories;
@@ -29,12 +33,13 @@ namespace PM_AdminApp.Server.Controllers
         private readonly IAsyncRepository<Category> _categoryRepository;
         private readonly IAsyncRepositoryLong<Shade> _shadeRepository;
         private readonly IAsyncRepository<Region> _regionRepository;
-
+        private readonly BlobServiceClient _blobServiceClient;
+        private readonly IConfiguration _configuration;
 
 
         public ProductsController(IMapper mapper, IAsyncRepositoryLong<Product> asyncProductRepository,
             IAsyncRepository<Country> countryRepository, IAsyncRepository<Category> categoryRepository,
-            ILogger<ProductsController> logger, IProductRepository productRepository, IAsyncRepositoryLong<Shade> shadeRepository, IAsyncRepository<Region> regionRepository)
+            ILogger<ProductsController> logger, IProductRepository productRepository, IAsyncRepositoryLong<Shade> shadeRepository, IAsyncRepository<Region> regionRepository, BlobServiceClient blobServiceClient, IConfiguration configuration)
         {
             _logger = logger;
             _productRepository = productRepository;
@@ -44,6 +49,8 @@ namespace PM_AdminApp.Server.Controllers
             _mapper = mapper;
             _shadeRepository = shadeRepository;
             _regionRepository = regionRepository;
+            _blobServiceClient = blobServiceClient;
+            _configuration = configuration;
         }
 
 
@@ -64,44 +71,6 @@ namespace PM_AdminApp.Server.Controllers
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetProducts([FromQuery] ProductFilterDto filterDto)
-        {
-            try
-            {
-                //if (filterDto.CountriesList != null)
-                //{
-                //    var allCountries = await IsAllCountries(filterDto.CountriesList, _countryRepository, _mapper);
-                //    if (allCountries)
-                //    {
-                //        filterDto.CountriesList = null;
-                //    }
-                //}
-
-                //var spec = new ProductSpecification(_mapper.Map<ProductFilter>(filterDto));
-                //var products = await _asyncProductRepository.ListAsync(spec);
-                //_logger.LogInformation($"GetProducts returned successfully.");
-
-
-                //var response = new PagedProductsListDto();
-
-
-                //response.Data = _mapper.Map<List<ProductDto>>(products);
-                //response.Page = new Page();
-                //response.Page.PageNumber = filterDto.Page;
-                //response.Page.TotalItems = totalItems;
-                //response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);
-                //response.Page.Size = filterDto.PageSize;
-                throw new NotImplementedException();
-            }
-
-            catch (Exception ex)
-            {
-                _logger.LogWarning($"Something went wrong inside GetAllProducts action: {ex.Message}");
-                return StatusCode(500, "Internal server error");
-            }
-
-        }
 
         [HttpPost(Name = "ProductSelectList")]
         public async Task<IActionResult> GetProductsByCategory(ProductFilterDto filterDto)
@@ -161,14 +130,14 @@ namespace PM_AdminApp.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SaveProduct(ProductUpdateDto updateProduct)
+        public async Task<IActionResult> SaveProduct([FromForm] ProductUpdateDto updateProduct)
         {
             try
             {
                 if (updateProduct == null)
                 {
-                    _logger.LogError("Part object sent from client is null.");
-                    return BadRequest("Part object is null");
+                    _logger.LogError("Product object sent from client is null.");
+                    return BadRequest("Product object is null");
                 }
 
                 if (!ModelState.IsValid)
@@ -179,7 +148,8 @@ namespace PM_AdminApp.Server.Controllers
                 //var stand = _mapper.Map<Stand>(updateProduct);
 
                 var id = updateProduct.Id;
-                var productFilter = new ProductFilter() { Id = id };
+                var productFilter = new ProductFilter() { Id = id, LoadChildren = true};
+
                 var spec = new ProductSpecification(productFilter);
                 var productEdit = await _productRepository.FirstAsync(spec);
                 if (productEdit == null)
@@ -189,12 +159,27 @@ namespace PM_AdminApp.Server.Controllers
                 }
 
                 _mapper.Map(updateProduct, productEdit);
+                var category = await _categoryRepository.GetByIdAsync(updateProduct.CategoryId);
+                if (category != null)
+                {
+                    productEdit.CategoryName = category.Name;
+                    productEdit.ParentCategoryName = category.ParentCategoryName;
+                }
+                if (updateProduct.DateCreated == null)
+                {
+                    productEdit.DateCreated = DateTime.Now;
+                }
+                productEdit.DateUpdated = DateTime.Now;
+                productEdit.DateAvailable = DateTime.Now;
+
                 await _productRepository.UpdateAsync(productEdit);
 
                 //Now manage relationships.
                 await UpdateCountryCollection(productEdit, updateProduct);
                 await UpdateRegionsCollection(productEdit, updateProduct);
-                return Ok();
+                //await UpdateProductImage(productEdit, updateProduct);
+                await _productRepository.UpdateAsync(productEdit);
+                return Ok(_mapper.Map<ProductDto>(productEdit));
             }
             catch (Exception ex)
             {
@@ -203,6 +188,39 @@ namespace PM_AdminApp.Server.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> CreateProduct(ProductUpdateDto productDto)
+        {
+            try
+            {
+                var newProduct = _mapper.Map<Product>(productDto);
+                newProduct.Regions = new List<Region>();
+
+                var category = await _categoryRepository.GetByIdAsync(productDto.CategoryId);
+                if (category != null)
+                {
+                    newProduct.CategoryName = category.Name;
+                    newProduct.ParentCategoryName = category.ParentCategoryName;
+                }
+                newProduct.DateCreated = DateTime.Now;
+                newProduct.DateUpdated = DateTime.Now;
+                newProduct.DateAvailable = DateTime.Now;
+                var createdProduct = await _productRepository.AddAsync(newProduct);
+
+                await UpdateRegionsCollection(createdProduct, productDto);
+                await UpdateCountryCollection(createdProduct, productDto);
+                //await UpdateProductImage(createdProduct, productDto);
+
+                await _productRepository.UpdateAsync(createdProduct);
+                return Ok(_mapper.Map<ProductDto>(createdProduct));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Something went wrong inside CreateProduct action: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+
+        }
 
         [HttpGet()]
         public async Task<IActionResult> GetShades([FromQuery] int productId)
@@ -267,7 +285,8 @@ namespace PM_AdminApp.Server.Controllers
         private async Task UpdateRegionsCollection(Product origProduct, ProductUpdateDto updateProduct)
         {
             //var regionDtos = JsonConvert.DeserializeObject<List<RegionDto>>(updateProduct.Regions);
-            foreach (var region in updateProduct.Regions)
+            var regionDtos = JsonConvert.DeserializeObject<List<RegionDto>>(updateProduct.Regions);
+            foreach (var region in regionDtos)
             {
                 var origRegion = origProduct.Regions.FirstOrDefault(r => r.Id == region.Id);
                 if (origRegion == null)
@@ -280,7 +299,7 @@ namespace PM_AdminApp.Server.Controllers
             for (int i = origProduct.Regions.Count - 1; i >= 0; i--)
             {
                 var origRegion = origProduct.Regions[i];
-                var updatedRegion = updateProduct.Regions.FirstOrDefault(r => r.Id == origRegion.Id);
+                var updatedRegion = regionDtos.FirstOrDefault(r => r.Id == origRegion.Id);
                 if (updatedRegion == null)
                 {
                     var dbRegion = await _regionRepository.GetByIdAsync(origRegion.Id);
@@ -295,8 +314,8 @@ namespace PM_AdminApp.Server.Controllers
         private async Task UpdateCountryCollection(Product origProduct, ProductUpdateDto updateProduct)
         {
             //add new countries
-            //var standCountries = JsonConvert.DeserializeObject<List<CountryDto>>(updateProduct.Countries);
-            foreach (var country in updateProduct.Countries)
+            var productountries = JsonConvert.DeserializeObject<List<CountryDto>>(updateProduct.Countries);
+            foreach (var country in productountries)
             {
                 var origCountry = origProduct.Countries.FirstOrDefault(c => c.Id == country.Id);
                 if (origCountry == null)
@@ -309,19 +328,41 @@ namespace PM_AdminApp.Server.Controllers
                 }
             }
             //remove deleted countries
-            for (int i = origProduct.Countries.Count - 1; i >= 0; i--)
+            for (int i = 0; i < origProduct.Countries.Count; i++)
             {
                 var origCountry = origProduct.Countries[i];
-                var updatedCountry = updateProduct.Countries.FirstOrDefault(c => c.Id == origCountry.Id);
+                var updatedCountry = productountries.FirstOrDefault(c => c.Id == origCountry.Id);
                 if (updatedCountry == null)
                 {
-                    var dbCountry = await _countryRepository.GetByIdAsync(origCountry.Id);
-                    origProduct.Countries.Remove(dbCountry);
+                    //var dbCountry = await _countryRepository.GetByIdAsync(origCountry.Id);
+                    origProduct.Countries.Remove(origCountry);
                 }
             }
 
             //update Part.CountryList string
             origProduct.CountriesList = string.Join(",", origProduct.Countries.Select(c => c.Id));
+        }
+
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        private async Task UpdateProductImage(Product origProduct, ProductUpdateDto updateProduct)
+        {
+            //handle file upload if a new file is provided
+            var blobService = new AzureBlobService(_blobServiceClient);
+            var storeName = _configuration["AzureBlob:StoreName"];
+            var blobServiceClient = blobService.GetBlobServiceClient(storeName);
+
+            var fileName = origProduct.Id + "_" + origProduct.Name.Replace(" ", "");
+
+
+            if (updateProduct.ImageFile != null && updateProduct.ImageFile.Length > 0)
+            {
+                var fileType = updateProduct.ImageFile.FileName.Split('.')[1];
+                origProduct.ProductImage = fileName + "." + fileType;
+                var containerName = _configuration["AzureBlob:ProductStoreContainer"];
+                var containerClient = blobService.GetBlobContainerClient(blobServiceClient, containerName);
+                await blobService.UploadFormFileAsync(containerClient, updateProduct.ImageFile, origProduct.ProductImage);
+            }
         }
 
     }

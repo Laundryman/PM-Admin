@@ -1,4 +1,5 @@
 // import { useAuthStore } from '@/stores/auth'
+import type { Shade } from '@/models/Products/shade.model'
 import { Auth, msal } from '@/services/Identity/auth'
 import { useAuthStore } from '@/stores/auth'
 import axios from 'axios'
@@ -19,21 +20,41 @@ const apiClient = axios.create({
 })
 
 export default {
-  async updateShade(formData: FormData): Promise<any> {
+  async updateShade(shade: Shade): Promise<Shade> {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
-    apiClient.defaults.headers['Content-Type'] = 'multipart/form-data'
-    await apiClient
-      .post('/saveShade', formData)
+    // apiClient.defaults.headers['Content-Type'] = 'multipart/form-data'
+    let response = await apiClient
+      .post('/updateShade', shade)
       .then((response) => {
         console.log('Shade updated successfully')
-        return response.data
+        return response
       })
       .catch((error) => {
         console.error('Error updating shade:', error)
         throw error
       })
+
+    return response.data
+  },
+
+  async createShade(shade: Shade): Promise<Shade> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    // apiClient.defaults.headers['Content-Type'] = 'multipart/form-data'
+    let response = await apiClient
+      .post('/createShade', shade)
+      .then((response) => {
+        console.log('Shade created successfully')
+        return response
+      })
+      .catch((error) => {
+        console.error('Error creating shade:', error)
+        throw error
+      })
+    return response.data
   },
 
   async initialise() {

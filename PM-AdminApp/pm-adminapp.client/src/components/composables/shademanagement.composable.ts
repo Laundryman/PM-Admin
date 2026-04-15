@@ -47,8 +47,13 @@ export function useShadeManagement() {
   //   shade.value.regionsList = shade.value.regions?.map((r) => r.id).join(',') || ''
   // }
 
-  function setCountrySelectList(countries: Country[]) {
-    shade_countrySelectList.value = [...countries]
+  function setCountrySelectList(countries: Country[], productSelectedCountryIds: number[]) {
+    //shade_countrySelectList.value = [...countries]
+    for (const country of countries) {
+      if (productSelectedCountryIds.includes(country.id)) {
+        shade_countrySelectList.value?.push(country)
+      }
+    }
   }
 
   function setSelectedCountries(countryIds: number[]) {

@@ -16,11 +16,11 @@ export function useProductForm() {
     productData.append('categoryName', productModel.value.categoryName || '')
     productData.append('parentCategoryName', productModel.value.parentCategoryName || '')
     productData.append('productImage', productModel.value.productImage || '')
-    productData.append(
-      'dateCreated',
-      productModel.value.dateCreated?.toISOString() || new Date().toISOString(),
-    )
-    productData.append('dateUpdated', new Date().toISOString())
+    // productData.append(
+    //   'dateCreated',
+    //   productModel.value.dateCreated?.toISOString() || new Date().toISOString(),
+    // )
+    // productData.append('dateUpdated', new Date().toISOString())
     productData.append('published', productModel.value.published?.toString() || 'false')
     productData.append('discontinued', productModel.value.discontinued?.toString() || 'false')
     productData.append('countriesList', productModel.value.countriesList || '')

@@ -12,6 +12,7 @@ using PMApplication.Interfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
 using System;
+using Microsoft.Graph.Models;
 using Page = PMApplication.Dtos.Page;
 
 
@@ -81,8 +82,98 @@ namespace PM_AdminApp.Server.Controllers
 
         }
 
+        [HttpPost]
+        public async Task<IActionResult> CreateShade(ShadeDto shadeDto)
+        {
+            try
+            {
+                var newShade = _mapper.Map<Shade>(shadeDto);
+                newShade.Countries = new List<Country>();
+                newShade.DateCreated = DateTime.Now;
+                newShade.DateUpdated = DateTime.Now;
+                newShade.DateAvailable = DateTime.Now;
+                var createdShade = await _shadeRepository.AddAsync(newShade);
 
+                UpdateCountryCollection(createdShade, shadeDto);
+                await _shadeRepository.UpdateAsync(createdShade);
+                return Ok(_mapper.Map<ShadeDto>(createdShade));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Something went wrong inside CreateShade action: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateShade(ShadeDto shadeDto)
+        {
+            try
+            {
+                var filter = new ShadeFilter();
+                filter.Id = shadeDto.Id;
+                filter.LoadChildren = true;
+                var spec = new ShadeSpecification(filter);
+                var shade = await _shadeRepository.FirstAsync(spec);
+                if (shade == null)
+                {
+                    return NotFound();
+                }
+
+                shade.ShadeNumber = shadeDto.ShadeNumber;
+                shade.ShadeDescription = shadeDto.ShadeDescription;
+                shade.Published = shadeDto.Published;
+                shade.DateUpdated = DateTime.UtcNow;
+                UpdateCountryCollection(shade, shadeDto);
+
+                await _shadeRepository.UpdateAsync(shade);
+                return Ok(_mapper.Map<ShadeDto>(shade));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Something went wrong inside UpdateShade action: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        private async Task UpdateCountryCollection(Shade origShade, ShadeDto updateShade)
+        {
+            //add new countries
+            //var standCountries = JsonConvert.DeserializeObject<List<CountryDto>>(updateStand.Countries);
+            foreach (var country in updateShade.Countries)
+            {
+                var origCountry = origShade.Countries.FirstOrDefault(c => c.Id == country.Id);
+                if (origCountry == null)
+                {
+                    var dbCountry = await _countryRepository.GetByIdAsync(country.Id);
+                    if (dbCountry != null)
+                    {
+                        origShade.Countries.Add(dbCountry);
+                    }
+                }
+            }
+            //remove deleted countries
+            for (int i = origShade.Countries.Count - 1; i >= 0; i--)
+            {
+                var origCountry = origShade.Countries[i];
+                var updatedCountry = updateShade.Countries.FirstOrDefault(c => c.Id == origCountry.Id);
+                if (updatedCountry == null)
+                {
+                    var dbCountry = await _countryRepository.GetByIdAsync(origCountry.Id);
+                    origShade.Countries.Remove(dbCountry);
+                }
+            }
+
+            //update Part.CountryList string
+            origShade.CountryList = string.Join(",", origShade.Countries.Select(c => c.Id));
+        }
     }
+
+
 
 
 
