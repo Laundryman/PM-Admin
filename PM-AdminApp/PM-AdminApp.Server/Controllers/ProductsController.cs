@@ -177,7 +177,7 @@ namespace PM_AdminApp.Server.Controllers
                 //Now manage relationships.
                 await UpdateCountryCollection(productEdit, updateProduct);
                 await UpdateRegionsCollection(productEdit, updateProduct);
-                //await UpdateProductImage(productEdit, updateProduct);
+                await UpdateProductImage(productEdit, updateProduct);
                 await _productRepository.UpdateAsync(productEdit);
                 return Ok(_mapper.Map<ProductDto>(productEdit));
             }
@@ -209,7 +209,7 @@ namespace PM_AdminApp.Server.Controllers
 
                 await UpdateRegionsCollection(createdProduct, productDto);
                 await UpdateCountryCollection(createdProduct, productDto);
-                //await UpdateProductImage(createdProduct, productDto);
+                await UpdateProductImage(createdProduct, productDto);
 
                 await _productRepository.UpdateAsync(createdProduct);
                 return Ok(_mapper.Map<ProductDto>(createdProduct));

@@ -68,7 +68,7 @@ builder.Services.AddAzureClients(clientBuilder =>
     var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID", EnvironmentVariableTarget.Machine);
     var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID", EnvironmentVariableTarget.Machine);
     var clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET", EnvironmentVariableTarget.Machine);
-
+    //Planmatr-Demo1 Application on LMXIDENTITY tennant that has the store
     clientBuilder.AddBlobServiceClient(
         new Uri("https://planmatrstore.blob.core.windows.net"));
 
