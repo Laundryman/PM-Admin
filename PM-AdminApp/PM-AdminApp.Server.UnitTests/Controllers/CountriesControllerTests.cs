@@ -367,7 +367,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 BrandId = 999
             };
             var emptyRegions = new List<Region>();
+            var emptyRegionDtos = new List<RegionDto>();
             mockMapper.Setup(m => m.Map<RegionFilter>(filterDto)).Returns(regionFilter);
+            mockMapper.Setup(m => m.Map<List<RegionDto>>(emptyRegions)).Returns(emptyRegionDtos);
             mockRegionRepository.Setup(r => r.ListAsync(It.IsAny<RegionSpecification>(), It.IsAny<CancellationToken>())).ReturnsAsync(emptyRegions);
             // Act
             var result = await controller.GetRegions(filterDto);
@@ -376,7 +378,7 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             Assert.IsInstanceOfType(result, typeof(OkObjectResult));
             var okResult = (OkObjectResult)result;
             Assert.IsNotNull(okResult.Value);
-            var regions = okResult.Value as IReadOnlyList<Region>;
+            var regions = okResult.Value as List<RegionDto>;
             Assert.IsNotNull(regions);
             Assert.AreEqual(0, regions.Count);
         }

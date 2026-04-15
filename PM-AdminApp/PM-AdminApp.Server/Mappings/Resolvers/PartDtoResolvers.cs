@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.Execution;
 using Microsoft.Graph.Models;
-using Newtonsoft.Json;
+using System.Text.Json;
 using PMApplication.Dtos;
 using PMApplication.Dtos.PlanModels;
 using PMApplication.Dtos.StandTypes;
@@ -23,7 +23,7 @@ namespace PM_AdminApp.Server.Mappings.Resolvers
         }
         public List<Product> Resolve(PartUploadDto source, Part destination, List<Product> destMember, ResolutionContext context)
         {
-            var partProducts = JsonConvert.DeserializeObject<List<ProductDto>>(source.Products ?? "[]");
+            var partProducts = JsonSerializer.Deserialize<List<ProductDto>>(source.Products ?? "[]");
             var products = _mapper.Map<List<Product>>(partProducts);
 
             return products;
@@ -40,7 +40,7 @@ namespace PM_AdminApp.Server.Mappings.Resolvers
         }
         public List<StandType> Resolve(PartUploadDto source, Part destination, List<StandType> destMember, ResolutionContext context)
         {
-            var partStandTypes = JsonConvert.DeserializeObject<List<StandTypeDto>>(source.StandTypes ?? "[]");
+            var partStandTypes = JsonSerializer.Deserialize<List<StandTypeDto>>(source.StandTypes ?? "[]");
             foreach (var standType in partStandTypes)
             {
                 // Ensure Description is not null
@@ -61,7 +61,7 @@ namespace PM_AdminApp.Server.Mappings.Resolvers
         }
         public List<Region> Resolve(PartUploadDto source, Part destination, List<Region> destMember, ResolutionContext context)
         {
-            var regionParts = JsonConvert.DeserializeObject<List<RegionDto>>(source.Regions ?? "[]");
+            var regionParts = JsonSerializer.Deserialize<List<RegionDto>>(source.Regions ?? "[]");
             var regions = _mapper.Map<List<Region>>(regionParts);
             return regions;
         }
@@ -77,7 +77,7 @@ namespace PM_AdminApp.Server.Mappings.Resolvers
         }
         public List<Country> Resolve(PartUploadDto source, Part destination, List<Country> destMember, ResolutionContext context)
         {
-            var countryParts = JsonConvert.DeserializeObject<List<CountryDto>>(source.Countries ?? "[]");
+            var countryParts = JsonSerializer.Deserialize<List<CountryDto>>(source.Countries ?? "[]");
             var countries = _mapper.Map<List<Country>>(countryParts);
             return countries;
         }

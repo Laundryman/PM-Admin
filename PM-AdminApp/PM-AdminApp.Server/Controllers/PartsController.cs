@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Graph.Models;
-using Newtonsoft.Json;
+//using Newtonsoft.Json;
 using PMApplication.Dtos;
 using PMApplication.Dtos.StandTypes;
 using PMApplication.Dtos.Filters;
@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -367,7 +368,7 @@ namespace PM_AdminApp.Server.Controllers
         private async Task UpdatePartCountryCollection(Part origPart, PartUploadDto updatePart)
         {
             //add new countries
-            var partCountries = JsonConvert.DeserializeObject<List<CountryDto>>(updatePart.Countries ?? "[]");
+            var partCountries = JsonSerializer.Deserialize<List<CountryDto>>(updatePart.Countries ?? "[]");
             foreach (var country in partCountries)
             {
                 var origCountry = origPart.Countries.FirstOrDefault(c => c.Id == country.Id);
@@ -398,7 +399,7 @@ namespace PM_AdminApp.Server.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         private async Task UpdatePartProductsCollection(Part origPart, PartUploadDto updatePart)
         {
-            var partProducts = JsonConvert.DeserializeObject<List<ProductDto>>(updatePart.Products ?? "[]");
+            var partProducts = JsonSerializer.Deserialize<List<ProductDto>>(updatePart.Products ?? "[]");
             foreach (var product in partProducts)
             {
                 var origProduct = origPart.Products.FirstOrDefault(p => p.Id == product.Id);
@@ -422,7 +423,7 @@ namespace PM_AdminApp.Server.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         private async Task UpdateStandTypesCollection(Part origPart, PartUploadDto updatePart)
         {
-            var standTypes = JsonConvert.DeserializeObject<List<StandTypeDto>>(updatePart.StandTypes ?? "[]");
+            var standTypes = JsonSerializer.Deserialize<List<StandTypeDto>>(updatePart.StandTypes ?? "[]");
             foreach (var standType in standTypes)
             {
                 var origStandType = origPart.StandTypes.FirstOrDefault(s => s.Id == standType.Id);
@@ -447,7 +448,7 @@ namespace PM_AdminApp.Server.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         private async Task UpdateRegionsCollection(Part origPart, PartUploadDto updatePart)
         {
-            var regionDtos = JsonConvert.DeserializeObject<List<RegionDto>>(updatePart.Regions ?? "[]");
+            var regionDtos = JsonSerializer.Deserialize<List<RegionDto>>(updatePart.Regions ?? "[]");
             foreach (var region in regionDtos)
             {
                 var origRegion = origPart.Regions.FirstOrDefault(r => r.Id == region.Id);

@@ -2,7 +2,7 @@
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using System.Text.Json;
 using PMApplication.Dtos;
 using PMApplication.Dtos.Filters;
 using PMApplication.Entities;
@@ -285,7 +285,7 @@ namespace PM_AdminApp.Server.Controllers
         private async Task UpdateRegionsCollection(Product origProduct, ProductUpdateDto updateProduct)
         {
             //var regionDtos = JsonConvert.DeserializeObject<List<RegionDto>>(updateProduct.Regions);
-            var regionDtos = JsonConvert.DeserializeObject<List<RegionDto>>(updateProduct.Regions);
+            var regionDtos = JsonSerializer.Deserialize<List<RegionDto>>(updateProduct.Regions);
             foreach (var region in regionDtos)
             {
                 var origRegion = origProduct.Regions.FirstOrDefault(r => r.Id == region.Id);
@@ -314,7 +314,7 @@ namespace PM_AdminApp.Server.Controllers
         private async Task UpdateCountryCollection(Product origProduct, ProductUpdateDto updateProduct)
         {
             //add new countries
-            var productountries = JsonConvert.DeserializeObject<List<CountryDto>>(updateProduct.Countries);
+            var productountries = JsonSerializer.Deserialize<List<CountryDto>>(updateProduct.Countries);
             foreach (var country in productountries)
             {
                 var origCountry = origProduct.Countries.FirstOrDefault(c => c.Id == country.Id);
