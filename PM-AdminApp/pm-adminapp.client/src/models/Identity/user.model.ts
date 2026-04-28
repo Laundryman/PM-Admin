@@ -1,30 +1,36 @@
 import { Country } from '@/models/Countries/country.model'
 import { Brand } from '../Brands/brand.model'
+import type { Region } from '../Countries/region.model'
 import { Role } from './role.model'
 export class User {
-  password!: String
-  id!: String
-  diamCountryId!: Number
+  password!: string
+  id!: string
+  diamCountryId!: number
   country!: Country | null
-  diamCountryName!: String
-  diamUserId!: Number
-  brandIds!: Number[]
+  diamCountryName!: string
+  diamUserId!: number
+  brandIds!: number[]
   brands: Brand[] = []
-  brandNameList: String[] = []
-  brandNameFilterList!: String
-  roleIds!: Number[]
+  brandNameList: string[] = []
+  brandNameFilterList!: string
+  roleIds!: number[]
   roles: Role[] = []
-  roleNameList: String[] = []
-  roleNameFilterList!: String
-  givenName!: String
-  surname!: String
-  mail!: String
-  userName!: String
-  newUserName!: String
-  displayName!: String
-  mailNickName!: String
+  roleNameList: string[] = []
+  roleNameFilterList!: string
+  givenName!: string
+  surname!: string
+  mail!: string
+  userName!: string
+  newUserName!: string
+  displayName!: string
+  mailNickName!: string
   identities!: Identity[]
   userEmailAddress!: string
+  regions!: Region[]
+  countries: Country[] = []
+  countryList!: string
+  regionList!: string
+
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId!: number
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands!: string
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles!: string

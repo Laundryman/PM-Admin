@@ -20,6 +20,9 @@ const apiClient = axios.create({
 })
 
 export default {
+  get isInitialised() {
+    return initialized.value
+  },
   async getCurrentUserInfo() {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
@@ -43,14 +46,16 @@ export default {
       .get('/users/' + id, {
         params: {
           $select:
-            'identities,id,displayname,userName, givenName,surname,mail,mailNickname,userPrincipalName, ' +
-            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles, extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands, extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress',
+            'identities,id,displayname,userName, givenName,surname,mail,mailNickname,userPrincipalName,country, ' +
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles, extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands, extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress,extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList, extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList',
         },
       })
       .then((response) => {
         let user = response.data
-        this.updateExtensionFields(user)
-        return user
+
+        //this.updateExtensionFields(user)
+        let mappedUser = this.mapUser(user)
+        return mappedUser
       })
       .catch((error) => {
         throw error
@@ -66,7 +71,7 @@ export default {
         params: {
           $select:
             'identities,id,displayname,userName, givenName,surname,mail,mailNickname,userPrincipalName, ' +
-            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles, extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands, extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress',
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles, extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands, extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress,extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList, extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList',
           // $filter: "creationType eq 'LocalAccount'",
           $top: '100',
           // $orderBy: 'displayName',
@@ -95,27 +100,6 @@ export default {
               user.userName = user.mailNickname || user.mail || user.userPrincipalName || 'Unknown'
             }
           }
-          // if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']) {
-          //   user.roleIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
-          //     .split(',')
-          //     .map((id: any) => parseInt(id))
-          // } else {
-          //   user.roleIds = []
-          // }
-          // if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']) {
-          //   user.brandIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']
-          //     .split(',')
-          //     .map((id: any) => parseInt(id))
-          // } else {
-          //   user.brandIds = []
-          // }
-          // if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']) {
-          //   user.diamCountryId = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
-          // }
-          // if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']) {
-          //   user.userEmailAddress =
-          //     user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']
-          // }
         })
         return users
       })
@@ -268,5 +252,77 @@ export default {
     if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']) {
       user.userEmailAddress = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']
     }
+    if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList']) {
+      user.countryList = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList']
+    } else {
+      user.countryList = ''
+    }
+    if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList']) {
+      user.regionList = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList']
+    } else {
+      user.regionList = ''
+    }
+  },
+
+  mapUser(graphUser: any): User {
+    var user = new User()
+    user.country = graphUser.country
+    user.displayName = graphUser.displayName
+    user.givenName = graphUser.givenName
+    user.surname = graphUser.surname
+    user.mail = graphUser.mail
+    user.mailNickName = graphUser.mailNickname
+    user.userName = graphUser.userPrincipalName
+    user.id = graphUser.id
+    user.countries = []
+    user.regions = []
+    user.password = graphUser.password || ''
+    user.roles = []
+    user.brandIds = []
+
+    if (graphUser.identities) {
+      let usernameId = graphUser.identities.find(
+        (identity: any) => identity.signInType === 'userName',
+      )
+      if (usernameId) {
+        user.userName = usernameId.issuerAssignedId
+      }
+    }
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']) {
+      user.roleIds = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
+        .split(',')
+        .map((id: any) => parseInt(id))
+    } else {
+      user.roleIds = []
+    }
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']) {
+      user.brandIds = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']
+        .split(',')
+        .map((id: any) => parseInt(id))
+    } else {
+      user.brandIds = []
+    }
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']) {
+      user.diamCountryId = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
+    } else {
+      user.diamCountryId = 0
+    }
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']) {
+      user.userEmailAddress =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']
+    } else {
+      user.userEmailAddress = ''
+    }
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList']) {
+      user.countryList = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList']
+    } else {
+      user.countryList = ''
+    }
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList']) {
+      user.regionList = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList']
+    } else {
+      user.regionList = ''
+    }
+    return user
   },
 }

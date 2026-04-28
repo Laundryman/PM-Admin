@@ -5,18 +5,22 @@ import { Role } from '@/models/Identity/role.model'
 import { User } from '@/models/Identity/user.model'
 import CountryService from '@/services/Countries/CountryService'
 import RoleService from '@/services/Identity/RoleService'
-import UserService from '@/services/Identity/UserService.js'
+import UserService from '@/services/Identity/UserService'
 import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
+import { useUserStore } from '@/stores/userStore'
 import { FilterMatchMode, FilterService } from '@primevue/core/api'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 // import InputHTMLAttributes from "vue";
 // import { RefSymbol } from '@vue/reactivity'
 //import { User } from '@/models/user.model'
 const systemStore = useSystemStore()
 const brandStore = useBrandStore()
+const userStore = useUserStore()
 const toast = useToast()
+const router = useRouter()
 const users = ref<User[]>([])
 const brands = ref<Brand[]>([])
 const countries = ref<Country[]>([])
@@ -150,6 +154,12 @@ function editUser(usr: User) {
   selectedCountry.value = currentUser.value.DiamCountryId ?? null
 
   userDialog.value = true
+}
+
+function manageUser(usr: User) {
+  // Navigate to edit page
+  userStore.loadUser(usr.id)
+  router.push({ name: 'manageUser' })
 }
 
 const createUser = () => {
@@ -562,6 +572,14 @@ const getCountryName = (countryId: string) => {
             rounded
             class="mr-2"
             @click="editUser(slotProps.data)"
+          />
+          <Button
+            v-tooltip="'edit user'"
+            icon="pi pi-pencil"
+            outlined
+            rounded
+            class="mr-2"
+            @click="manageUser(slotProps.data)"
           />
           <Button
             v-tooltip="'change password'"
