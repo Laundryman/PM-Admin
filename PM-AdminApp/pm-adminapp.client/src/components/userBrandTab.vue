@@ -14,7 +14,7 @@ const locationData = defineProps<{
   selectedRegions: number[] | null
   selectedCountries: number[] | null
 }>()
-
+const locationDataValue = ref(locationData.brandId)
 // const propSelectedRegions = defineProps<{ selectedRegions: number[] | null }>()
 // const countryList = defineProps<{ countries: Country[] }>()
 // const selectedRegions = defineProps<{ selectedRegions: string[] }>()
@@ -25,7 +25,7 @@ const locationData = defineProps<{
 // const pre_selectedCountries = locationData.selectedCountries
 const parentTabId = ref<number | null>(null)
 const ms_selectedRegions = ref<number[] | null>(null) // MultiSelect binding
-const selectedCountries = ref<number[] | null>(null) // MultiSelect binding
+const ms_selectedCountries = ref<number[] | null>(null) // MultiSelect binding
 const countrySelectList = ref<Country[] | null>(null)
 const selectAllCountries = ref(false)
 
@@ -47,14 +47,26 @@ onMounted(async () => {
   // }
 })
 
-watch(locationData, async (newVal: any) => {
+watch(
+  () => locationData.brandId,
+  (newVal: any, oldVal: any) => {
+    console.log('Brand ID changed in watcher', newVal, oldVal)
+  },
+  { deep: true },
+)
+watch(locationData, (newVal: any, oldVal: any) => {
   //locationData.selectedRegions = locationData.selectedRegions
+  ms_selectedCountries.value = [] // reset
   console.log(
     'Location Data Changed',
     locationData.brandId,
     locationData.selectedRegions,
     locationData.regions,
+    locationData.selectedCountries,
+    locationData.countries,
   )
+
+  console.log('selected Countries = ', locationData.selectedCountries)
   // selectedRegions.value = locationData.selectedRegions
   if (locationData.regions && locationData.regions.length > 0) {
     if (locationData.regions[0]?.brandId == parentTabId.value) {
@@ -63,12 +75,21 @@ watch(locationData, async (newVal: any) => {
       ms_selectedRegions.value = []
     }
   }
-  selectedCountries.value = locationData.selectedCountries
-  if (newVal && newVal.length > 0) {
-    countrySelectList.value = await locationFilters.getCountriesForRegions(newVal)
-  } else {
-    countrySelectList.value = []
+  for (const country of locationData.countries ?? []) {
+    if (locationData.selectedCountries?.includes(country.id)) {
+      ms_selectedCountries.value?.push(country.id)
+    }
   }
+  // if (newVal && newVal.length > 0) {
+  //   countrySelectList.value = await locationFilters.getCountriesForRegions(newVal)
+  // } else {
+  //   countrySelectList.value = []
+  // }
+  countrySelectList.value = []
+  countrySelectList.value = locationData.countries
+
+  console.log('ms_selectedCountries = ', ms_selectedCountries.value)
+  console.log('Orig selectedCountries = ', locationData.selectedCountries)
 })
 ////////////////////////////////////////////////////
 // Generic Multi-Select Handler
@@ -117,31 +138,30 @@ function manageSelectedValues(
 async function onRegionChange(evt: any) {
   var selectedRegionIds = evt.value as number[]
   if (selectedRegionIds.length > 0) {
-    countrySelectList.value = await locationFilters.getCountriesForRegions(
-      locationData.selectedRegions ?? [],
-    )
+    countrySelectList.value = await locationFilters.getCountriesForRegions(selectedRegionIds ?? [])
   }
   //remove any countries no longer in the list
-  let newSelectList = selectedCountries.value?.filter((countryId) =>
-    countrySelectList.value?.some((c) => c.id === countryId),
-  )
-  if (newSelectList) {
-    selectedCountries.value = newSelectList
-  } else {
-    selectedCountries.value = []
-  }
+  // let newSelectList = selectedCountries.value?.filter((countryId) =>
+  //   countrySelectList.value?.some((c) => c.id === countryId),
+  // )
+  // if (newSelectList) {
+  //   selectedCountries.value = newSelectList
+  // } else {
+  //   selectedCountries.value = []
+  // }
 
   emit('update:selectedRegions', selectedRegionIds)
   // userModel.value.regionsList = userModel.value.regions?.map((r) => r.id).join(',') || ''
 }
 
 async function onCountryChange(evt: any) {
-  emit('update:selectedCountries', selectedCountries.value)
+  let emitData = { countries: ms_selectedCountries.value, regions: ms_selectedRegions.value }
+  emit('update:selectedCountries', emitData)
   // userModel.value.countriesList = userModel.value.countries?.map((c) => c.id).join(',') || ''
 }
 
 function onSelectAllCountriesChange(event: any) {
-  selectedCountries.value = event.checked
+  ms_selectedCountries.value = event.checked
     ? (countrySelectList.value?.map((item) => item.id) ?? [])
     : []
   selectAllCountries.value = event.checked
@@ -154,7 +174,7 @@ function onSelectAllCountriesChange(event: any) {
 }
 
 function clearCountrySelection() {
-  selectedCountries.value = []
+  ms_selectedCountries.value = []
   // userModel.value.countries = []
   // userModel.value.countriesList = ''
 }
@@ -188,7 +208,7 @@ function clearCountrySelection() {
           <label for="country">Country:</label>
           <MultiSelect
             name="countries"
-            v-model="selectedCountries"
+            v-model="ms_selectedCountries"
             :options="countrySelectList ?? []"
             id="country"
             class="w-full"

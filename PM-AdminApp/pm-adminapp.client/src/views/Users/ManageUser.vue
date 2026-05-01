@@ -57,8 +57,12 @@ const currentBrandTabProperties = ref({
   brandId: 0,
   regions: [] as Region[] | null,
   countries: [] as Country[] | null,
-  selectedRegions: [] as number[] | null,
   selectedCountries: [] as number[] | null,
+})
+
+const currentRegionProps = ref({
+  regions: [] as Region[] | null,
+  selectedRegions: [] as number[] | null,
 })
 const tabComponent = defineAsyncComponent(() => import('@/components/userBrandTab.vue'))
 
@@ -123,24 +127,41 @@ async function onTabChange(index: string) {
   console.log('Getting regions for brand', brandId)
   await locationFilters.getRegions(rFilter).then((response) => {
     currentBrandTabProperties.value.regions = response
+    currentRegionProps.value.regions = response
   })
 
   regionSelectList.value = currentBrandTabProperties.value.regions
   var brandSelectedRegions = regionSelectList.value?.filter((r) =>
     userModel.value.regions?.some((ur) => ur.id === r.id),
   )
-  currentBrandTabProperties.value.selectedRegions = brandSelectedRegions?.map((r) => r.id) ?? []
+
+  currentRegionProps.value.selectedRegions = brandSelectedRegions?.map((r) => r.id) ?? []
 
   currentBrandTabProperties.value.brandId = brandId
 
-  if (userModel.value.countryList) {
-    currentBrandTabProperties.value.selectedCountries = userModel.value.countryList
-      .split(',')
-      .map((c) => parseInt(c))
+  //now get the countries for the selected regions
+  if (
+    currentRegionProps.value.selectedRegions &&
+    currentRegionProps.value.selectedRegions.length > 0
+  ) {
+    countrySelectList.value = await locationFilters.getCountriesForRegions(
+      currentRegionProps.value.selectedRegions,
+    )
+  } else {
+    countrySelectList.value = []
+  }
+  currentBrandTabProperties.value.countries = countrySelectList.value
+
+  if (userModel.value.countries) {
+    var userCountryIds = userModel.value.countries.map((c) => c.id)
+    for (const cId of userCountryIds) {
+      if (countrySelectList.value?.some((c) => c.id === cId)) {
+        currentBrandTabProperties.value.selectedCountries?.push(cId)
+      }
+    }
   } else {
     currentBrandTabProperties.value.selectedCountries = []
   }
-  currentBrandTabProperties.value.countries = userModel.value.countries || []
 }
 
 async function onBrandChange(evt: any) {
@@ -212,11 +233,7 @@ function manageSelectedValues(
 async function onRegionChange(evt: any) {
   regionSelectList.value = currentBrandTabProperties.value.regions
   var brandId = parseInt(brandTabIndex.value) ?? 0
-  var brandSelectedRegions = regionSelectList.value?.filter((r) =>
-    userModel.value.regions?.some((ur) => ur.id === r.id),
-  )
 
-  var currentSelectList = userModel.value.regions
   // need to only remove or add regions from the current selected brand
   // first remove all regions from the user model that match the current brand
   var regionsToKeep = userModel.value.regions?.filter((r) => r.brandId != brandId) ?? []
@@ -241,8 +258,32 @@ async function onRegionChange(evt: any) {
 }
 
 async function onCountryChange(evt: any) {
-  // manageSelectedCountries(evt.value)
-  manageSelectedValues(evt.value, countrySelectList.value ?? [], userModel.value.countries ?? [])
+  var selectedCountries = evt.countries
+  var selectedRegions = evt.regions
+  countrySelectList.value = await locationFilters.getCountriesForRegions(selectedRegions ?? [])
+
+  //need to remove any countries from the user model that are not in the selected regions, and add any new ones
+  var regionsToKeep = userModel.value.regions?.filter((r) => !selectedRegions?.includes(r.id)) ?? []
+  var countriesToKeep = new Array<Country>()
+  for (const r of regionsToKeep) {
+    let cList = r.countryList ? r.countryList.split(',').map((id) => parseInt(id)) : []
+    for (const cId of cList) {
+      if (userModel.value.countries?.some((uc) => uc.id === cId)) {
+        let country = countries.value.find((c) => c.id === cId)
+        countriesToKeep.push(country as Country)
+      }
+    }
+  }
+
+  manageSelectedValues(
+    evt.countries,
+    countrySelectList.value ?? [],
+    userModel.value.countries ?? [],
+  )
+
+  //add back the countries to keep that were removed in the manageSelectedValues function
+  userModel.value.countries.splice(0, 0, ...(countriesToKeep ?? []))
+  userModel.value.countryList = userModel.value.countries?.map((c) => c.id).join(',') || ''
   console.log('Selected Countries after region change', ms_selectedCountries.value)
   console.log('Part Model Countries after region change', userModel.value.countries)
 
@@ -524,10 +565,11 @@ async function onFormSubmit({ valid }: any) {
                 :is="tabComponent"
                 :key="tab.value"
                 :brandId="parseInt(tab.value)"
-                :regions="currentBrandTabProperties.regions"
                 :countries="currentBrandTabProperties.countries"
-                :selectedRegions="currentBrandTabProperties.selectedRegions"
                 :selectedCountries="currentBrandTabProperties.selectedCountries"
+                :currentBrandId="parseInt(tab.value)"
+                :regions="currentRegionProps.regions"
+                :selectedRegions="currentRegionProps.selectedRegions"
                 @update:selectedRegions="onRegionChange"
                 @update:selectedCountries="onCountryChange"
               ></component>
