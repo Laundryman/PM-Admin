@@ -28,11 +28,17 @@ export const useUserStore = defineStore('userStore', () => {
     console.log('Completed fetching user')
   }
 
+  function setActiveUser(user: User) {
+    activeUser.value = user
+    selectedUser.value = user
+  }
+
   return {
     selectedUser,
     userLoaded,
     loadingUsers,
     activeUser: skipHydrate(activeUser),
+    setActiveUser,
     loadUser,
   }
 })

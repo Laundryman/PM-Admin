@@ -70,22 +70,27 @@ onMounted(async () => {
   loading.value = true
   systemStore.layoutState.disableBrandSelect = false
   userId.value = userStore.selectedUser.id || ''
-  if (!userId.value) {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'No user selected', life: 3000 })
-    router.push({ name: 'users' })
-    return
-  }
+  // if (!userId.value) {
+  //   toast.add({ severity: 'error', summary: 'Error', detail: 'No user selected', life: 3000 })
+  //   router.push({ name: 'users' })
+  //   return
+  // }
   await UserService.initialise()
-  await UserService.getUser(userId.value)
-    .then((response: User) => {
-      userModel.value = response
-      loading.value = false
-    })
-    .catch((error) => {
-      console.log(error)
-    })
 
-  regionSelectList.value = await locationFilters.getRegions(new regionFilter())
+  if (!userId.value) {
+    //creating new user
+    userModel.value = new User()
+    loading.value = false
+  } else {
+    await UserService.getUser(userId.value)
+      .then((response: User) => {
+        userModel.value = response
+        loading.value = false
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }
   //setup brand tabs
   for (const brand of brandStore.brands) {
     if (userModel.value.brandIds?.includes(brand.id)) {
@@ -116,6 +121,9 @@ onMounted(async () => {
   await RoleService.getRoles().then((data: Role[]) => {
     roles.value = data
   })
+
+  convertUserFKeys(userModel.value)
+  console.log('Initial User Model after FKey conversion', userModel.value)
 })
 
 async function onTabChange(index: string) {
@@ -178,10 +186,158 @@ async function onBrandChange(evt: any) {
   }
 }
 
+async function convertUserFKeys(usr: User) {
+  usr.brands = []
+  usr.roles = []
+  usr.brandNameList = []
+  usr.roleNameList = []
+  usr.countries = []
+  usr.regions = []
+  // usr.brandNameList = ''
+  if (usr.roleIds) {
+    for (const rid of usr.roleIds) {
+      let foundRole = roles.value.find((r) => r.id === rid)
+      if (foundRole !== undefined && foundRole !== null) {
+        let role = new Role()
+        role.id = foundRole.id
+        role.name = foundRole.name
+        usr.roles.push(role)
+        usr.roleNameList.push(role.name)
+      }
+    }
+  }
+  if (usr.brandIds) {
+    for (const bid of usr.brandIds) {
+      let foundBrand = brands.value.find((b) => b.id === bid)
+      if (foundBrand !== undefined && foundBrand !== null) {
+        let brand = new Brand()
+        brand.id = foundBrand.id
+        brand.name = foundBrand.name
+        usr.brands.push(brand)
+        usr.brandNameList.push(brand.name)
+      }
+    }
+  }
+  if (usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']) {
+    usr.diamCountryId = usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
+    let country = countries.value.find((c) => c.id === usr.diamCountryId)
+    if (country) {
+      usr.country = country
+    }
+  }
+  if (usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList']) {
+    usr.regionList = usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList']
+    var rFilter = new regionFilter()
+    rFilter.idList = usr.regionList
+    let regions = await locationFilters.getRegions(rFilter)
+    if (regions) {
+      usr.regions = regions
+    }
+  }
+  if (usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList']) {
+    usr.countryList = usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList']
+    for (const cId of usr.countryList.split(',').map((id) => parseInt(id))) {
+      let country = countries.value.find((c) => c.id === cId)
+      if (country) {
+        usr.countries.push(country)
+      }
+    }
+  }
+  console.log('Converted User FKeys', usr)
+}
+
 async function saveUser() {
   submitted.value = true
-  if (currentUser?.value?.newUserName?.trim()) {
-    currentUser.value.userName = currentUser.value.newUserName
+  if (userModel?.value?.newUserName?.trim()) {
+    userModel.value.userName = userModel.value.newUserName
+  }
+  if (userModel?.value?.userName?.trim()) {
+    // if (selectedBrands.value !== undefined) {
+    //   userModel.value.brandIds = selectedBrands.value.join(',')
+    // }
+    // if (selectedRoles.value !== undefined) {
+    //   userModel.value.roleIds = selectedRoles.value.join(',')
+    // }
+    if (userModel.value.id) {
+      await UserService.initialise()
+      await UserService.saveUser(userModel.value)
+        .then(async (response) => {
+          var updatedUser = userModel.value
+          await convertUserFKeys(updatedUser)
+          toast.add({
+            severity: 'success',
+            summary: 'Successful',
+            detail: 'User Updated',
+            life: 3000,
+          })
+          userDialog.value = false
+          submitted.value = false
+          // currentUser.value = {}
+          // selectedBrands.value = []
+          // selectedRoles.value = []
+          // selectedCountry.value = null
+        })
+        .catch((error) => {
+          console.log(error)
+          toast.add({
+            severity: 'error',
+            summary: 'Update failed',
+            detail: error.message || 'User not updated. Please try again.',
+            life: 3000,
+          })
+        })
+        .finally(() => {})
+    } else {
+      if (newPassword.value) {
+        //validate password complexity
+        const complexityRegex =
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+        if (!complexityRegex.test(newPassword.value)) {
+          toast.add({
+            severity: 'error',
+            summary: 'Validation Error',
+            detail:
+              'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
+            life: 4000,
+          })
+          return
+        }
+      } else {
+        toast.add({
+          severity: 'error',
+          summary: 'Validation Error',
+          detail: 'Password is required for new users.',
+          life: 4000,
+        })
+        return
+      }
+      userModel.value.password = newPassword.value
+      UserService.createUser(userModel.value)
+        .then((response) => {
+          toast.add({
+            severity: 'success',
+            summary: 'Successful',
+            detail: 'User Created',
+            life: 4000,
+          })
+          //router.push({ name: 'userList' })
+        })
+        .catch((error) => {
+          console.log(error)
+          var errMessage = 'Could not create user'
+          if (error.response.data.error.message) {
+            errMessage = error.response.data.error.message
+          }
+
+          toast.add({
+            severity: 'error',
+            summary: 'Create failed',
+            detail: errMessage,
+            life: 4000,
+          })
+        })
+        .finally(() => {})
+    }
   }
 }
 
@@ -251,7 +407,9 @@ async function onRegionChange(evt: any) {
   userRegionIdArray.push(...(evt as number[]))
 
   manageSelectedValues(evt, regionSelectList.value ?? [], userModel.value.regions ?? [])
-  userModel.value.regions.splice(0, 0, ...(regionsToKeep ?? [])) // add back any regions to keep at the start of the array to preserve any ordering if needed
+  if (regionsToKeep.length > 0) {
+    userModel.value.regions?.splice(0, 0, ...(regionsToKeep ?? [])) // add back any regions to keep at the start of the array to preserve any ordering if needed
+  }
 
   userModel.value.regionList = userModel.value.regions?.map((r) => r.id).join(',') || ''
   console.log('Regions Changed', userModel.value.regions)
@@ -315,12 +473,44 @@ function clearCountrySelection() {
 const resolver = ({ values }: any) => {
   const errors = {} as any
 
-  // if (!values.name) {
-  //   errors.name = [{ message: 'Name is required.' }]
-  // }
-  // if (!values.partNumber) {
-  //   errors.partNumber = [{ message: 'Part Number is required.' }]
-  // }
+  if (!values.FirstName) {
+    errors.FirstName = [{ message: 'First Name is required.' }]
+  }
+  if (!values.LastName) {
+    errors.LastName = [{ message: 'Last Name is required.' }]
+  }
+  if (!values.userEmailAddress) {
+    errors.userEmailAddress = [{ message: 'Email is required.' }]
+  }
+  if (!values.userName) {
+    errors.userName = [{ message: 'User Name is required.' }]
+  }
+  if (!values.diamCountryId) {
+    errors.diamCountryId = [{ message: 'User Country is required.' }]
+  }
+  if (values.brandIds == null || values.brandIds.length === 0) {
+    errors.brandIds = [{ message: 'At least one Brand must be selected.' }]
+  }
+  if (values.roleIds == null || values.roleIds.length === 0) {
+    errors.roleIds = [{ message: 'At least one Role must be selected.' }]
+  }
+  if (!values.id) {
+    if (!newPassword.value) {
+      errors.password = [{ message: 'Password is required for new users.' }]
+    } else {
+      //validate password complexity
+      const password = newPassword.value
+      const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+      if (!complexityRegex.test(password)) {
+        errors.password = [
+          {
+            message:
+              'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
+          },
+        ]
+      }
+    }
+  }
   // if (!values.description) {
   //   errors.description = [{ message: 'Description is required.' }]
   // }
@@ -414,7 +604,7 @@ async function onFormSubmit({ valid }: any) {
                   :value="userModel.givenName"
                   type="text"
                   length="255"
-                  placeholder="Part Name"
+                  placeholder="First Name"
                   fluid
                 />
                 <Message
@@ -431,7 +621,7 @@ async function onFormSubmit({ valid }: any) {
                   v-model="userModel.surname"
                   name="surname"
                   type="text"
-                  placeholder="Customer Reference"
+                  placeholder="Last Name"
                   fluid
                   length="255"
                 />
@@ -446,21 +636,21 @@ async function onFormSubmit({ valid }: any) {
               <div class="flex flex-col gap-1">
                 <label for="partNumber">User Name:</label>
                 <InputText
-                  v-model="userModel.givenName"
-                  name="partNumber"
+                  v-model="userModel.userName"
+                  name="userName"
                   type="text"
-                  placeholder="Part Number"
+                  placeholder="User Name"
                   fluid
                   length="255"
                 />
               </div>
               <div class="flex flex-col gap-1">
-                <label for="partNumber">Email:</label>
+                <label for="userEmailAddress">Email:</label>
                 <InputText
                   v-model="userModel.userEmailAddress"
-                  name="partNumber"
+                  name="userEmailAddress"
                   type="text"
-                  placeholder="Part Number"
+                  placeholder="Email Address"
                   fluid
                   length="255"
                 />
@@ -474,12 +664,12 @@ async function onFormSubmit({ valid }: any) {
                   optionValue="id"
                   optionLabel="name"
                   placeholder="Select a Country"
-                  :invalid="submitted && !currentUser.diamCountryId"
+                  :invalid="submitted && !userModel.diamCountryId"
                 >
                 </Select>
               </div>
 
-              <div class="flex flex-col gap-1" v-if="!currentUser.id">
+              <div class="flex flex-col gap-1" v-if="!userModel.id">
                 <label for="Password" class="font-semibold w-24">Password</label>
                 <div class="flex w-3/4 flex-column">
                   <Password
@@ -546,38 +736,38 @@ async function onFormSubmit({ valid }: any) {
             </div>
           </fieldset>
         </div>
-
-        <Tabs v-model:value="brandTabIndex">
-          <ul class="flex gap-2 mb-5 border-b">
-            <li v-for="tab in brandTabs" :key="tab.value" class="mr-2">
-              <Button @click="onTabChange(tab.value)">
-                {{ tab.title }}
-              </Button>
-              <!-- <Tab v-for="tab in brandTabs" :key="tab.title" :value="tab.value">
+        <div class="bg-gray-50 col-span-2 p-10 mb-5">
+          <Tabs v-model:value="brandTabIndex">
+            <ul class="flex gap-2 mb-5 border-b">
+              <li v-for="tab in brandTabs" :key="tab.value" class="mr-2">
+                <Button @click="onTabChange(tab.value)">
+                  {{ tab.title }}
+                </Button>
+                <!-- <Tab v-for="tab in brandTabs" :key="tab.title" :value="tab.value">
               {{ tab.title }}
             </Tab> -->
-            </li>
-          </ul>
-          <TabPanels>
-            <TabPanel v-for="tab in brandTabs" :key="tab.content" :value="tab.value">
-              <p class="m-0">{{ tab.content }}</p>
-              <component
-                :is="tabComponent"
-                :key="tab.value"
-                :brandId="parseInt(tab.value)"
-                :countries="currentBrandTabProperties.countries"
-                :selectedCountries="currentBrandTabProperties.selectedCountries"
-                :currentBrandId="parseInt(tab.value)"
-                :regions="currentRegionProps.regions"
-                :selectedRegions="currentRegionProps.selectedRegions"
-                @update:selectedRegions="onRegionChange"
-                @update:selectedCountries="onCountryChange"
-              ></component>
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
+              </li>
+            </ul>
+            <TabPanels>
+              <TabPanel v-for="tab in brandTabs" :key="tab.content" :value="tab.value">
+                <p class="m-0">{{ tab.content }}</p>
+                <component
+                  :is="tabComponent"
+                  :key="tab.value"
+                  :brandId="parseInt(tab.value)"
+                  :countries="currentBrandTabProperties.countries"
+                  :selectedCountries="currentBrandTabProperties.selectedCountries"
+                  :currentBrandId="parseInt(tab.value)"
+                  :regions="currentRegionProps.regions"
+                  :selectedRegions="currentRegionProps.selectedRegions"
+                  @update:selectedRegions="onRegionChange"
+                  @update:selectedCountries="onCountryChange"
+                ></component>
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
 
-        <!-- <div class="bg-gray-50 col-span-2 p-10 mb-5">
+          <!-- <div class="bg-gray-50 col-span-2 p-10 mb-5">
           <fieldset legend="Location" class="col-span-2">
             <legend class="text-lg font-bold mb-2">Location</legend>
             <div class="grid grid-cols-3 gap-10">
@@ -641,62 +831,9 @@ async function onFormSubmit({ valid }: any) {
             </div>
           </fieldset>
         </div> -->
+        </div>
+        <Button label="Save" @click="saveUser" />
       </Form>
     </div>
-  </div>
-
-  <div class="card">
-    <h1>Manage User</h1>
-    <p>Here you can manage users.</p>
-    <div class="field">
-      <label for="username">Username</label>
-      <InputText id="username" type="text" v-model="user.userName" />
-    </div>
-    <div class="field">
-      <label for="email">Email</label>
-      <InputText id="email" type="text" v-model="user.mail" />
-    </div>
-    <div class="field">
-      <label for="firstName">First Name</label>
-      <InputText id="firstName" type="text" v-model="user.displayName" />
-    </div>
-    <div class="field">
-      <label for="lastName">Last Name</label>
-      <InputText id="lastName" type="text" v-model="user.surname" />
-    </div>
-    <!-- <div class="field">
-      <label for="country">Country</label>
-      <Dropdown
-        id="country"
-        :options="countries"
-        optionLabel="name"
-        optionValue="id"
-        v-model="user.diamCountryId"
-        placeholder="Select a Country"
-      />
-    </div> -->
-    <!-- <div class="field">
-      <label for="brand">Brand</label>
-      <Dropdown
-        id="brand"
-        :options="brands"
-        optionLabel="name"
-        optionValue="id"
-        v-model="user.brandIds"
-        placeholder="Select a Brand"
-      />
-    </div>
-    <div class="field">
-      <label for="role">Role</label>
-      <Dropdown
-        id="role"
-        :options="roles"
-        optionLabel="name"
-        optionValue="id"
-        v-model="user.roleIds"
-        placeholder="Select a Role"
-      />
-    </div> -->
-    <Button label="Save" @click="saveUser" />
   </div>
 </template>

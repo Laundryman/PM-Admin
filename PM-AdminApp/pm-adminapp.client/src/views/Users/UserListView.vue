@@ -168,7 +168,9 @@ const createUser = () => {
   selectedRoles.value = []
   selectedCountry.value = null
   newPassword.value = null
-  userDialog.value = true
+  userStore.setActiveUser(currentUser.value)
+  router.push({ name: 'manageUser' })
+  // /userDialog.value = true
 }
 
 const changePassword = (usr: any) => {

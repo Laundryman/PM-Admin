@@ -130,6 +130,8 @@ export default {
     }
 
     updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId'] = user.diamCountryId
+    updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList'] = user.countryList
+    updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList'] = user.regionList
 
     if (user.roleIds != null && user.roleIds.length > 0) {
       updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles'] = user.roleIds.join(',')
@@ -151,13 +153,14 @@ export default {
 
   async createUser(user: User) {
     let newUser = new Object() as any
+    let mailNickname = user.userEmailAddress.substring(0, user.userEmailAddress.indexOf('@'))
     newUser = {
       accountEnabled: true,
       displayName: user.userName,
-      mailNickname: user.userEmailAddress.substring(0, user.userEmailAddress.indexOf('@')),
+      mailNickname: mailNickname,
       givenName: user.givenName,
       surname: user.surname,
-      userPrincipalName: user.mailNickName + '@' + import.meta.env.VITE_APP_TENANT_NAME,
+      userPrincipalName: mailNickname + '@' + import.meta.env.VITE_APP_TENANT_NAME,
       identities: [
         {
           signInType: 'emailAddress',
@@ -184,6 +187,8 @@ export default {
     }
 
     newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId'] = user.diamCountryId
+    newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList'] = user.countryList
+    newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList'] = user.regionList
 
     if (user.roleIds != null && user.roleIds.length > 0) {
       newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles'] = user.roleIds.join(',')
@@ -289,6 +294,8 @@ export default {
       }
     }
     if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
       user.roleIds = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
         .split(',')
         .map((id: any) => parseInt(id))
@@ -296,6 +303,8 @@ export default {
       user.roleIds = []
     }
     if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']
       user.brandIds = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']
         .split(',')
         .map((id: any) => parseInt(id))
@@ -303,22 +312,30 @@ export default {
       user.brandIds = []
     }
     if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
       user.diamCountryId = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
     } else {
       user.diamCountryId = 0
     }
     if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']
       user.userEmailAddress =
         graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']
     } else {
       user.userEmailAddress = ''
     }
     if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList']
       user.countryList = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList']
     } else {
       user.countryList = ''
     }
     if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList']
       user.regionList = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList']
     } else {
       user.regionList = ''

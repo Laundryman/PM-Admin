@@ -35,6 +35,8 @@ export class User {
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands!: string
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles!: string
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress!: string
+  extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList!: string
+  extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList!: string
 }
 
 export class Identity {
