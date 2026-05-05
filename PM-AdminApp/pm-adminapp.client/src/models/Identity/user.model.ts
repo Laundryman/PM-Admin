@@ -13,8 +13,12 @@ export class User {
   brands: Brand[] = []
   brandNameList: string[] = []
   brandNameFilterList!: string
-  roleIds!: number[]
-  roles: Role[] = []
+  roleId!: number
+  role: Role | null = null
+  roleIds!: number[] //deprecated
+  roles: Role[] = [] //deprecated
+  shopper!: boolean
+  orderManager!: boolean
   roleNameList: string[] = []
   roleNameFilterList!: string
   givenName!: string
@@ -34,6 +38,10 @@ export class User {
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId!: number
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands!: string
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles!: string
+  extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId!: string
+  extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper!: boolean
+  extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager!: boolean
+
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress!: string
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList!: string
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList!: string

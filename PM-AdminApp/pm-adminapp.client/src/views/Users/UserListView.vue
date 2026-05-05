@@ -90,17 +90,9 @@ function convertUserFKeys(userList: User[]) {
     usr.brandNameList = []
     usr.roleNameList = []
     // usr.brandNameList = ''
-    if (usr.roleIds) {
-      for (const rid of usr.roleIds) {
-        let foundRole = roles.value.find((r) => r.id === rid)
-        if (foundRole !== undefined && foundRole !== null) {
-          let role = new Role()
-          role.id = foundRole.id
-          role.name = foundRole.name
-          usr.roles.push(role)
-          usr.roleNameList.push(role.name)
-        }
-      }
+    if (usr.roleId) {
+      let foundRole = roles.value.find((r) => r.id === usr.roleId)
+      usr.role = foundRole || null
     }
     if (usr.brandIds) {
       for (const bid of usr.brandIds) {
@@ -134,7 +126,7 @@ const filters = ref({
   userEmailAddress: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   'country.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   brandNameList: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  roleNameList: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  'role.name': { value: null, matchMode: FilterMatchMode.CONTAINS },
 })
 
 const matchModeOptions = ref([
@@ -375,7 +367,7 @@ const getCountryName = (countryId: string) => {
         'userEmailAddress',
         'country.name',
         'brandNameList',
-        'roleNameList',
+        'role.name',
       ]"
       ref="dt"
       :value="users"
@@ -541,15 +533,10 @@ const getCountryName = (countryId: string) => {
         </template>
       </Column>
 
-      <Column
-        header="Roles"
-        style="max-width: 10rem"
-        filterField="roleNameList"
-        sortField="roleNameList"
-      >
+      <Column header="Roles" style="max-width: 10rem" filterField="role.name" sortField="role.name">
         <template #body="{ data }">
-          <span v-if="data.roleNameList">
-            {{ data.roleNameList.join(', ') }}
+          <span v-if="data.role">
+            {{ data.role.name }}
           </span>
         </template>
         <template #filter="{ filterModel, filterCallback }">
@@ -567,14 +554,14 @@ const getCountryName = (countryId: string) => {
       <Column :exportable="false" style="min-width: 8rem">
         <template #body="slotProps">
           <span>&nbsp;</span>
-          <Button
+          <!-- <Button
             v-tooltip="'edit user'"
             icon="pi pi-pencil"
             outlined
             rounded
             class="mr-2"
             @click="editUser(slotProps.data)"
-          />
+          /> -->
           <Button
             v-tooltip="'edit user'"
             icon="pi pi-pencil"

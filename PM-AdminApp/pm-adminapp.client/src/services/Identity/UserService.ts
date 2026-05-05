@@ -46,8 +46,10 @@ export default {
       .get('/users/' + id, {
         params: {
           $select:
-            'identities,id,displayname,userName, givenName,surname,mail,mailNickname,userPrincipalName,country, ' +
-            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles, extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands, extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress,extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList, extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList',
+            'identities,id,displayname,userName, givenName,surname,mail,mailNickname,userPrincipalName,country,' +
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands,' +
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress,extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList,extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList,' +
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId, extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper, extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager',
         },
       })
       .then((response) => {
@@ -71,7 +73,9 @@ export default {
         params: {
           $select:
             'identities,id,displayname,userName, givenName,surname,mail,mailNickname,userPrincipalName, ' +
-            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles, extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands, extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress,extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList, extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList',
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands, ' +
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress,extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList, extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList,' +
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId, extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper, extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager',
           // $filter: "creationType eq 'LocalAccount'",
           $top: '100',
           // $orderBy: 'displayName',
@@ -132,12 +136,12 @@ export default {
     updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId'] = user.diamCountryId
     updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList'] = user.countryList
     updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList'] = user.regionList
-
-    if (user.roleIds != null && user.roleIds.length > 0) {
-      updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles'] = user.roleIds.join(',')
-    } else if (user.roleIds != null && user.roleIds.length == 1) {
-      updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles'] = user.roleIds
+    updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper'] = user.shopper
+    updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager'] = user.orderManager
+    if (user.roleId != null) {
+      updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId'] = user.roleId
     }
+
     updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress'] =
       user.userEmailAddress
 
@@ -190,10 +194,8 @@ export default {
     newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList'] = user.countryList
     newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList'] = user.regionList
 
-    if (user.roleIds != null && user.roleIds.length > 0) {
-      newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles'] = user.roleIds.join(',')
-    } else if (user.roleIds != null && user.roleIds.length == 1) {
-      newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles'] = user.roleIds
+    if (user.roleId != null) {
+      newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId'] = user.roleId
     }
     newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress'] = user.userEmailAddress
 
@@ -237,12 +239,17 @@ export default {
         user.userName = usernameId.issuerAssignedId
       }
     }
-    if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']) {
-      user.roleIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
-        .split(',')
-        .map((id: any) => parseInt(id))
+    // if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']) {
+    //   user.roleIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
+    //     .split(',')
+    //     .map((id: any) => parseInt(id))
+    // } else {
+    //   user.roleIds = []
+    // }
+    if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId']) {
+      user.roleId = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId']
     } else {
-      user.roleIds = []
+      user.roleId = 0
     }
     if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']) {
       user.brandIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']
@@ -293,14 +300,15 @@ export default {
         user.userName = usernameId.issuerAssignedId
       }
     }
-    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']) {
-      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles =
-        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
-      user.roleIds = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
-        .split(',')
-        .map((id: any) => parseInt(id))
+
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId']
+      user.roleId = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId'].map((id: any) =>
+        parseInt(id),
+      )
     } else {
-      user.roleIds = []
+      user.roleId = 0
     }
     if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']) {
       user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands =
@@ -311,13 +319,7 @@ export default {
     } else {
       user.brandIds = []
     }
-    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']) {
-      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId =
-        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
-      user.diamCountryId = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
-    } else {
-      user.diamCountryId = 0
-    }
+
     if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']) {
       user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress =
         graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']
@@ -340,6 +342,40 @@ export default {
     } else {
       user.regionList = ''
     }
+
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper'] !== undefined) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper']
+      user.shopper = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper']
+    } else {
+      user.shopper = false
+    }
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager'] !== undefined) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager']
+      user.orderManager = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager']
+    } else {
+      user.orderManager = false
+    }
+
+    //Deprecated fields mapping
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
+      user.roleIds = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
+        .split(',')
+        .map((id: any) => parseInt(id))
+    } else {
+      user.roleIds = []
+    }
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
+      user.diamCountryId = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
+    } else {
+      user.diamCountryId = 0
+    }
+
     return user
   },
 }

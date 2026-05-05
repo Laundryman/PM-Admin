@@ -28,6 +28,7 @@ const brands = ref<Brand[]>([])
 const countries = ref<Country[]>([])
 const roles = ref<Role[]>([])
 
+const checked = ref(false)
 const ms_selectedRegions = ref<number[] | null>(null) // MultiSelect binding
 const ms_selectedCountries = ref<number[] | null>(null) // MultiSelect binding
 const selectAllCountries = ref(false)
@@ -129,7 +130,7 @@ onMounted(async () => {
 async function onTabChange(index: string) {
   let brandId = parseInt(index)
   brandTabIndex.value = index
-  selectedBrands.value.push(brandId)
+
   let rFilter = new regionFilter()
   rFilter.brandId = brandId
   console.log('Getting regions for brand', brandId)
@@ -194,18 +195,28 @@ async function convertUserFKeys(usr: User) {
   usr.countries = []
   usr.regions = []
   // usr.brandNameList = ''
-  if (usr.roleIds) {
-    for (const rid of usr.roleIds) {
-      let foundRole = roles.value.find((r) => r.id === rid)
-      if (foundRole !== undefined && foundRole !== null) {
-        let role = new Role()
-        role.id = foundRole.id
-        role.name = foundRole.name
-        usr.roles.push(role)
-        usr.roleNameList.push(role.name)
-      }
+  if (usr.roleId) {
+    let foundRole = roles.value.find((r) => r.id === usr.roleId)
+    if (foundRole !== undefined && foundRole !== null) {
+      let role = new Role()
+      role.id = foundRole.id
+      role.name = foundRole.name
+      usr.role = role
+      usr.roleNameList.push(role.name)
     }
   }
+  // if (usr.roleIds) {
+  //   for (const rid of usr.roleIds) {
+  //     let foundRole = roles.value.find((r) => r.id === rid)
+  //     if (foundRole !== undefined && foundRole !== null) {
+  //       let role = new Role()
+  //       role.id = foundRole.id
+  //       role.name = foundRole.name
+  //       usr.roles.push(role)
+  //       usr.roleNameList.push(role.name)
+  //     }
+  //   }
+  // }
   if (usr.brandIds) {
     for (const bid of usr.brandIds) {
       let foundBrand = brands.value.find((b) => b.id === bid)
@@ -723,21 +734,30 @@ async function onFormSubmit({ valid }: any) {
               <div class="flex flex-col gap-1">
                 <label for="ddRoles" class="font-semibold w-24 mb-3">Roles</label>
 
-                <MultiSelect
+                <Select
                   id="ddRoles"
-                  v-model="userModel.roleIds"
+                  v-model="userModel.roleId"
                   :options="roles"
                   optionLabel="name"
                   optionValue="id"
-                  placeholder="Select Roles"
-                  :maxSelectedLabels="3"
+                  placeholder="Select Role"
                 />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label for="Shopper" class="font-semibold w-24 mb-3">Shopper</label>
+                <Checkbox id="Shopper" v-model="userModel.shopper" binary />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label for="OrderManager" class="font-semibold mb-3">Order Manager</label>
+                <Checkbox id="OrderManager" v-model="userModel.orderManager" binary />
               </div>
             </div>
           </fieldset>
         </div>
         <div class="bg-gray-50 col-span-2 p-10 mb-5">
-          <Tabs v-model:value="brandTabIndex">
+          <!-- don't show the tabs if the user is a global admin as they shouldn't be restricted by
+            brand level access -->
+          <Tabs v-if="userModel.roleId != 2" v-model:value="brandTabIndex">
             <ul class="flex gap-2 mb-5 border-b">
               <li v-for="tab in brandTabs" :key="tab.value" class="mr-2">
                 <Button @click="onTabChange(tab.value)">
@@ -748,6 +768,7 @@ async function onFormSubmit({ valid }: any) {
             </Tab> -->
               </li>
             </ul>
+
             <TabPanels>
               <TabPanel v-for="tab in brandTabs" :key="tab.content" :value="tab.value">
                 <p class="m-0">{{ tab.content }}</p>
@@ -766,71 +787,6 @@ async function onFormSubmit({ valid }: any) {
               </TabPanel>
             </TabPanels>
           </Tabs>
-
-          <!-- <div class="bg-gray-50 col-span-2 p-10 mb-5">
-          <fieldset legend="Location" class="col-span-2">
-            <legend class="text-lg font-bold mb-2">Location</legend>
-            <div class="grid grid-cols-3 gap-10">
-              <div class="flex flex-col gap-2">
-                <label for="region">Region:</label>
-                <MultiSelect
-                  name="region"
-                  v-model="ms_selectedRegions"
-                  :options="regionSelectList ?? []"
-                  id="region"
-                  class="w-full"
-                  option-label="name"
-                  option-value="id"
-                  @change="onRegionChange"
-                >
-                  <template #option="option">
-                    <div class="flex align-items-center">
-                      <span>{{ option.option.name }}</span>
-                    </div>
-                  </template>
-                </MultiSelect>
-              </div>
-              <div class="flex flex-col gap-2">
-                <label for="country">Country:</label>
-                <MultiSelect
-                  name="countries"
-                  v-model="ms_selectedCountries"
-                  :options="countrySelectList ?? []"
-                  id="country"
-                  class="w-full"
-                  option-label="name"
-                  option-value="id"
-                  @change="onCountryChange"
-                  :selectAll="selectAllCountries"
-                  @selectall-change="onSelectAllCountriesChange($event)"
-                >
-                  <template #option="option">
-                    <div class="">
-                      <span>{{ option.option.name }}</span>
-                    </div>
-                  </template>
-                </MultiSelect>
-                <Message
-                  v-if="$form.countries?.invalid"
-                  severity="error"
-                  size="small"
-                  variant="simple"
-                  >{{ $form.countries.error?.message }}</Message
-                >
-              </div>
-              <div class="flex gap-2 flex-wrap max-h-40 overflow-auto">
-                <Button
-                  label="Clear Selection"
-                  class="w-text-left"
-                  @click="clearCountrySelection"
-                />
-                <template v-for="country in userModel.countries">
-                  <Chip class="flex-wrap" :label="country.name"></Chip>
-                </template>
-              </div>
-            </div>
-          </fieldset>
-        </div> -->
         </div>
         <Button label="Save" @click="saveUser" />
       </Form>
