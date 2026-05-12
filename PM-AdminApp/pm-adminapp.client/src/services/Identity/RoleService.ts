@@ -1,3 +1,4 @@
+import type { Permission } from '@/models/Identity/permission.model'
 import { Role } from '@/models/Identity/role.model'
 import { Auth, msal } from '@/services/Identity/auth'
 import { useAuthStore } from '@/stores/auth'
@@ -22,6 +23,13 @@ export default {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
     const response = await apiClient.get('/getRoles')
+    return response.data
+  },
+  async getPermissions(): Promise<Permission[]> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    const response = await apiClient.get('/getPermissions')
     return response.data
   },
   async initialise() {

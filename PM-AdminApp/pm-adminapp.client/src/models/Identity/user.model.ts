@@ -1,11 +1,12 @@
 import { Country } from '@/models/Countries/country.model'
 import { Brand } from '../Brands/brand.model'
 import type { Region } from '../Countries/region.model'
+import { Permission } from './permission.model'
 import { Role } from './role.model'
 export class User {
   password!: string
   id!: string
-  diamCountryId!: number
+  countryId!: number
   country!: Country | null
   diamCountryName!: string
   diamUserId!: number
@@ -17,6 +18,8 @@ export class User {
   role: Role | null = null
   roleIds!: number[] //deprecated
   roles: Role[] = [] //deprecated
+  permissions: Permission[] = []
+  permissionIds!: number[] //deprecated
   shopper!: boolean
   orderManager!: boolean
   roleNameList: string[] = []
@@ -39,6 +42,7 @@ export class User {
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands!: string
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles!: string
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId!: string
+  extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions!: string
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper!: boolean
   extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager!: boolean
 

@@ -32,7 +32,7 @@ namespace PM_AdminApp.Server.Extensions
             {
                 BrandIds = identity.Claims.Where(c => c.Type == "extension_brands").Select(c => c.Value)
                     .FirstOrDefault(),
-                DiamCountryId = int.Parse(identity.Claims.Where(c => c.Type == "extension_diamCountryId")
+                CountryId = int.Parse(identity.Claims.Where(c => c.Type == "extension_diamCountryId")
                     .Select(c => c.Value).FirstOrDefault()),
                 DisplayName = identity.Claims.Where(c => c.Type == "name").Select(c => c.Value).FirstOrDefault(),
                 UserName = identity.Claims.Where(c => c.Type == "name").Select(c => c.Value).FirstOrDefault(),

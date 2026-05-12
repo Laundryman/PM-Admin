@@ -49,7 +49,7 @@ export default {
             'identities,id,displayname,userName, givenName,surname,mail,mailNickname,userPrincipalName,country,' +
             'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands,' +
             'extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress,extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList,extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList,' +
-            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId, extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper, extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager',
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId, extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper, extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager, extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions',
         },
       })
       .then((response) => {
@@ -75,7 +75,7 @@ export default {
             'identities,id,displayname,userName, givenName,surname,mail,mailNickname,userPrincipalName, ' +
             'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands, ' +
             'extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress,extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList, extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList,' +
-            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId, extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper, extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager',
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId, extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper, extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager, extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions',
           // $filter: "creationType eq 'LocalAccount'",
           $top: '100',
           // $orderBy: 'displayName',
@@ -133,13 +133,17 @@ export default {
       updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands'] = user.brandIds
     }
 
-    updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId'] = user.diamCountryId
+    updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId'] = user.countryId
     updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList'] = user.countryList
     updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList'] = user.regionList
     updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper'] = user.shopper
     updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager'] = user.orderManager
     if (user.roleId != null) {
       updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId'] = user.roleId
+    }
+    if (user.permissions != null) {
+      updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions'] =
+        user.permissionIds.join(',')
     }
 
     updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress'] =
@@ -190,13 +194,19 @@ export default {
       newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands'] = user.brandIds
     }
 
-    newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId'] = user.diamCountryId
+    newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId'] = user.countryId
     newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList'] = user.countryList
     newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList'] = user.regionList
 
     if (user.roleId != null) {
       newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId'] = user.roleId
     }
+    if (user.permissions != null) {
+      newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions'] = user.permissions
+        .map((p) => p.id)
+        .join(',')
+    }
+
     newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress'] = user.userEmailAddress
 
     var resp = await apiClient
@@ -251,6 +261,12 @@ export default {
     } else {
       user.roleId = 0
     }
+    if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions']) {
+      user.permissionIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions'].split(',')
+    } else {
+      user.permissions = []
+    }
+
     if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']) {
       user.brandIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']
         .split(',')
@@ -288,6 +304,7 @@ export default {
     user.id = graphUser.id
     user.countries = []
     user.regions = []
+    user.permissions = []
     user.password = graphUser.password || ''
     user.roles = []
     user.brandIds = []
@@ -304,12 +321,21 @@ export default {
     if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId']) {
       user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId =
         graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId']
-      user.roleId = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId'].map((id: any) =>
-        parseInt(id),
-      )
+      user.roleId = parseInt(graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId'])
     } else {
       user.roleId = 0
     }
+
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions']
+      user.permissionIds = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions']
+        .split(',')
+        .map((id: any) => parseInt(id))
+    } else {
+      user.permissionIds = []
+    }
+
     if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']) {
       user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands =
         graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']
@@ -371,9 +397,9 @@ export default {
     if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']) {
       user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId =
         graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
-      user.diamCountryId = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
+      user.countryId = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
     } else {
-      user.diamCountryId = 0
+      user.countryId = 0
     }
 
     return user

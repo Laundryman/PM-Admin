@@ -16,6 +16,7 @@ declare module 'vue' {
     Card: typeof import('primevue/card')['default']
     Chart: typeof import('primevue/chart')['default']
     Checkbox: typeof import('primevue/checkbox')['default']
+    CheckboxGroup: typeof import('primevue/checkboxgroup')['default']
     Chip: typeof import('primevue/chip')['default']
     'Cluster.service.component': typeof import('./src/components/Planner/cluster.service.component.vue')['default']
     Column: typeof import('primevue/column')['default']

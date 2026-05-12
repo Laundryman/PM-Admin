@@ -19,6 +19,7 @@ export const useUserStore = defineStore('userStore', () => {
       .then((data) => {
         // create brandOptions array for select dropdown
         selectedUser.value = data
+        activeUser.value = data
         loadingUsers.value = false
         userLoaded.value = true
       })

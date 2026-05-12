@@ -4,6 +4,7 @@ import { Brand } from '@/models/Brands/brand.model'
 import type { Country } from '@/models/Countries/country.model'
 import { Region } from '@/models/Countries/region.model'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
+import { Permission } from '@/models/Identity/permission.model'
 import { Role } from '@/models/Identity/role.model'
 import { User } from '@/models/Identity/user.model'
 import CountryService from '@/services/Countries/CountryService'
@@ -27,7 +28,8 @@ const user = ref<User>(new User())
 const brands = ref<Brand[]>([])
 const countries = ref<Country[]>([])
 const roles = ref<Role[]>([])
-
+const permissions = ref<Permission[]>([])
+const selectedPermissions = ref<string[]>([])
 const checked = ref(false)
 const ms_selectedRegions = ref<number[] | null>(null) // MultiSelect binding
 const ms_selectedCountries = ref<number[] | null>(null) // MultiSelect binding
@@ -123,7 +125,12 @@ onMounted(async () => {
     roles.value = data
   })
 
+  await RoleService.getPermissions().then((data: Permission[]) => {
+    permissions.value = data
+  })
+
   convertUserFKeys(userModel.value)
+  selectedPermissions.value = userModel.value.permissions?.map((p) => p.name) ?? []
   console.log('Initial User Model after FKey conversion', userModel.value)
 })
 
@@ -217,6 +224,15 @@ async function convertUserFKeys(usr: User) {
   //     }
   //   }
   // }
+
+  if (usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions']) {
+    for (const pid of usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions'].split(',')) {
+      let foundPerm = permissions.value.find((p) => p.id === parseInt(pid))
+      if (foundPerm) {
+        usr.permissions?.push(foundPerm)
+      }
+    }
+  }
   if (usr.brandIds) {
     for (const bid of usr.brandIds) {
       let foundBrand = brands.value.find((b) => b.id === bid)
@@ -230,8 +246,8 @@ async function convertUserFKeys(usr: User) {
     }
   }
   if (usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']) {
-    usr.diamCountryId = usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
-    let country = countries.value.find((c) => c.id === usr.diamCountryId)
+    usr.countryId = usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
+    let country = countries.value.find((c) => c.id === usr.countryId)
     if (country) {
       usr.country = country
     }
@@ -479,6 +495,23 @@ function clearCountrySelection() {
 }
 
 /////////////////////////////////////////////////////
+// Permissions Handlers
+/////////////////////////////////////////////////////
+function onPermissionsChange(event: any) {
+  var currPerms = event
+  //reset permissions
+  userModel.value.permissions = []
+  userModel.value.permissionIds = []
+
+  //add selected permissions back in
+  for (const permissionName of currPerms) {
+    let permission = permissions.value.find((p) => p.name === permissionName)
+    userModel.value.permissions.push(permission as Permission)
+    userModel.value.permissionIds.push(permission?.id ?? 0)
+  }
+}
+
+/////////////////////////////////////////////////////
 // Form Handlers
 /////////////////////////////////////////////////////
 const resolver = ({ values }: any) => {
@@ -670,12 +703,12 @@ async function onFormSubmit({ valid }: any) {
                 <label for="ddCountries" class="font-semibold">User Country</label>
                 <Select
                   id="ddCountries"
-                  v-model="userModel.diamCountryId"
+                  v-model="userModel.countryId"
                   :options="countries"
                   optionValue="id"
                   optionLabel="name"
                   placeholder="Select a Country"
-                  :invalid="submitted && !userModel.diamCountryId"
+                  :invalid="submitted && !userModel.countryId"
                 >
                 </Select>
               </div>
@@ -743,13 +776,60 @@ async function onFormSubmit({ valid }: any) {
                   placeholder="Select Role"
                 />
               </div>
-              <div class="flex flex-col gap-1">
+              <!-- <div class="flex flex-col gap-1">
                 <label for="Shopper" class="font-semibold w-24 mb-3">Shopper</label>
                 <Checkbox id="Shopper" v-model="userModel.shopper" binary />
               </div>
               <div class="flex flex-col gap-1">
                 <label for="OrderManager" class="font-semibold mb-3">Order Manager</label>
                 <Checkbox id="OrderManager" v-model="userModel.orderManager" binary />
+              </div>-->
+              <div class="flex flex-col gap-1">
+                <!-- <CheckboxGroup name="permissions" class="flex flex-wrap gap-4">
+                  <div class="flex items-center gap-2">
+                    <Checkbox inputId="create" value="create" />
+                    <label for="create"> Create </label>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <Checkbox inputId="edit" value="edit" />
+                    <label for="edit"> Edit </label>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <Checkbox inputId="approve" value="approve" />
+                    <label for="approve"> Approve </label>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <Checkbox inputId="validate" value="validate" />
+                    <label for="validate"> Validate </label>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <Checkbox inputId="shop" value="shop" />
+                    <label for="shop"> Shop </label>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <Checkbox inputId="order" value="order" />
+                    <label for="order"> Order </label>
+                  </div>
+                </CheckboxGroup> -->
+                <div
+                  v-for="permission of permissions"
+                  :key="permission.id"
+                  class="flex items-center gap-2"
+                >
+                  <CheckboxGroup
+                    v-model="selectedPermissions"
+                    name="permissions"
+                    v-on:update:model-value="onPermissionsChange"
+                  >
+                    <Checkbox
+                      v-model="selectedPermissions"
+                      :inputId="permission.id.toString()"
+                      name="permission"
+                      :value="permission.name"
+                    />
+                    <label :for="permission.id.toString()">{{ permission.name }}</label>
+                  </CheckboxGroup>
+                </div>
               </div>
             </div>
           </fieldset>

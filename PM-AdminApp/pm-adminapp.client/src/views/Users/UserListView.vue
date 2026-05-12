@@ -107,8 +107,8 @@ function convertUserFKeys(userList: User[]) {
       }
     }
     if (usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']) {
-      usr.diamCountryId = usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
-      let country = countries.value.find((c) => c.id === usr.diamCountryId)
+      usr.countryId = usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
+      let country = countries.value.find((c) => c.id === usr.countryId)
       if (country) {
         usr.country = country
       }
