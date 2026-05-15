@@ -133,8 +133,10 @@ onMounted(async () => {
   selectedPermissions.value = userModel.value.permissions?.map((p) => p.name) ?? []
   console.log('Initial User Model after FKey conversion', userModel.value)
 })
-
-async function onTabChange(index: string) {
+async function onTabChanged2(evt: any) {
+  alert('changed' + evt)
+}
+async function onTabChange(index: any) {
   let brandId = parseInt(index)
   brandTabIndex.value = index
 
@@ -748,7 +750,7 @@ async function onFormSubmit({ valid }: any) {
         <div class="bg-gray-50 col-span-2 p-10 mb-5">
           <fieldset legend="Location" class="col-span-2">
             <legend class="text-lg font-bold mb-2">Access</legend>
-            <div class="grid grid-cols-2 gap-10">
+            <div class="grid grid-cols-2 gap-x-10">
               <div class="flex flex-col gap-1">
                 <label for="ddBrands" class="font-semibold w-24 mb-3">Brands</label>
 
@@ -784,37 +786,15 @@ async function onFormSubmit({ valid }: any) {
                 <label for="OrderManager" class="font-semibold mb-3">Order Manager</label>
                 <Checkbox id="OrderManager" v-model="userModel.orderManager" binary />
               </div>-->
-              <div class="flex flex-col gap-1">
-                <!-- <CheckboxGroup name="permissions" class="flex flex-wrap gap-4">
-                  <div class="flex items-center gap-2">
-                    <Checkbox inputId="create" value="create" />
-                    <label for="create"> Create </label>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <Checkbox inputId="edit" value="edit" />
-                    <label for="edit"> Edit </label>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <Checkbox inputId="approve" value="approve" />
-                    <label for="approve"> Approve </label>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <Checkbox inputId="validate" value="validate" />
-                    <label for="validate"> Validate </label>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <Checkbox inputId="shop" value="shop" />
-                    <label for="shop"> Shop </label>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <Checkbox inputId="order" value="order" />
-                    <label for="order"> Order </label>
-                  </div>
-                </CheckboxGroup> -->
+
+              <div class="bg-gray-50 col-span-2 pt-10">
+                <legend class="text-lg font-bold">Permissions</legend>
+              </div>
+              <div class="flex flex-col-6 gap-1">
                 <div
                   v-for="permission of permissions"
                   :key="permission.id"
-                  class="flex items-center gap-2"
+                  class="flex items-center gap-2 m-2"
                 >
                   <CheckboxGroup
                     v-model="selectedPermissions"
@@ -826,6 +806,7 @@ async function onFormSubmit({ valid }: any) {
                       :inputId="permission.id.toString()"
                       name="permission"
                       :value="permission.name"
+                      class="mr-2"
                     />
                     <label :for="permission.id.toString()">{{ permission.name }}</label>
                   </CheckboxGroup>
@@ -837,18 +818,23 @@ async function onFormSubmit({ valid }: any) {
         <div class="bg-gray-50 col-span-2 p-10 mb-5">
           <!-- don't show the tabs if the user is a global admin as they shouldn't be restricted by
             brand level access -->
-          <Tabs v-if="userModel.roleId != 2" v-model:value="brandTabIndex">
-            <ul class="flex gap-2 mb-5 border-b">
+          <Tabs
+            v-if="userModel.roleId != 2"
+            v-model:value="brandTabIndex"
+            @update:value="onTabChange"
+          >
+            <!-- <ul class="flex gap-2 mb-5 border-b">
               <li v-for="tab in brandTabs" :key="tab.value" class="mr-2">
                 <Button @click="onTabChange(tab.value)">
                   {{ tab.title }}
                 </Button>
-                <!-- <Tab v-for="tab in brandTabs" :key="tab.title" :value="tab.value">
-              {{ tab.title }}
-            </Tab> -->
               </li>
-            </ul>
-
+            </ul> -->
+            <tabList>
+              <Tab v-for="tab in brandTabs" :key="tab.title" :value="tab.value">
+                {{ tab.title }}
+              </Tab>
+            </tabList>
             <TabPanels>
               <TabPanel v-for="tab in brandTabs" :key="tab.content" :value="tab.value">
                 <p class="m-0">{{ tab.content }}</p>

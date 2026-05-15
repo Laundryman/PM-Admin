@@ -26,9 +26,9 @@ namespace PM_AdminApp.Server.Mappings.Resolvers
         }
     }
 
-    public class StandLayoutResolver : IValueResolver<Stand, PlanmStandDto, byte>
+    public class StandLayoutResolver : IValueResolver<Stand, PlanmStandDto, byte?>
     {
-        public byte Resolve(Stand source, PlanmStandDto destination, byte destMember, ResolutionContext context)
+        public byte? Resolve(Stand source, PlanmStandDto destination, byte? destMember, ResolutionContext context)
         {
             if (source.LayoutStyle == 0)
             {
