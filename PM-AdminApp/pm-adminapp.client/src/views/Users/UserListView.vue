@@ -48,7 +48,7 @@ onMounted(async () => {
       users.value = response
       loading.value = false
     })
-    .catch((error) => {
+    .catch((error: any) => {
       console.log(error)
     })
 
