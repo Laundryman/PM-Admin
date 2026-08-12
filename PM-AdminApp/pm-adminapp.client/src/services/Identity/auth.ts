@@ -125,7 +125,35 @@ export const Auth = {
         })
     )
   },
+  /**
+   * Get ID token for Graph API
+   */
+  async getIdToken() {
+    const request: SilentRequest = {
+      scopes: [
+        'https://graph.microsoft.com/user.read',
+        'https://graph.microsoft.com/offline_access',
+        'https://graph.microsoft.com/openid',
+        'https://graph.microsoft.com/profile',
+      ],
+    }
+    return (
+      msal
+        // try getting the token silently
+        .acquireTokenSilent(request)
 
+        // attempt login popup if this fails
+        .catch(async (error: unknown) => {
+          if (error instanceof InteractionRequiredAuthError) {
+            return msal.acquireTokenPopup(request)
+          }
+          throw error
+        })
+        .then((result: AuthenticationResult) => {
+          return result.idToken
+        })
+    )
+  },
   /**
    * Get token for Graph API
    */

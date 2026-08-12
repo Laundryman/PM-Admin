@@ -12,9 +12,11 @@ import Checkbox from 'primevue/checkbox'
 import CheckboxGroup from 'primevue/checkboxgroup'
 import Chip from 'primevue/chip'
 import Column from 'primevue/column'
+import ConfirmationService from 'primevue/confirmationservice'
 import DataTable from 'primevue/datatable'
 import DatePicker from 'primevue/datepicker'
 import Dialog from 'primevue/dialog'
+import DialogService from 'primevue/dialogservice'
 import Divider from 'primevue/divider'
 import FileUpload from 'primevue/fileupload'
 import FloatLabel from 'primevue/floatlabel'
@@ -24,9 +26,6 @@ import InputIcon from 'primevue/inputicon'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
 import Listbox from 'primevue/listbox'
-
-import ConfirmationService from 'primevue/confirmationservice'
-import DialogService from 'primevue/dialogservice'
 import Menu from 'primevue/menu'
 import Message from 'primevue/message'
 import MultiSelect from 'primevue/multiselect'
@@ -112,7 +111,6 @@ app.directive('styleclass', StyleClass)
 app.directive('focustrap', FocusTrap)
 app.directive('animateonscroll', AnimateOnScroll)
 app.component('Message', Message)
-app.use(ToastService)
 
 declare global {
   interface Window {

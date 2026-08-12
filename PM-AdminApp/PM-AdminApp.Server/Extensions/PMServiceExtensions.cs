@@ -18,6 +18,7 @@ namespace PM_AdminApp.Server.Extensions
         {
             // Register your application services here
             //Example: services.AddScoped<IYourService, YourServiceImplementation>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IAuditService, AuditService>();
             services.AddScoped<IBrandService, BrandService>();
             services.AddTransient<ICategoryService, CategoryService>();
@@ -40,6 +41,8 @@ namespace PM_AdminApp.Server.Extensions
             services.AddScoped(typeof(StandUpdateLayoutResolver));
             services.AddScoped(typeof(ShelfPositionResolver));
             services.AddScoped(typeof(ShelfStatusEnumResolver));
+            services.AddScoped(typeof(ClusterPartPositionResolver));
+            services.AddScoped(typeof(ClusterPartStatusEnumResolver));
             services.AddScoped(typeof(ClusterShelfPositionResolver));
             services.AddScoped(typeof(ClusterShelfStatusEnumResolver));
             return services;
@@ -54,8 +57,8 @@ namespace PM_AdminApp.Server.Extensions
             services.AddTransient<IBrandRepository, BrandRepository>();
             services.AddTransient<ICategoryRepository, CategoryRepository>();
             services.AddTransient<IClusterRepository, ClusterRepository>();
-            //services.AddTransient<IClusterShelfRepository, ClusterShelfRepository>();
-            //services.AddTransient<IClusterPartRepository, ClusterPartRepository>();
+            services.AddTransient<IClusterShelfRepository, ClusterShelfRepository>();
+            services.AddTransient<IClusterPartRepository, ClusterPartRepository>();
             services.AddTransient<ICountryRepository, CountryRepository>();
             //services.AddTransient<IEmailRepository, EmailRepository>();
             //services.AddTransient<IHeroProductRepository, HeroProductRepository>();

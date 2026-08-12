@@ -15,18 +15,19 @@ using PMApplication.Enums;
 using PMApplication.Services;
 using PMApplication.Specifications.Filters;
 using System.Web;
-using dplo_system.Exceptions;
 //using IronPdf.Engines.Chrome;
 //using IronPdf.Rendering;
 using Microsoft.AspNetCore.Authorization;
+using PM_AdminApp.Server.Exceptions;
 using PM_AdminApp.Server.Extensions;
+using PMApplication.Entities.ClusterAggregate;
 using PMApplication.Entities.CountriesAggregate;
 
 namespace PM_AdminApp.Server.Controllers.Planner
 {
     [Authorize]
     [ApiController]
-    [Route("api/planner/cluster/[action]")]
+    [Route("api/clusters/[action]")]
     public class ClusterController : ControllerBase
     {
         private readonly IMapper _mapper;
@@ -78,8 +79,8 @@ namespace PM_AdminApp.Server.Controllers.Planner
 
 
         //[Route("/get-menu-categories/{planogramId}")]
-        [HttpPost]
-        public async Task<IActionResult> GetMenuCategories(GetMenuParams menuParams)
+        [HttpGet]
+        public async Task<IActionResult> GetMenuCategories(long id)
         {
             var menu = new PlanmMenuDto();
             try
@@ -87,7 +88,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
 
                 var clusterFilter = new ClusterFilter()
                 {
-                    Id = (long)menuParams.ClusterId
+                    Id = id
                 };
                 var cluster = await _clusterService.GetCluster(clusterFilter);
                 var standTypeId = cluster.Stand.StandTypeId; //need to get from planogram when denormalised
@@ -97,7 +98,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 var partFilter = new PartFilter
                 {
                     BrandId = brandId,
-                    ClusterId = (long)menuParams.ClusterId,
+                    ClusterId = id,
                     StandTypeId = standTypeId
                 };
                 var catList = await _partService.GetPlanmClusterMenu(partFilter);
@@ -143,13 +144,13 @@ namespace PM_AdminApp.Server.Controllers.Planner
         }
 
         //[Route("api/v2/planx/get-menu/{planogramId}")]
-        [HttpPost]
-        public async Task<IActionResult> GetMenu(GetMenuParams menuParams)
+        [HttpGet]
+        public async Task<IActionResult> GetMenu(long id)
         {
             var menu = new PlanmMenuDto();
             var filter = new ClusterFilter
             {
-                Id = menuParams.ClusterId ?? 0,
+                Id = id,
                 //StandTypeId = menuParams.StandTypeId ?? 0,
                 //BrandId = menuParams.BrandId ?? 0
             };
@@ -175,7 +176,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
             catch (Exception ex)
             {
                 //log an error
-                _logger.LogError("Error getting menu for cluster - " + menuParams.ClusterId + " error message:  " +
+                _logger.LogError("Error getting menu for cluster - " + id + " error message:  " +
                                  ex.Message);
 
                 return StatusCode(500, "Internal server error getting menu");
@@ -189,12 +190,12 @@ namespace PM_AdminApp.Server.Controllers.Planner
 
 
         //[Route("api/v2/planx/get-planogram/{PlanogramId}")]
-        [HttpPost]
-        public async Task<IActionResult> GetCluster(GetMenuParams menuParams)
+        [HttpGet]
+        public async Task<IActionResult> GetCluster(long id)
         {
             try
             {
-                var cluster = await _clusterService.GetCluster((long)menuParams.ClusterId);
+                var cluster = await _clusterService.GetCluster(id);
 
 
                 //var planogramView = (PlanogramDTO)planogram;
@@ -205,7 +206,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
             {
 
                 //log an error
-                _logger.LogError("Error getting cluster for clusterId " + menuParams.ClusterId + "---- error message - " + ex.Message + " --- " + ex.StackTrace);
+                _logger.LogError("Error getting cluster for clusterId " + id + "---- error message - " + ex.Message + " --- " + ex.StackTrace);
 
                 return StatusCode(500, "Internal server error getting cluster");
             }
@@ -221,7 +222,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 var StandFilter = new StandFilter
                 {
                     Id = (int)planoParams.StandId,
-                    includeColumnUprights = true
+                    IncludeColumnUprights = true
                 };
                 var stand = await _standService.GetStand(StandFilter);
                 var brand = await _brandService.GetBrand(stand.BrandId);
@@ -250,15 +251,15 @@ namespace PM_AdminApp.Server.Controllers.Planner
         }
 
         //[Route("api/v2/planx/get-planogram-shelves/{planogramId}")]
-        [HttpPost]
-        public async Task<IActionResult> GetShelves(GetMenuParams menuParams)
+        [HttpGet]
+        public async Task<IActionResult> GetShelves(long id )
         {
             try
             {
                 //var plano = await _planogramService.GetPlanogram(planogramId);
                 var filter = new ClusterFilter()
                 {
-                    Id = (long)menuParams.ClusterId
+                    Id = id
                 };
                 var shelves = await _clusterService.GetClusterShelves(filter);
                 var planoShelves = _mapper.Map<List<PlanmPartInfo>>(shelves);
@@ -268,7 +269,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
             {
                 //log an error
 
-                _logger.LogError("Error getting cluster shelves for clusterId " + menuParams.ClusterId + "---- error message - " + ex.Message + " --- " + ex.StackTrace);
+                _logger.LogError("Error getting cluster shelves for clusterId " + id + "---- error message - " + ex.Message + " --- " + ex.StackTrace);
                 return StatusCode(500, "Internal server error getting cluster shelves");
             }
             finally
@@ -278,15 +279,15 @@ namespace PM_AdminApp.Server.Controllers.Planner
         }
 
         //[Route("api/v2/planx/get-planogram-parts/{planogramId}")]
-        [HttpPost]
-        public async Task<IActionResult> GetParts(GetMenuParams menuParams)
+        [HttpGet]
+        public async Task<IActionResult> GetParts(long id)
         {
             try
             {
                 //var plano = await _planogramService.GetPlanogram(planogramId);
-                var filter = new ClusterFilter()
+                var filter = new ClusterPartFilter()
                 {
-                    Id = (long)menuParams.ClusterId
+                    ClusterId = id
                 };
                 var parts = await _clusterService.GetClusterParts(filter);
                 var planoParts = _mapper.Map<List<PlanmPartInfo>>(parts);
@@ -301,7 +302,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
             {
                 //log an error
 
-                _logger.LogError("Error getting cluster parts for clusterId " + menuParams.ClusterId + "---- error message - " + ex.Message + " --- " + ex.StackTrace);
+                _logger.LogError("Error getting cluster parts for clusterId " + id + "---- error message - " + ex.Message + " --- " + ex.StackTrace);
                 return StatusCode(500, "Internal server error getting cluster parts");
             }
             finally
@@ -438,12 +439,12 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 //Handle Deletions now
                 if (clusterData.DeletedInfo.partInfos != null)
                 {
-                    await DeletePlanogramParts(clusterData.DeletedInfo.partInfos.ToList());
+                    await DeleteParts(clusterData.DeletedInfo.partInfos.ToList());
                 }
 
                 if (clusterData.DeletedInfo.shelfInfos != null)
                 {
-                    await DeletePlanogramShelves(clusterData.DeletedInfo.shelfInfos.ToList());
+                    await DeleteShelves(clusterData.DeletedInfo.shelfInfos.ToList());
                 }
 
                 //Handle the scratchpad now
@@ -470,7 +471,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
                                 }
                             }
 
-                            //await SaveCassettes(planogramShelf.PlanogramId, shelf.Parts.ToList());
+                            await SaveCassettes(planogramShelf.ClusterId, shelf.Parts.ToList());
                         }
                     }
                 }
@@ -516,19 +517,19 @@ namespace PM_AdminApp.Server.Controllers.Planner
             try
             {
                 Planogram planogram = await _planogramService.GetPlanogram((int)planoJpeg.PlanogramId);
-                PlanogramPreview preview = await _planogramService.GetPlanogramPreview((int)planoJpeg.PlanogramId);
+                PlanogramPreview? preview = await _planogramService.GetPlanogramPreview((int)planoJpeg.PlanogramId);
 
                 if (preview != null)
                 {
                     preview.PreviewSrc = planoJpeg.Image;
-                    _planogramService.SavePlanogramPreview(preview);
+                    await _planogramService.SavePlanogramPreview(preview);
                 }
                 else
                 {
                     preview = new PlanogramPreview();
                     preview.PlanogramId = planoJpeg.PlanogramId;
                     preview.PreviewSrc = planoJpeg.Image;
-                    _planogramService.CreatePlanogramPreview(preview);
+                    await _planogramService.CreatePlanogramPreview(preview);
                 }
                     //_planogramService.SavePlanogram(planogram);
                 var userProfile = await this.MappedUser();
@@ -599,145 +600,131 @@ namespace PM_AdminApp.Server.Controllers.Planner
             }
         }
 
+        private async Task SaveCassettes(long clusterId, List<PlanmPartInfo> cassettes, ScratchPad? scratchPad = null)
+        {
+            //////////////////////////////////////////////////////////////////////////////////////////////
+            //HANDLE CASSETTES
+            //now handle the cassettes available products
+            try
+            {
+                foreach (var cassette in cassettes)
+                {
+                    switch (cassette.PartTypeId)
+                    {
+                        case (int)PartTypeEnum.Cassette:
+                            await ClusterCassetteUpdate(cassette, clusterId);
+                            break;
+                        case (int)PartTypeEnum.Glorifier:
+                            await ClusterCassetteUpdate(cassette, clusterId);
+                            break;
+                        case (int)PartTypeEnum.RedFrame:
+                            await ClusterCassetteUpdate(cassette, clusterId);
+                            break;
+                        case (int)PartTypeEnum.Blanking:
+                            await ClusterCassetteUpdate(cassette, clusterId);
+                            break;
+                        case (int)PartTypeEnum.Accessory:
+                            await ClusterCassetteUpdate(cassette, clusterId);
+                            break;
+                    }
 
-        //[Route("api/v2/planx/get-planogram-pdf")]
-        //[HttpPost]
-        //public async Task<IActionResult> PlanogramToPdf(PlanmImageDto planoSvg)
-        //{
-        //    //var content = Request.Content.ReadAsStringAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                //we caught an exception
+                throw (ex);
+            }
 
-        //    if (planoSvg != null)
-        //    {
-
-
-
-        //        Planogram planogram = await _planogramService.GetPlanogram((int)planoSvg.PlanogramId);
-        //        // we can retrieve the userId from the request
-        //        var skuCount = 0;
-        //        var shelfCount = 0;
-        //        foreach (var part in planogram.PlanogramParts)
-        //        {
-        //            if (part.Part.PartTypeId == 4 || part.Part.PartTypeId == 10)
-        //            {
-        //                shelfCount += 1;
-        //            }
-        //            else
-        //            {
-        //                skuCount += part.Part.Facings * part.Part.Stock;
-        //            }
-        //        }
-
-        //        foreach (var shelf in planogram.PlanogramShelves)
-        //        {
-        //            shelfCount += 1;
-        //        }
-
-        //        var pageHtmlTop =
-        //            "<html><head><link rel=\"stylesheet\" href=\"https://use.typekit.net/oov2wcw.css\"><style>html { font-family: century-gothic, sans-serif; font-weight: 400; font-style: normal; } </style></head><body >";
-
-        //        var pageHtmlBottom = "</body></html>";
-
-
-        //        var headerHtml = "<div class=\"header-section\" style=\"width:100%;height:80px;font-size: 16px; \">" +
-        //        "<div class=\"row title-row\" style=\"width:100%\">" +
-        //          //"<div class=\"user-name\" style=\"width:40%;float:left;\">" + planoSvg.UserName + "</div>" +
-        //          "<div class=\"plano-name\" style=\"text-align:center;\"><div>" + planogram.Name + "</div><div>" + planogram.Stand.StandType.Name + " | SKU " + skuCount + " | SHELVES " + shelfCount + "</div> </div>" +
-        //        "</div>" +
-        //        "<div class=\"row name-row\" style=\"width:100%;display:flex;grid-auto-column:50%;\">" +
-        //          "<div class=\"view-name\" style=\"width:50%;text-align:left;\"><strong>Planogram</strong> View</div>" +
-        //          "<div class=\"diam-logo\" style=\"width:50%; text-align:right;\"><img src = \"" + _config["AppSettings:BaseImageDomain"] + "/Content/images/DIAM_pdf_logo.png\" style=\"height:40px;\" /></div>" +
-        //        "</div>" +
-        //      "</div>";
+        }
 
 
-        //        try
-        //        {
-
-        //            // Render any HTML fragment or document to HTML
-        //            //var Renderer = new IronPdf.HtmlToPdf();
-        //            ChromePdfRenderer Renderer = new ChromePdfRenderer();
-        //            Renderer.RenderingOptions.Timeout = 200;
-        //            Renderer.RenderingOptions.HtmlHeader = new HtmlHeaderFooter() { MaxHeight = 45, Spacing = 25, HtmlFragment = headerHtml, FontSize = 16, LoadStylesAndCSSFromMainHtmlDocument = true };
-        //            //Renderer.RenderingOptions.PaperSize = PdfPrintOptions.PdfPaperSize.A4;
-        //            Renderer.RenderingOptions.PaperOrientation = PdfPaperOrientation.Portrait;
-
-        //            Renderer.RenderingOptions.MarginTop = 15;
-        //            Renderer.RenderingOptions.MarginBottom = 5;
-        //            Renderer.RenderingOptions.MarginLeft = 5;
-        //            Renderer.RenderingOptions.MarginRight = 5;
-        //            //Renderer.RenderingOptions.FirstPageNumber = 1;
-        //            var imageHtml = "<div style=\"width:90%; margin:auto\"><image src=\"" +
-        //                            HttpUtility.UrlDecode(planoSvg.Image) + "\" style=\"max-height:100%;max-width: 100%;\"></div>";
-
-        //            Renderer.RenderingOptions.FitToPaperMode = FitToPaperModes.FixedPixelWidth;
-        //            //Renderer.RenderingOptions.PaperFit.UseFitToPageRendering();
-        //            //Renderer.RenderingOptions.PaperFit.UseChromeDefaultRendering();
-
-        //            if (planogram.Stand.Width > planogram.Stand.Height)
-        //            {
-        //                //Renderer.RenderingOptions.FitToPaperMode = FitToPaperModes.FixedPixelWidth;
-        //                Renderer.RenderingOptions.PaperOrientation = PdfPaperOrientation.Landscape;
-        //                //Renderer.RenderingOptions.PaperFit.UseFitToPageRendering(550);
-        //                imageHtml = "<div style=\"width:95%;margin:auto\"><image src=\"" +
-        //                            HttpUtility.UrlDecode(planoSvg.Image) + "\" style=\"max-height:100%;max-width: 100%;\"></div>";
-
-        //            }
+        private async Task ClusterCassetteUpdate(PlanmPartInfo clusterPart, long clusterId) //, clusterId, planogramToSave, newShelf)
+        {
+            try
+            {
 
 
+                Part? part = null;
+
+                long clusterPartId = clusterPart.PlanogramPartId ?? 0;
+                long partId = clusterPart.PartId ?? 0;
+                var cluster = _clusterService.GetCluster(clusterId);
+
+                // part status
+                int clusterPartStatusId = clusterPart.StatusId ?? 0;
 
 
-        //            var htmlPage = pageHtmlTop + imageHtml + pageHtmlBottom;
-        //            var PDF = Renderer.RenderHtmlAsPdf(htmlPage);
-        //            if (PDF.PageCount > 2)
-        //            {
-        //                PDF.Pages.Remove(PDF.Pages.First());
-        //            }
-        //            string PdfFileLocation = "~/planogram/pdf/";
+                if (partId != 0)
+                {
+                    part = await _partService.GetPart(partId);
+                }
+                else
+                {
+                    part = await _partService.GetPart(clusterPart.PartNumber);
+                }
 
-        //            var OutputPath = Path.Combine(_env.WebRootPath + "\n" + _env.ContentRootPath, planogram.Name + ".pdf");
+                if (part != null)
+                {
+
+                    ClusterPart newPart = new ClusterPart();
+                    if (clusterPartId != 0)
+                    {
+                        newPart = await _clusterService.GetClusterPart(clusterPartId);
+                        //_planogramService.SavePlanogramPart();
+                    }
+
+                    if (newPart == null)
+                    {
+                        newPart = new ClusterPart();
+                        clusterPartId = 0;
+                    }
+                    else
+                    {
+                        newPart.ScratchPadId = null; //need this to fix issue with restoring from scratchpad
+                    }
+                    newPart.ClusterId = clusterId;
+                    newPart.ClusterShelfId = clusterPart.PlanogramShelfId == 0 ? null : clusterPart.PlanogramShelfId;
+                    //this bit basically sets whether the part is in the scratch pad or not.
+                    newPart.ScratchPadId = clusterPart.ScratchPadId;
+                    newPart.PositionX = clusterPart.Position.x;
+                    newPart.PositionY = clusterPart.Position.y;
+                    newPart.Notes = clusterPart.Notes;
+
+                    newPart.Part = part;
+
+                    newPart.PartStatusId = clusterPartStatusId;
+
+                    if (clusterPartId != 0)
+                    {
+                        await _clusterService.SaveClusterPart(newPart);
+                    }
+                    else
+                    {
+                        newPart.DateCreated = DateTime.Now;
+                        newPart.DateUpdated = DateTime.Now;
+                        //_clusterService.CreateClusterPart(newPart);
+                    } //ERROR Part_CatPartId not exist
 
 
-        //            var stream = PDF.Stream.ToArray();
+                }//end if part is null
+            }
+            catch (Exception ex)
+            {
+                string message = String.Format("An error occurred updating the cassette id {0} with partId {1} on cluster {2}", clusterPart.PartId, clusterPart.PartId, clusterId);
+                Exception newException = new Exception(message, ex);
+                string exceptionString = newException.ToString(); // full stack trace
+                                                                  //TODO: write exceptionString to log.
+                throw newException;
+            }
 
-        //            var response = File(stream, "application/pdf");
+        }
 
 
-        //            return response;
-        //            // This neat trick opens our PDF file so we can see the result in our default PDF viewer
-        //            //System.Diagnostics.Process.Start(OutputPath);
-        //        }
-        //        catch (Exception Ex)
-        //        {
 
-        //            HttpResponseMessage message = new HttpResponseMessage(HttpStatusCode.BadRequest);
 
-        //            _logger.LogError("Error generating PDF");
-        //            if (Ex.InnerException != null)
-        //            {
-        //                message.Content = new StringContent(Ex.Message +
-        //                                              Ex.InnerException.ToString());
 
-        //                _logger.LogError(Ex.Message + Ex.InnerException.ToString());
-        //            }
-        //            else
-        //            {
-        //                message.Content = new StringContent(Ex.Message
-        //                              + Ex.StackTrace);
 
-        //                _logger.LogError(Ex.Message + Ex.StackTrace);
-        //            }
-        //            //message.ReasonPhrase = "Error creating pdf";
-        //            //log an error
-
-        //            return StatusCode(500, "Error generating pdf");
-
-        //        }
-        //    }
-        //    else
-        //    {
-        //        return StatusCode(500, "Error generating pdf");
-        //    }
-        //}
 
         #region PlanogramFunctions
 
@@ -758,362 +745,40 @@ namespace PM_AdminApp.Server.Controllers.Planner
             return await _planogramService.IsLocked(filter);
         }
 
-        //private async Task SaveCassettes(long planogramId, List<PlanmPartInfo> cassettes, ScratchPad scratchPad = null)
-        //{
-        //    //////////////////////////////////////////////////////////////////////////////////////////////
-        //    //HANDLE CASSETTES
-        //    //now handle the cassettes available products
-
-        //    //bool debugSave = ConfigurationManager.AppSettings["debugSave"] == "True" ? true : false;
-        //    bool debugSave = _config["AppSettings:DebugSave"] == "True" ? true : false;
-        //    bool throwError = false;
-        //    var cassetteCounter = 0;
-        //    foreach (var cassette in cassettes)
-        //    {
-
-        //        if (cassettes.Count > 3)
-        //        {
-
-        //            if (cassette.PlanogramPartId != 0 && debugSave && cassetteCounter > 3)
-        //                throwError = true;
-        //        }
-
-        //        cassetteCounter++;
-        //        switch (cassette.PartTypeId)
-        //        {
-        //            case (int)PartTypeEnum.Cassette:
-        //                await PlanogramCassetteUpdate(cassette, planogramId, throwError);
-        //                break;
-        //            case (int)PartTypeEnum.Glorifier:
-        //                await PlanogramCassetteUpdate(cassette, planogramId, throwError);
-        //                break;
-        //            case (int)PartTypeEnum.RedFrame:
-        //                await PlanogramCassetteUpdate(cassette, planogramId, throwError);
-        //                break;
-        //            case (int)PartTypeEnum.Blanking:
-        //                await PlanogramCassetteUpdate(cassette, planogramId, throwError);
-        //                break;
-        //            case (int)PartTypeEnum.FasciaPlate:
-        //                await PlanogramCassetteUpdate(cassette, planogramId, throwError);
-        //                break;
-        //            case (int)PartTypeEnum.Accessory:
-        //                await PlanogramCassetteUpdate(cassette, planogramId, throwError);
-        //                break;
-        //        }
-
-        //    }
-        //}
-
-        //private async Task PlanogramCassetteUpdate(PlanmPartInfo planoPart, long planogramId, bool throwError) //, planogramId, planogramToSave, newShelf)
-        //{
-
-        //    try
-        //    {
-        //        //Part part;
-
-        //        int planogramPartId = (int)planoPart.PlanogramPartId;
-        //        int partId = (int)planoPart.PartId;
-        //        var planogram = await _planogramService.GetPlanogram(planogramId);
-        //        var part = await _partService.GetPart(partId);
-
-        //        if (planogram.ScratchPadId == null)
-        //        {
-        //            //we need to create a new scratchpad
-        //            ScratchPad sPad = new ScratchPad();
-        //            sPad.DateCreated = DateTime.Now;
-        //            sPad.DateUpdated = DateTime.Now;
-        //            await _planogramService.CreateScratchPad(sPad);
-        //            planogram.ScratchPad = sPad;
-        //            await _planogramService.SavePlanogram(planogram);
-        //        }
-
-        //        //var scratchPadId = planogram.ScratchPadId;
-        //        // part status
-        //        int planogramPartStatusId = planoPart.StatusId ?? 0;
-
-
-        //        if (partId != 0)
-        //        {
-        //            var anotherpart = await _partService.GetPart(partId);
-        //        }
-        //        else
-        //        {
-        //            if (!CassetteHasDuplicate(planoPart, planogram))
-        //            {
-        //                part = await _partService.GetPart(planoPart.PartNumber);
-        //            }
-        //            else
-        //            {
-        //                throw new DuplicatePartException();
-        //            }
-        //        }
-
-        //        if (part.Id != 0)
-        //        {
-
-        //            PlanogramPart newPart;
-        //            if (planogramPartId != 0)
-        //            {
-        //                newPart = await _planogramService.GetPlanogramPart(planogramPartId);
-        //                //newPart = planogramPart;
-        //                //newPart.ScratchPadId = planogram.ScratchPadId;
-        //                //await _planogramService.SavePlanogramPart(newPart);
-        //            }
-        //            else
-        //            {
-        //                newPart = new PlanogramPart();
-        //            }
-
-        //            newPart.ScratchPadId = null; //need this to fix issue with restoring from scratchpad
-
-        //            newPart.PlanogramId = planogramId;
-        //            newPart.PlanogramShelfId = planoPart.PlanogramShelfId == 0 ? null : planoPart.PlanogramShelfId;
-        //            //this bit basically sets whether the part is in the scratch pad or not.
-        //            newPart.ScratchPadId = planoPart.ScratchPadId == 0 ? null : planoPart.ScratchPadId;
-        //            newPart.PositionX = planoPart.Position.x;
-        //            newPart.PositionY = planoPart.Position.y;
-        //            newPart.Notes = planoPart.Notes;
-        //            newPart.Label = planoPart.Label;
-        //            newPart.PartId = (long)planoPart.PartId;
-        //            //newPart.Part = part;
-
-        //            newPart.PartStatusId = planogramPartStatusId;
 
 
 
-        //            if (planogramPartId != 0)
-        //            {
-        //                if (throwError)
-        //                    throw new Exception("Debug Save Error Thrown");
-
-        //                newPart.DateUpdated = DateTime.Now;
-        //                await _planogramService.SavePlanogramPart(newPart);
-        //            }
-        //            else
-        //            {
-        //                if (throwError)
-        //                    throw new Exception("Debug Save Error Thrown");
-
-        //                newPart.DateCreated = DateTime.Now;
-        //                await _planogramService.CreatePlanogramPart(newPart);
-        //            } //ERROR Part_CatPartId not exist
-
-
-
-        //            //now handle the products (selected products and facings and stock)
-
-        //            ////////////////////////////////////////////////////////////////////////////////
-        //            //  CASSETTE ITEM LOOP
-        //            ///////////////////////////////////////////////////////////////////////////////
-
-        //            var selectedFacings = planoPart.facingProducts;
-        //            if (selectedFacings != null)
-        //            {
-        //                //Assume that the nodes are in the correct order for the facing position, counting 1 to n from the left.
-        //                int FacingPosition = 1;
-        //                foreach (var facingItem in selectedFacings)
-        //                {
-        //                    if (newPart.PlanogramPartFacings != null && newPart.PlanogramPartFacings.Count > 0)
-        //                    {
-        //                        var currentFacing = newPart.PlanogramPartFacings.FirstOrDefault(pf => pf.Position == FacingPosition);
-        //                        if (currentFacing != null)
-        //                        {
-        //                            if (facingItem.ProductId != 0)
-        //                            {
-        //                                FacingPosition = await InsertFacing(facingItem, planogramId, part.Stock, newPart,
-        //                                    FacingPosition);
-        //                            }
-        //                            else
-        //                            {
-        //                                //we need to remove this productFacing info
-        //                                //we need to delete the item in this position
-        //                                await _planogramService.DeletePlanogramPartFacing(currentFacing.Id);
-        //                                FacingPosition++;
-        //                            }
-
-        //                        }
-        //                        else
-        //                        {
-        //                            if (facingItem.ProductId != 0)
-        //                            {
-        //                                FacingPosition = await InsertFacing(facingItem, planogramId, part.Stock, newPart,
-        //                                    FacingPosition);
-        //                            }
-        //                            else
-        //                            {
-        //                                FacingPosition++;
-        //                            }
-        //                            //must be a new facing
-        //                        }
-        //                    }
-        //                    else
-        //                    {
-        //                        if (facingItem.ProductId != 0)
-        //                        {
-        //                            FacingPosition = await InsertFacing(facingItem, planogramId, part.Stock, newPart,
-        //                                FacingPosition);
-        //                        }
-        //                        else
-        //                        {
-        //                            FacingPosition++;
-        //                        }
-        //                    }
-        //                } //end of cassetteProduct loop               
-
-        //            } //end of if selectedProducts is null
-
-
-        //        } //end if part is null
-
-        //    }
-        //    catch (DuplicatePartException ex)
-        //    {
-        //        string message = string.Format("Duplicate found with cassette id {0} with partId {1}, partName {2}", planoPart.PartId, planoPart.PartId, planoPart.Name);
-        //        Exception newException = new Exception(message, ex);
-        //        string exceptionString = newException.ToString(); // full stack trace
-        //        _logger.LogError(message);
-
-        //        return;
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        string message = string.Format("An error occurred updating the cassette id {0} with partId {1}", planoPart.PartId, planoPart.PartId);
-        //        Exception newException = new Exception(message, ex);
-        //        string exceptionString = newException.ToString(); // full stack trace
-        //        _logger.LogError(message);
-        //        throw newException;
-        //    }
-
-        //}
-
-    //    private async Task<int> InsertFacing(PlanmPartFacing cassetteProductFacing, long planogramId, int stockCount,
-    //PlanogramPart newPart, int facingPosition)
-    //    {
-
-    //        //if (cassetteProductFacing.ProductId == 0)
-    //        //{
-    //        //    facingPosition++;
-    //        //    return facingPosition;
-    //        //}
-    //        var partFacingId = cassetteProductFacing.Id;
-    //        //////////////////////////////////////////////////////////////////////////////
-    //        // facing status ////
-    //        //////////////////////////////////////////////////////////////////////////////
-    //        int planogramFacingStatusId = cassetteProductFacing.FacingStatus ?? 0;
-
-    //        //////////////////////////////////////////////////////////////////////////////
-    //        // END of facing status ////
-    //        /////////////////////////////////////////////////////////////////////////////
-
-    //        //we make the assumption that there is a one to one relationship between facing - product - shade
-    //        PlanogramPartFacing currentFacing = new PlanogramPartFacing();
-    //        if (partFacingId == 0)
-    //        {
-    //            currentFacing.PlanogramId = planogramId;
-    //            currentFacing.PlanogramPartId = newPart.Id;
-    //            //currentFacing.PlanogramPart = newPart;
-    //            //currentFacing.Id = 0;
-    //        }
-    //        else
-    //        {
-    //            currentFacing = await _planogramService.GetPlanogramPartFacing(partFacingId);
-    //        }
-
-    //        if (currentFacing != null)
-    //        {
-    //            var currentProduct = await _productService.GetProduct(cassetteProductFacing.ProductId);
-    //            currentFacing.Position = facingPosition;
-    //            currentFacing.ProductId = cassetteProductFacing.ProductId;
-    //            currentFacing.ProductName = currentProduct.Name;
-    //            currentFacing.FacingStatusId = planogramFacingStatusId;
-    //            if (cassetteProductFacing.ShadeId != null)
-    //            {
-    //                var shade = await _productService.GetShade(cassetteProductFacing.ShadeId ?? 0);
-    //                currentFacing.ShadeId = shade.Id;
-    //                currentFacing.ShadeName = shade.ShadeNumber;
-    //            }
-
-
-    //            currentFacing.StockCount = stockCount;
-
-    //            //var filter = new PlanogramPartFilter();
-    //            //filter.PartId = newPart.Id;
-
-    //            //var partFactices = await _planogramService.GetPlanogramParts(filter);
-
-    //        }
-
-    //        //REMOVE ANY EXISTING ITEM IN THE POSITION - FACINGS
-    //        if (newPart.PlanogramPartFacings != null)
-    //        {
-    //            if (newPart.PlanogramPartFacings.Any(pf => pf.Position == facingPosition))
-    //            {
-    //                //we need to delete the item in this position
-    //                PlanogramPartFacing pfToDelete = newPart.PlanogramPartFacings.FirstOrDefault(pf => pf.Position == facingPosition);
-    //                await _planogramService.DeletePlanogramPartFacing(pfToDelete.Id);
-    //            }
-    //            await _planogramService.CreatePlanogramPartFacing(currentFacing);
-    //        }
-    //        else
-    //        {
-    //            if (partFacingId == 0)
-    //            {
-    //                await _planogramService.CreatePlanogramPartFacing(currentFacing);
-    //            }
-    //            else
-    //            {
-    //                await _planogramService.SavePlanogramPartFacing(currentFacing);
-    //            }
-    //        }
-
-    //        facingPosition++;
-    //        return facingPosition;
-    //    }
-
-        private async Task<PlanogramShelf> SaveShelf(PlanmShelfInfo shelf, ScratchPad scratchPad = null)
+        private async Task<ClusterShelf> SaveShelf(PlanmShelfInfo shelf, ScratchPad? scratchPad = null)
         {
 
             try
             {
-                var newShelf = new PlanogramShelf();
+                var newShelf = new ClusterShelf();
                 long? shelfId = shelf.Id; //the planogramShelfId
-                var planogram = await _planogramService.GetPlanogram(shelf.PlanogramId);
+                //var cluster = await _clusterService.GetCluster(shelf.PlanogramId);
 
                 if (shelfId.Value != 0)
                 {
-                    newShelf = await _planogramService.GetPlanogramShelf((int)shelfId);
+                    newShelf = await _clusterService.GetClusterShelf((int)shelfId);
                 }
-                else
-                {
-                    {
-                        if (ShelfHasDuplicate(shelf, planogram))
-                        {
-                            throw new DuplicatePartException();
-                        }
-                    }
-                }
+                //else
+                //{
+                //    {
+                //        if (ShelfHasDuplicate(shelf, cluster))
+                //        {
+                //            throw new DuplicatePartException();
+                //        }
+                //    }
+                //}
 
 
                 if (newShelf == null)
                 {
-                    newShelf = new PlanogramShelf();
+                    newShelf = new ClusterShelf();
                     shelfId = 0;
                 }
 
-
-
-                newShelf.PlanogramId = shelf.PlanogramId;
-                if (scratchPad != null)
-                {
-                    //then we are dealing with the scratchpad
-                    newShelf.ScratchPadId = scratchPad.Id;
-                }
-                else
-                {
-                    newShelf.ScratchPadId = null;
-                }
-
+                newShelf.ClusterId = shelf.PlanogramId;
                 newShelf.ShelfTypeId = shelf.ShelfTypeId;
                 newShelf.Height = (short)shelf.Height;
                 newShelf.Width = (short)shelf.Width;
@@ -1123,24 +788,22 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 newShelf.PartId = shelf.PartId;
                 newShelf.PartStatusId = shelf.StatusId ?? 0;
                 var label = shelf.Label;
-                if (label != null)
-                    newShelf.Label = label;
 
                 if (shelfId != null)
                 {
                     if (shelfId != 0)
                     {
-                        await _planogramService.UpdatePlanogramShelf(newShelf);
+                        await _clusterService.UpdateClusterShelf(newShelf);
                     }
                     else //shelfId == 0
                     {
-                        await _planogramService.CreatePlanogramShelf(newShelf);
+                        await _clusterService.CreateClusterShelf(newShelf);
                     }
 
                 }
                 else //no shelfId attribute
                 {
-                    await _planogramService.CreatePlanogramShelf(newShelf);
+                    await _clusterService.CreateClusterShelf(newShelf);
                 }
 
                 return newShelf;
@@ -1163,37 +826,28 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 throw newException;
             }
         }
-        private async Task DeletePlanogramParts(List<PlanmPartInfo> parts)
+        private async Task DeleteParts(List<PlanmPartInfo> parts)
         {
             foreach (var delItem in parts)
             {
                 if (delItem != null)
                 {
-                    var ppart = await _planogramService.GetPlanogramPart((int)delItem.PlanogramPartId);
+                    var ppart = await _clusterService.GetClusterPart((int)delItem.ClusterPartId);
                     if (ppart != null) //part hasn't already been deleted
                     {
-                        List<PlanogramPartFacing> idsToDelete = new List<PlanogramPartFacing>();
-                        foreach (PlanogramPartFacing facing in ppart.PlanogramPartFacings)
-                        {
-                            idsToDelete.Add(facing);
-                        }
-                        foreach (var facing in idsToDelete)
-                        {
-                            await _planogramService.DeletePlanogramPartFacing(facing.Id);
-                        }
-                        await _planogramService.DeletePlanogramPart((int)delItem.PlanogramPartId);
+                        await _clusterService.DeleteClusterPart((int)delItem.ClusterPartId);
                     }
                 }
             }
         }
 
-        private async Task DeletePlanogramShelves(List<PlanmShelfInfo> shelves)
+        private async Task DeleteShelves(List<PlanmShelfInfo> shelves)
         {
             foreach (var delItem in shelves)
             {
                 if (delItem.Id != 0)
                 {
-                    await _planogramService.DeletePlanogramShelf(delItem.Id);
+                    await _clusterService.DeleteClusterShelf(delItem.Id);
                 }
             }
         }

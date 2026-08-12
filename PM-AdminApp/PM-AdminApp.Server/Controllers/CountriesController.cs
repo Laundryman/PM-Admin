@@ -279,18 +279,30 @@ namespace PM_AdminApp.Server.Controllers
         {
             //add new countries
             //var standCountries = JsonConvert.DeserializeObject<List<CountryDto>>(updateStand.Countries);
-            foreach (var country in updateRegion.Countries)
+            if (updateRegion.Countries != null)
             {
-                var origCountry = origRegion.Countries.FirstOrDefault(c => c.Id == country.Id);
-                if (origCountry == null)
+                foreach (var country in updateRegion.Countries)
                 {
-                    var dbCountry = await _countryRepository.GetByIdAsync(country.Id);
-                    if (dbCountry != null)
+                    if (origRegion.Countries.All(c => c.Id != country.Id))
                     {
-                        origRegion.Countries.Add(dbCountry);
+                        var countryEntity = _mapper.Map<Country>(country);
+                        origRegion.Countries.Add(countryEntity);
                     }
                 }
-            }
+
+                foreach (var country in updateRegion.Countries)
+                {
+                    var origCountry = origRegion.Countries.FirstOrDefault(c => c.Id == country.Id);
+                    if (origCountry == null)
+                    {
+                        var dbCountry = await _countryRepository.GetByIdAsync(country.Id);
+                        if (dbCountry != null)
+                        {
+                            origRegion.Countries.Add(dbCountry);
+                        }
+                    }
+                }
+
             //remove deleted countries
             for (int i = origRegion.Countries.Count - 1; i >= 0; i--)
             {
@@ -305,6 +317,7 @@ namespace PM_AdminApp.Server.Controllers
 
             //update Part.CountryList string
             origRegion.CountryList = string.Join(",", origRegion.Countries.Select(c => c.Id));
+            }
         }
 
         #endregion

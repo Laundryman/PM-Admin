@@ -1,0 +1,31 @@
+export class Cluster {
+  id!: number
+  name!: string
+  standTypeName!: string
+  standName!: string
+  standId!: number
+  standTypeId!: number
+  standAssemblyNumber!: string
+  description!: string
+  imgSrc!: string
+  rows!: number
+  cols!: number
+  height!: number
+  width!: number
+  shelfIncrement!: number
+  header!: string
+  dateCreated!: Date
+  dateUpdated!: Date
+  dateAvailable!: number
+  published!: boolean
+  legacyUserId!: number
+  headerHeight!: number
+  statusId!: number
+  currentVersion!: number
+  brandId!: number
+  userId!: number
+  userName!: string
+  lubName!: string
+  countriesList!: string
+  regionsList!: string
+}

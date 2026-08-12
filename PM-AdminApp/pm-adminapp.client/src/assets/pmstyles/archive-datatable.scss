@@ -1,0 +1,36 @@
+
+.hide-row-border {
+    .p-datatable-tbody {
+     tr {
+         td {
+            text-align: start;
+            border-color: var(--p-datatable-body-cell-border-color);
+            border-style: solid;
+            border-width: 0 0 0 0;
+            padding: var(--p-datatable-body-cell-padding);
+         }
+        }
+    }
+}
+
+.archive-jobs-expanded {
+    .p-datatable-tbody {
+     tr {
+            background-color: oklch(97.9% 0.021 166.113);
+        }
+    }
+}
+
+.archive-planograms-expanded {
+    .p-datatable-tbody {
+     tr {
+            background-color: oklch(97% 0.014 254.604);
+        }
+    }
+}
+
+.archive-list-view {
+    .p-overlay-mask {
+        background-color: oklch(94.769% 0.00527 248.348);
+    }
+}

@@ -105,6 +105,18 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true },
       },
       {
+        path: '/planograms/edit/:id',
+        name: 'editPlanogram',
+        component: () => import('@/views/planograms/editPlanogram.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/planograms/create',
+        name: 'createPlanogram',
+        component: () => import('@/views/planograms/createPlanogram.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
         path: '/clusters',
         name: 'clusters',
         component: () => import('@/views/Clusters/ClusterListView.vue'),
@@ -113,7 +125,20 @@ const routes: RouteRecordRaw[] = [
       {
         path: '/clusters/edit/:id',
         name: 'editCluster',
+        component: () => import('@/views/Clusters/editCluster.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/clusters/view/:id',
+        name: 'viewCluster',
         component: () => import('@/views/Clusters/EditClusterView.vue'),
+        meta: { requiresAuth: true },
+      },
+
+      {
+        path: '/clusters/create',
+        name: 'createCluster',
+        component: () => import('@/views/Clusters/createCluster.vue'),
         meta: { requiresAuth: true },
       },
       {

@@ -10,7 +10,9 @@ import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api/'
 import { storeToRefs } from 'pinia'
 import { onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const layout = useSystemStore()
 const brandStore = useBrandStore()
 const loading = ref(false)
@@ -32,7 +34,7 @@ const filters = ref({
   locked: { value: null, matchMode: FilterMatchMode.EQUALS },
 })
 const statuses = ref([
-  'Edit',
+  'Editing',
   'Submitted',
   'Ordered',
   'Deleted',
@@ -75,6 +77,9 @@ onMounted(async () => {
 
   var filter = new PlanogramFilter()
   filter.brandId = brandid
+  filter.regionsList = regions.value?.map((r) => r.id).join(',') ?? ''
+  filter.countriesList = countries.value?.map((c) => c.id).join(',') ?? ''
+  filter.archived = false // Only fetch non-archived planograms initially
   await planogramService
     .searchPlanograms(filter)
     .then((response) => {
@@ -140,7 +145,7 @@ async function onCountryChange() {
 
 function getStatusSeverity(status: string): string {
   switch (status.toLowerCase()) {
-    case 'edit':
+    case 'editing':
       return 'info'
     case 'submitted':
       return 'warn'
@@ -194,6 +199,13 @@ function unlock(planogram: searchPlanogramInfo) {
   console.log('Unlock planogram', planogram)
   // layout.setActivePart(part)
   // Navigate to edit page
+}
+
+function editPlanogram(planogram: searchPlanogramInfo) {
+  console.log('Edit planogram', planogram)
+  // layout.setActivePlanogram(planogram)
+  // Navigate to edit page
+  router.push({ name: 'editPlanogram', params: { id: planogram.id } })
 }
 </script>
 
@@ -361,14 +373,19 @@ function unlock(planogram: searchPlanogramInfo) {
               class="mr-2"
               @click="unlock(slotProps.data)"
             />
-            <!-- <Button
-              v-tooltip="'Copy Planogram'"
-              icon="pi pi-copy"
+          </template>
+        </Column>
+        <Column :exportable="false" style="min-width: 12rem">
+          <template #body="slotProps">
+            <!-- <Button v-if="slotProps.data.locked" v-tooltip="'Unlock Planogram'" icon="pi pi-lock-open" variant="outlined" rounded class="mr-2" @click="unlock(slotProps.data)" /> -->
+            <Button
+              v-tooltip="'Edit Planogram'"
+              icon="pi pi-pencil"
               variant="outlined"
               rounded
               class="mr-2"
-              @click="copyPart(slotProps.data)"
-            /> -->
+              @click="editPlanogram(slotProps.data)"
+            />
           </template>
         </Column>
       </DataTable>

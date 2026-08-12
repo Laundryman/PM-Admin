@@ -53,7 +53,7 @@ onMounted(async () => {
         <i class="pi pi-bars"></i>
       </button>
       <router-link to="/" class="layout-topbar-logo">
-        <logo height="50" style="margin-top: -10px">
+        <div height="50" style="margin-top: -10px">
           <svg
             svg:contrastcolor="ffffff"
             svg:template="BlackAndHighlightColorHex1"
@@ -118,7 +118,7 @@ onMounted(async () => {
               </g>
             </g>
           </svg>
-        </logo>
+        </div>
         <span>planMatr</span>
       </router-link>
     </div>

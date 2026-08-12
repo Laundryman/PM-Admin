@@ -1,8 +1,9 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using PMApplication.Dtos;
 using PMApplication.Entities;
 using PMApplication.Interfaces.ServiceInterfaces;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace PM_AdminApp.Server.Extensions
 {
@@ -26,24 +27,28 @@ namespace PM_AdminApp.Server.Extensions
         {
             // we can retrieve the userId from the request
             var currentUser = controller.User;
+            var idToken = controller.Request.Headers["ClaimsAuth"].ToString();
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenValues = tokenHandler.ReadJwtToken(idToken);
+
             //var me = _identityService.GetMe(Globals.B2cExtensionAppId);
             var identity = ((System.Security.Claims.ClaimsPrincipal)currentUser);
-            var user = new CurrentUser()
-            {
-                BrandIds = identity.Claims.Where(c => c.Type == "extension_brands").Select(c => c.Value)
-                    .FirstOrDefault(),
-                CountryId = int.Parse(identity.Claims.Where(c => c.Type == "extension_diamCountryId")
-                    .Select(c => c.Value).FirstOrDefault()),
-                DisplayName = identity.Claims.Where(c => c.Type == "name").Select(c => c.Value).FirstOrDefault(),
-                UserName = identity.Claims.Where(c => c.Type == "name").Select(c => c.Value).FirstOrDefault(),
-                Email = identity.Claims.Where(c => c.Type == "extension_userEmailAddress").Select(c => c.Value)
-                    .FirstOrDefault(),
-                Id = identity.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).Select(c => c.Value).FirstOrDefault(),
-                Surname = identity.Claims.Where(c => c.Type == ClaimTypes.Surname).Select(c => c.Value).FirstOrDefault(),
-                GivenName = identity.Claims.Where(c => c.Type == ClaimTypes.GivenName).Select(c => c.Value).FirstOrDefault(),
-                RoleIds = identity.Claims.Where(c => c.Type == "extension_diamRoles").Select(c => c.Value)
-                    .FirstOrDefault(),
-            };
+            var user = new CurrentUser();
+            user.BrandIds = tokenValues.Claims.Where(c => c.Type == "Brands").Select(c => c.Value).FirstOrDefault();
+            user.CountryId = int.Parse(tokenValues.Claims.Where(c => c.Type == "CountryId")
+                .Select(c => c.Value)
+                .FirstOrDefault() ?? "0");
+            user.DisplayName = tokenValues.Claims.Where(c => c.Type == "name").Select(c => c.Value).FirstOrDefault();
+            user.UserName = tokenValues.Claims.Where(c => c.Type == "name").Select(c => c.Value).FirstOrDefault();
+            user.Email = tokenValues.Claims.Where(c => c.Type == "UserEmailAddress").Select(c => c.Value).FirstOrDefault();
+            user.Id = currentUser.Claims.Where(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Select(c => c.Value).FirstOrDefault();
+            user.Surname = tokenValues.Claims.Where(c => c.Type == "surname").Select(c => c.Value).FirstOrDefault();
+            user.GivenName = tokenValues.Claims.Where(c => c.Type == "givenname").Select(c => c.Value).FirstOrDefault();
+            user.RoleIds = tokenValues.Claims.Where(c => c.Type == "Roles").Select(c => c.Value).FirstOrDefault();
+            user.RoleId = tokenValues.Claims.Where(c => c.Type == "RoleId").Select(c => c.Value).FirstOrDefault();
+            user.Permissions = tokenValues.Claims.Where(c => c.Type == "Permissions").Select(c => c.Value).FirstOrDefault();
+            user.CountryList = tokenValues.Claims.Where(c => c.Type == "CountryList").Select(c => c.Value).FirstOrDefault();
+            user.RegionList = tokenValues.Claims.Where(c => c.Type == "RegionList").Select(c => c.Value).FirstOrDefault();
             //var userOID = identity.Claims.FirstOrDefault((x => x.Type == ClaimTypes.NameIdentifier)).Value;// 'http://schemas.microsoft.com/identity/claims/objectidentifier']
             //var user = await identityService.GetUser(userOID, Globals.B2cExtensionAppId);
             //var mapper = MapperConfig.InitializeAutomapper();

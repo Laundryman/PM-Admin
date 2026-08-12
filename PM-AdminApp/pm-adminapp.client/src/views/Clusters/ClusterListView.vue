@@ -2,7 +2,7 @@
 import { onMounted, ref, watch } from 'vue'
 // import UserService from '@/services/UserService.js'
 import { useLocationFilters } from '@/components/composables/locationFilters'
-import { clusterFilter } from '@/models/Clusters/clusterFilter.model'
+import { ClusterFilter } from '@/models/Clusters/clusterFilter.model'
 import { searchClusterInfo } from '@/models/Clusters/searchClusterInfo.model'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
 import { default as clusterService } from '@/services/Clusters/ClusterService'
@@ -32,7 +32,7 @@ const filters = ref({
 
 watch(brand, async (newBrand) => {
   if (newBrand) {
-    let filter = new clusterFilter()
+    let filter = new ClusterFilter()
     filter.brandId = newBrand.id
     await clusterService.searchClusters(filter).then((response) => {
       clusters.value = response
@@ -58,7 +58,7 @@ onMounted(async () => {
       regions.value = response
     })
 
-  var filter = new clusterFilter()
+  var filter = new ClusterFilter()
   filter.brandId = brandid
   await clusterService.searchClusters(filter).then((response) => {
     clusters.value = response
@@ -81,7 +81,7 @@ onMounted(async () => {
 async function onRegionChange() {
   if (selectedRegion.value) {
     countries.value = await useLocationFilters().onRegionChange(selectedRegion.value)
-    let filter = new clusterFilter()
+    let filter = new ClusterFilter()
     filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.regionId = selectedRegion.value
     await clusterService.searchClusters(filter).then((response) => {
@@ -95,7 +95,7 @@ async function onRegionChange() {
 
 async function onCountryChange() {
   if (selectedCountry.value) {
-    let filter = new clusterFilter()
+    let filter = new ClusterFilter()
     filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.countryId = selectedCountry.value
     await clusterService.searchClusters(filter).then((response) => {
@@ -111,7 +111,7 @@ async function clearFilters() {
   selectedRegion.value = null
   selectedCountry.value = null
   countries.value = []
-  let filter = new clusterFilter()
+  let filter = new ClusterFilter()
   filter.brandId = brandStore.activeBrand?.id ?? 0
   await clusterService.searchClusters(filter).then((response) => {
     clusters.value = response

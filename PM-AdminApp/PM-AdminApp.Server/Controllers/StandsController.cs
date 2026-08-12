@@ -65,6 +65,23 @@ namespace PM_AdminApp.Server.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> GetStands(StandFilterDto filterDto)
+        {
+            try
+            {
+                //var spec = new ProductSpecification(_mapper.Map<ProductFilter>(filterDto));
+                var stands = await _standRepository.SearchStands(filterDto);
+
+                return Ok(stands);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Something went wrong inside SearchStands action: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         //[HttpGet(Name = "ProductSelectList")]
         //public async Task<IActionResult> GetStandSelectList([FromQuery] ProductFilterDto filterDto)
         //{

@@ -1,6 +1,10 @@
 // import { useAuthStore } from '@/stores/auth'
-import type { clusterFilter } from '@/models/Clusters/clusterFilter.model'
+import { Cluster } from '@/models/Clusters/cluster.model'
+import type { ClusterFilter } from '@/models/Clusters/clusterFilter.model'
 import type { searchClusterInfo } from '@/models/Clusters/searchClusterInfo.model'
+import type { CreateLayoutFilter } from '@/models/Layout/createLayoutFilter.model'
+import type { Stand } from '@/models/Stands/stand.model'
+import type { StandFilter } from '@/models/Stands/standFilter.model'
 import { Auth, msal } from '@/services/Identity/auth'
 import { useAuthStore } from '@/stores/auth'
 import axios from 'axios'
@@ -9,6 +13,7 @@ import { ref } from 'vue'
 await msal.initialize()
 
 const token = ref()
+const idToken = ref()
 const initialized = ref(false)
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_APP_SERVER_URL + '/api/clusters',
@@ -21,12 +26,64 @@ const apiClient = axios.create({
 })
 
 export default {
-  async searchClusters(filter: clusterFilter): Promise<searchClusterInfo[]> {
+  async searchClusters(filter: ClusterFilter): Promise<searchClusterInfo[]> {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+      apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
     }
     let response = await apiClient.post('/searchClusters', filter)
     return response.data
+  },
+
+  async getCluster(clusterId: number): Promise<Cluster> {
+    if (initialized.value !== false) {
+      if (token.value) {
+        apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+        apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
+      }
+      return apiClient
+        .get('/getCluster', {
+          params: {
+            id: clusterId,
+          },
+        })
+        .then((response) => response.data)
+    } else {
+      throw new Error('ClusterService not initialized')
+    }
+  },
+
+  async createLayout(filter: CreateLayoutFilter): Promise<number> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+      apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
+    }
+    let response = await apiClient
+      .post('/create/createLayout', filter)
+      .then((res) => {
+        return res.data
+      })
+      .catch((error) => {
+        throw error
+      })
+    return response
+  },
+
+  async getStands(filter: StandFilter): Promise<Stand[]> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+      apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
+    }
+    let response = await apiClient
+      .post('/create/getStands', filter)
+      .then((response) => {
+        return response.data
+      })
+      .catch((err) => {
+        console.log('Error fetching stand:', err)
+        throw err
+      })
+    return response
   },
 
   async initialise() {
@@ -36,7 +93,8 @@ export default {
     }
     const t = await Auth.getToken()
     token.value = t
-    console.log('ClusterService initialized with token:', token.value)
+    const idT = await Auth.getIdToken()
+    idToken.value = idT
     initialized.value = true
   },
 }

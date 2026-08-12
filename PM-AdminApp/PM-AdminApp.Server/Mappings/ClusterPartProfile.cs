@@ -13,6 +13,7 @@ namespace PlanMatr_API.Mappings
         public ClusterPartProfile()
         {
             CreateMap<ClusterPart, PlanmPartInfo>()
+                .ForMember(pm => pm.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(pm => pm.Position, opt => opt.MapFrom<ClusterPartPositionResolver>())
                 .ForMember(pm => pm.ClusterPartId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(pm => pm.ClusterShelfId, opt => opt.MapFrom(src => src.ClusterShelfId))
@@ -68,7 +69,7 @@ namespace PlanMatr_API.Mappings
                 //.ForMember(pm => pm.PlanogramPartPlanogramPartsId, opt => opt.Ignore())
                 .ForMember(pm => pm.PlanogramShelfId, opt => opt.Ignore())
                 .ForMember(pm => pm.PlanogramColumnId, opt => opt.Ignore())
-                .ForMember(pm => pm.PlanxShelfId, opt => opt.Ignore())
+                .ForMember(pm => pm.PlanmatrShelfId, opt => opt.Ignore())
                 //.ForMember(pm => pm.PartStatusId, opt => opt.Ignore())
                 .ForMember(pm => pm.PlanxPartAllowed, opt => opt.Ignore())
                 .ForMember(pm => pm.NonMarket, opt => opt.Ignore())

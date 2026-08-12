@@ -1,0 +1,58 @@
+.joint-widget.joint-theme-light {
+    &[data-name="comments"]
+     {
+        width: 100px;
+        height: 40px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
+
+
+#planm-show-comments .comment-count {
+    display: block;
+    min-height: 14px;
+    -moz-border-radius: 6px;
+    border-radius: 7px;
+    background-color: #f00;
+    color: #fff;
+    text-align: center;
+    font-size: .85em;
+    float: left;
+    /* margin-top: 2px; */
+    padding: 1px 5px 1px 5px;
+    margin-left: 5px;
+}
+
+
+    .joint-paper {
+
+        .joint-type-planmatr-carcass, .joint-type-planmatr-column {
+            path {
+              opacity: 1;
+              fill: none;
+              stroke: #000;
+              stroke-width: 1;
+            }
+        }
+
+
+    }
+
+.joint-inspector
+{
+  .group {
+    .field.textarea-field {
+      textarea {
+        min-height: 50px;
+        border: 1px solid var(--jj-border-navigator);
+        padding: 4px;
+      }
+    }
+  }
+
+}
