@@ -43,8 +43,11 @@ import { ValidationService } from '@/planner/services/validation.service'
 import { useClusterStore } from '@/stores/clusterStore'
 import { usePlanogramStore } from '@/stores/planogramStore'
 import { useDialog } from 'primevue/usedialog'
+import { useToast } from 'primevue/usetoast'
 import { useRouter } from 'vue-router'
+
 const router = useRouter()
+const toast = useToast()
 const app = useTemplateRef<HTMLElement>('app')
 const props = defineProps<{
   planogramId: number
@@ -369,20 +372,20 @@ onMounted(async () => {
                 cell.attributes.partInfo.hasNotes = true
                 if (
                   cell.attributes.attrs != undefined &&
-                  cell.attributes.attrs['.comment-indi'] != undefined
+                  cell.attributes.attrs['comment-indi'] != undefined
                 ) {
-                  if (cell.attributes.attrs['.comment-indi']['visibility'] == 'hidden') {
-                    cell.attributes.attrs['.comment-indi']['visibility'] = 'visible'
-                    cell.attributes.attrs['.comment-indi']['display'] = 'block'
+                  if (cell.attributes.attrs['comment-indi']['visibility'] == 'hidden') {
+                    cell.attributes.attrs['comment-indi']['visibility'] = 'visible'
+                    cell.attributes.attrs['comment-indi']['display'] = 'block'
                     cell.findView(paper.value as joint.dia.Paper).render()
                   }
                 } else {
                   cell.attributes.partInfo.hasNotes = false
                   if (
                     cell.attributes.attrs != undefined &&
-                    cell.attributes.attrs['.comment-indi'] != undefined
+                    cell.attributes.attrs['comment-indi'] != undefined
                   ) {
-                    cell.attributes.attrs['.comment-indi']['visibility'] = 'hidden'
+                    cell.attributes.attrs['comment-indi']['visibility'] = 'hidden'
                     cell.findView(paper.value as joint.dia.Paper).render()
 
                     document.querySelectorAll('body').forEach((body) => {
@@ -524,14 +527,14 @@ onMounted(async () => {
           if (opt.propertyPath.includes('shelfInfo/status')) {
             var statusColour = StatusColourEnum[shelfInfo.statusId]
             //if (self.currentView != CurrentView.render) {
-            if (cell.attributes.attrs != undefined && cell.attributes.attrs['.body'] != undefined) {
+            if (cell.attributes.attrs != undefined && cell.attributes.attrs['body'] != undefined) {
               if (shelfInfo.statusId == 0 || shelfInfo.statusId == null) {
-                cell.attributes.attrs['.body']['stroke'] = '#000000'
+                cell.attributes.attrs['body']['stroke'] = '#000000'
               } else {
-                cell.attributes.attrs['.body']['stroke'] = statusColour
+                cell.attributes.attrs['body']['stroke'] = statusColour
               }
-              cell.attributes.attrs['.body']['fill'] = statusColour
-              cell.attributes.attrs['.body']['fill-opacity'] = 0.4
+              cell.attributes.attrs['body']['fill'] = statusColour
+              cell.attributes.attrs['body']['fill-opacity'] = 0.4
               cell.findView(paper.value as joint.dia.Paper).render()
             }
           }
@@ -2758,9 +2761,16 @@ function updateShades(updatedCell: joint.dia.Cell) {
     }
   }
 }
+
+function showToast(event: any) {
+  let message = event.message
+  let severity = event.severity
+  toast.add({ severity: severity, summary: message, life: 3000 })
+}
 </script>
 
 <template>
+  <Toast ref="toast" position="top-right" />
   <div id="app" ref="app" class="joint-app joint-theme-light">
     <div class="app-header">
       <!-- <img src="@/planner/assets/icons/joint-js.svg" alt="JointJS" /> -->
@@ -2814,6 +2824,7 @@ function updateShades(updatedCell: joint.dia.Cell) {
         :cell="selectedCell as joint.dia.Cell"
         :selection="selection as joint.ui.Selection"
         @shade-updated="updateShades"
+        @copied-to-clip-board="showToast($event)"
       />
       <navigator-component
         v-if="paperReady"

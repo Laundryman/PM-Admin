@@ -152,13 +152,13 @@ body {
                 background-repeat: no-repeat;
                 background-position: center;
 
-                &[data-name="toggle-snaplines"] {
-                    background-image: url('../assets/toolbar/icon-snaplines.svg');
-                }
+                // &[data-name="toggle-snaplines"] {
+                //     background-image: url('@/planner/joint-light-theme/assets/toolbar/icon-snaplines.svg');
+                // }
 
-                &[data-name="toggle-scratchpad"] {
-                    background-image: url('../assets/toolbar/icon-scratchpad.svg');
-                }
+                // &[data-name="toggle-scratchpad"] {
+                //     background-image: url('@/planner/joint-light-theme/assets/toolbar/icon-scratchpad.svg');
+                // }
             }
         }
     }

@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Graph.Models;
 //using Newtonsoft.Json;
 using PMApplication.Dtos;
-using PMApplication.Dtos.StandTypes;
 using PMApplication.Dtos.Filters;
+using PMApplication.Dtos.StandTypes;
 using PMApplication.Entities;
 using PMApplication.Entities.CountriesAggregate;
 using PMApplication.Entities.PartAggregate;
@@ -25,6 +25,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -508,16 +509,87 @@ namespace PM_AdminApp.Server.Controllers
 
             if (updatePart.iconFile != null && updatePart.iconFile.Length > 0)
             {
-                // Here you would typically save the file to a storage location and update the BrandLogo property
-                // For demonstration, we'll just set a placeholder path
-                var fileType = updatePart.iconFile.FileName.Split('.')[1];
-                origPart.SvgLineGraphic = fileName + "." + fileType;
-                var containerName = _configuration["AzureBlob:CassetteTemplateContainer"];
 
-                var containerClient = blobService.GetBlobContainerClient(blobServiceClient, containerName);
-                await blobService.UploadFormFileAsync(containerClient, updatePart.iconFile, origPart.SvgLineGraphic);
+                if (updatePart.iconFile.ContentType.Contains("svg"))
+                {
+                    //fileName = catalogueViewModel.PartNumber.Trim() + "-" + partToEdit.CatPartId.ToString() + "-la." + PhotoArt.FileName.Split('.')[1];//Path.GetFileName(LineArt.FileName);
+                    List<string> svgData = new List<string>();
+                    using (System.IO.StreamReader reader = new System.IO.StreamReader(updatePart.iconFile.OpenReadStream()))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            svgData.Add(reader.ReadLine());
+                        }
+                    }
+
+                    var svgString = svgData.Aggregate((i, j) => i + j);
+
+                    //svg manipulation to fix generic class names
+                    var svgDoc = RefactorSVG(svgString, origPart.PartNumber.Trim(),
+                        origPart.Id.ToString());
+
+                    origPart.SvgLineGraphic = svgDoc;
+
+                }
+
+                //// Here you would typically save the file to a storage location and update the BrandLogo property
+                //// For demonstration, we'll just set a placeholder path
+                //var fileType = updatePart.iconFile.FileName.Split('.')[1];
+                ////origPart.SvgLineGraphic = fileName + "." + fileType;
+                //origPart.SvgLineGraphic = updatePart.iconFile.ToString();
+                //var containerName = _configuration["AzureBlob:CassetteTemplateContainer"];
+
+                //var containerClient = blobService.GetBlobContainerClient(blobServiceClient, containerName);
+                //await blobService.UploadFormFileAsync(containerClient, updatePart.iconFile, origPart.SvgLineGraphic);
             }
         }
+
+        #region helpers
+
+        private string RefactorSVG(string svgString, string partNumber, string partId)
+        {
+            try
+            {
+
+                svgString = svgString.Replace("cls-", "cls--");
+                var svgDoc = XDocument.Parse(svgString);
+                var defs = svgDoc.Descendants().FirstOrDefault(d => d.Name.LocalName == "defs");
+                if (defs != null)
+                {
+                    var styleElement = svgDoc.Descendants().First(d => d.Name.LocalName == "defs").Descendants()
+                        .First(s => s.Name.LocalName == "style");
+                    if (styleElement != null)
+                    {
+                        styleElement.Value =
+                            styleElement.Value.Replace(".cls--",
+                                "#X" + partNumber + "-" + partId.ToString() + " .cls--");
+                        styleElement.Value = styleElement.Value.Replace("stroke-width:2px;", "stroke-width:0.1em");
+                        svgDoc.Descendants().First(d => d.Name.LocalName == "defs").Descendants()
+                            .First(s => s.Name.LocalName == "style").Value = styleElement.Value;
+                        if (svgDoc.Root.Attribute("id") == null)
+                        {
+                            svgDoc.Root.Add(new XAttribute("id", "X" + partNumber + "-" + partId));
+                        }
+                        else
+                        {
+                            svgDoc.Root.Attribute("id").Value = "X" + partNumber + "-" + partId;
+                        }
+
+                        if (svgDoc.Root.Attribute("fill") == null)
+                        {
+                            svgDoc.Root.Add(new XAttribute("fill", "#000"));
+                        }
+                    }
+                }
+                return svgDoc.ToString();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Error validating SVG");
+            }
+        }
+
+#endregion
 
     }
 }

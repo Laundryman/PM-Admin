@@ -2,6 +2,6 @@
 import { defineAsyncComponent } from 'vue'
 
 const ShadeEditorAsyncComponent = defineAsyncComponent(
-  () => import('@/components/Planner/editShades.vue'),
+  () => import('@/components/planner/editShades.vue'),
 )
 </script>

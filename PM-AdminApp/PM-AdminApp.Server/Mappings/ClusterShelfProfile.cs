@@ -45,7 +45,7 @@ namespace PlanMatr_API.Mappings
                 .ForMember(pm => pm.Discontinued, opt => opt.MapFrom(src => src.Part.Discontinued))
                 .ForMember(pm => pm.StatusId, opt => opt.MapFrom(src => src.PartStatusId))
                 //.ForMember(pm => pm.PartStatusId, opt => opt.MapFrom(src => src.PartStatusId))
-                //.ForMember(pm => pm.ShelfLabel, opt => opt.MapFrom(src => src.Label))
+                .ForMember(pm => pm.ShelfLabel, opt => opt.MapFrom(src => src.Label))
                 .ForMember(pm => pm.Status, opt => opt.MapFrom<ClusterShelfStatusEnumResolver>())
                 .ForMember(pm => pm.CountryList,
                     opt => opt.MapFrom(src => src.Part.CountriesList))

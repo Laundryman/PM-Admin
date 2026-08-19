@@ -114,8 +114,7 @@ onMounted(async () => {
     partModel.value.brandId = brandStore.activeBrand?.id ?? 0
   }
 
-  if (router.currentRoute.value.name === 'editPart')
-    initialisePartForm()
+  if (router.currentRoute.value.name === 'editPart') initialisePartForm()
 
   if (partModel.value.packShotImageSrc != null && partModel.value.packShotImageSrc.length > 0) {
     cassettePhotoSrc.value = cassettePhotoUrl + partModel.value.packShotImageSrc
@@ -124,7 +123,7 @@ onMounted(async () => {
     cassetteRenderSrc.value = cassetteRenderUrl + partModel.value.render2dImage
   }
   if (partModel.value.svgLineGraphic != null && partModel.value.svgLineGraphic.length > 0) {
-    cassetteIconSrc.value = cassetteIconUrl + partModel.value.svgLineGraphic
+    cassetteIconSrc.value = partModel.value.svgLineGraphic
   }
   selectedParentCategoryId.value = partModel.value.parentCategoryId || null
   if (router.currentRoute.value.name === 'editPart') {
@@ -185,8 +184,6 @@ onMounted(async () => {
 
   if (router.currentRoute.value.name === 'editPart') selectedProducts.value = mapPubishedProducts()
   layout.toggleLoading()
-
-
 })
 
 function initialisePartForm() {
@@ -372,9 +369,9 @@ function onIconSelect(event: any) {
     reader.onload = async (e) => {
       let svgString = e.target?.result as string
       var svg = atob(svgString.replace(/data:image\/svg\+xml;base64,/, ''))
-      console.log(svg)
+      // console.log(svg)
 
-      partModel.value.svgLineGraphic = ''
+      partModel.value.svgLineGraphic = svg
       cassetteIconSrc.value = svgString
     }
     reader.readAsDataURL(iconFile.value!)
@@ -742,9 +739,16 @@ async function onFormSubmit({ valid }: any) {
                 <!-- <div class="card flex flex-wrap gap-6 items-center justify-between"> -->
                 <label for="svgLineGraphic">Cassette Icon:</label>
                 <!-- <div v-html="cassetteIconSrc" class="cassette-icon max-w-40"></div> -->
-                <img :src="cassetteIconSrc" class="cassette-icon max-w-40"></img>
+                <!-- <img :src="cassetteIconSrc" class="cassette-icon max-w-40"></img> -->
+                <span
+                  v-if="partModel.svgLineGraphic != null && partModel.svgLineGraphic.length != 0"
+                  class="cassette-icon max-w-40"
+                  v-html="partModel.svgLineGraphic"
+                >
+                </span>
+
                 <Skeleton
-                  v-if="cassetteIconSrc == null || cassetteIconSrc.length == 0"
+                  v-if="partModel.svgLineGraphic == null || partModel.svgLineGraphic.length == 0"
                   height="8rem"
                   width="8rem"
                   class="mb-2"
@@ -1152,5 +1156,4 @@ async function onFormSubmit({ valid }: any) {
       </Form>
     </div>
   </div>
-
 </template>

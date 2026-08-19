@@ -54,6 +54,7 @@ const { regions, countries } = useLocationFilters()
 const locationFilters = useLocationFilters()
 const standTypes = ref<StandType[] | null>([])
 const stands = ref<Stand[] | null>([]) // Replace 'any' with the appropriate type for stands
+
 const resolver = ref(
   zodResolver(
     z.object({

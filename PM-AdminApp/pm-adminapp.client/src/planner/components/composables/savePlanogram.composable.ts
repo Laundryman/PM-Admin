@@ -340,8 +340,8 @@ export function useSavePlanogram(
       let shelf = updateShelfList[k].attributes.shelfInfo
       shelf.planmatrShelfId = updateShelfList[k].attributes.id
       shelf.position = updateShelfList[k].attributes.position
-      if (updateShelfList[k].attributes.attrs['#label'].text !== null)
-        shelf.label = updateShelfList[k].attributes.attrs['#label'].text
+      // if (updateShelfList[k].attributes.attrs['#label'].text !== null)
+      //   shelf.label = updateShelfList[k].attributes.attrs['#label'].text
 
       shelfUpdateList.push(shelf)
     }

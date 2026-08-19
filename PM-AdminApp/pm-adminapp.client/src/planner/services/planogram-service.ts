@@ -217,8 +217,8 @@ export class PlanogramService {
           jointShape.attributes.shelfInfo.height = part.height
           jointShape.attributes.shelfInfo.width = part.width
           if (part.clusterShelfId != null) {
-            jointShape.attributes.shelfInfo.label = ''
-            jointShape.attributes.clusterId = part.planogramId
+            jointShape.attributes.shelfInfo.label = part.label
+            jointShape.attributes.clusterId = part.clusterId
             jointShape.attributes.shelfInfo.planogramId = part.clusterId
           } else {
             jointShape.attributes.shelfInfo.label = part.shelfLabel

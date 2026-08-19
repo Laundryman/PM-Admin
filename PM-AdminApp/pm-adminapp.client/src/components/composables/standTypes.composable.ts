@@ -14,10 +14,14 @@ export function useStandTypes() {
     )
     var standTypeFilter = {} as standTypeFilter
     standTypeFilter.brandId = brandStore.activeBrand?.id || 0
-    await StandTypeService.getAllStandTypes(standTypeFilter).then((response) => {
-      standTypes.value = response.data
-      console.log('Stand Types loaded', standTypes.value)
-    })
+    await StandTypeService.getAllStandTypes(standTypeFilter)
+      .then((response) => {
+        standTypes.value = response
+        console.log('Stand Types loaded', standTypes.value)
+      })
+      .catch((error) => {
+        console.log('Error fetching Stand Types:', error)
+      })
     return standTypes.value
   }
 

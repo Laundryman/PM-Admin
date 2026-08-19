@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import PlanMatrPlanner from '@/components/Planner/PlanMatrPlanner.vue'
+import PlanMatrPlanner from '@/components/planner/PlanMatrPlanner.vue'
 import { AppMode } from '@/planner/models/Enumerations'
-import { default as planogramService } from '@/services/Planograms/PlanogramService'
 import { usePlanogramStore } from '@/stores/planogramStore'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 
@@ -22,7 +21,7 @@ onBeforeRouteLeave((to, from, next) => {
     }
   }
   planogramStore.dirty = false // Reset dirty state if user confirms navigation
-  planogramService.unlockPlanogram(planogramStore.planogram.id)
+  // planogramService.unlockPlanogram(planogramStore.planogram.id)
 
   next()
 })
@@ -30,12 +29,7 @@ onBeforeRouteLeave((to, from, next) => {
 
 <template>
   <div id="planner-app" class="planner-app">
-    <PlanMatrPlanner
-      :app-mode="appMode"
-      :planogram-id="0"
-      :cluster-id="clusterId"
-      :dirty="false"
-    />
+    <PlanMatrPlanner :app-mode="appMode" :planogram-id="0" :cluster-id="clusterId" :dirty="false" />
   </div>
 </template>
 

@@ -23,7 +23,7 @@ $group-transition-duration: 0.3s;
 }
 
 @mixin dropdown-icon(
-    $path: '/assets/inspector/icon-arrow-down.svg',
+    $path: '@/planner/joint-light-theme/assets/inspector/icon-arrow-down.svg',
     $icon-width: 10px,
     $icon-height: 6px
 ) {

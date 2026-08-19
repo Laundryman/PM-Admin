@@ -2,11 +2,12 @@
 import { Category } from '@/models/Categories/category.model'
 import { default as categoryService } from '@/services/Categories/CategoryService'
 import { useSystemStore } from '@/stores/systemStore'
+import ExclamationTriangle from '@primeicons/vue/exclamation-triangle'
 import { FilterMatchMode } from '@primevue/core/api'
+import ConfirmPopup from 'primevue/confirmpopup'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref } from 'vue'
-
 const categories = ref()
 const selectedCategory = ref()
 const categoryDialog = ref(false)
@@ -204,7 +205,7 @@ function confirmDelete(event: Event, cat: Category) {
   confirm.require({
     target: event.currentTarget as HTMLElement,
     message: 'Are you sure you want to delete this category?',
-    icon: 'pi pi-exclamation-triangle',
+    icon: ExclamationTriangle,
     rejectProps: {
       label: 'Cancel',
       severity: 'secondary',
@@ -223,9 +224,33 @@ function confirmDelete(event: Event, cat: Category) {
     },
   })
 }
+
+const confirm1 = (event) => {
+  confirm.require({
+    target: event.currentTarget,
+    message: 'Are you sure you want to proceed?',
+    icon: ExclamationTriangle,
+    rejectProps: {
+      label: 'Cancel',
+      severity: 'secondary',
+      outlined: true,
+    },
+    acceptProps: {
+      label: 'Save',
+    },
+    accept: () => {
+      toast.add({ severity: 'info', summary: 'Confirmed', detail: 'You have accepted', life: 3000 })
+    },
+    reject: () => {
+      toast.add({ severity: 'error', summary: 'Rejected', detail: 'You have rejected', life: 3000 })
+    },
+  })
+}
 </script>
 
 <template>
+  <Toast />
+  <ConfirmPopup></ConfirmPopup>
   <div>
     <div class="card">
       <Toolbar class="mb-6">
@@ -319,6 +344,17 @@ function confirmDelete(event: Event, cat: Category) {
                     @click="confirmDelete($event, childSlotProps.data)"
                   />
                 </template>
+
+                <!-- <template #body="childSlotProps">
+                  <Button
+                    icon="pi pi-trash"
+                    variant="outlined"
+                    rounded
+                    class="mr-2"
+                    v-tooltip="'Delete Test'"
+                    @click="confirm1($event)"
+                  />
+                </template> -->
               </Column>
             </DataTable>
           </div>
@@ -351,6 +387,4 @@ function confirmDelete(event: Event, cat: Category) {
       </template>
     </Dialog>
   </div>
-  <Toast></Toast>
-  <ConfirmPopup></ConfirmPopup>
 </template>

@@ -6,9 +6,11 @@ import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api'
 import { storeToRefs } from 'pinia'
+import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, watch } from 'vue'
 
+const confirm = useConfirm()
 const standImageUrl = import.meta.env.VITE_APP_STANDIMAGE_URL
 
 const standTypes = ref()

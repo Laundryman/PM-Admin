@@ -1,6 +1,7 @@
 // import { useAuthStore } from '@/stores/auth'
 import { Cluster } from '@/models/Clusters/cluster.model'
 import type { ClusterFilter } from '@/models/Clusters/clusterFilter.model'
+import { SaveLayoutDto } from '@/models/Clusters/saveLayout.model'
 import type { searchClusterInfo } from '@/models/Clusters/searchClusterInfo.model'
 import type { CreateLayoutFilter } from '@/models/Layout/createLayoutFilter.model'
 import type { Stand } from '@/models/Stands/stand.model'
@@ -62,6 +63,22 @@ export default {
       .post('/create/createLayout', filter)
       .then((res) => {
         return res.data
+      })
+      .catch((error) => {
+        throw error
+      })
+    return response
+  },
+
+  async saveLayout(layoutData: SaveLayoutDto) {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+      apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
+    }
+    let response = await apiClient
+      .post('/saveLayoutDetails', layoutData)
+      .then((res) => {
+        return res.status
       })
       .catch((error) => {
         throw error

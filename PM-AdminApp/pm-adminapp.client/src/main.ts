@@ -4,8 +4,10 @@ import { createApp } from 'vue'
 import './assets/main.css'
 //import '@/assets/styles.scss'
 import '@/assets/styles.scss'
+import ExclamationTriangle from '@primeicons/vue/exclamation-triangle'
 import 'primeicons/primeicons.css'
-import { AnimateOnScroll, BadgeDirective, FocusTrap, Ripple, StyleClass } from 'primevue'
+import { AnimateOnScroll, FocusTrap, Ripple, StyleClass } from 'primevue'
+import BlockUI from 'primevue/blockui'
 import Button from 'primevue/button'
 import Chart from 'primevue/chart'
 import Checkbox from 'primevue/checkbox'
@@ -13,6 +15,7 @@ import CheckboxGroup from 'primevue/checkboxgroup'
 import Chip from 'primevue/chip'
 import Column from 'primevue/column'
 import ConfirmationService from 'primevue/confirmationservice'
+import ConfirmPopup from 'primevue/confirmpopup'
 import DataTable from 'primevue/datatable'
 import DatePicker from 'primevue/datepicker'
 import Dialog from 'primevue/dialog'
@@ -64,6 +67,8 @@ app.use(PrimeVue, {
   theme: {
     preset: PMAdmin,
   },
+  license:
+    'eyJpZCI6ImNkMjJhNTMwLTViZTMtNGM4Yy1iZjJmLTIwYWFiNDRjMzExNyIsInByb2R1Y3QiOiJwcmltZXVpIiwidGllciI6ImNvbW11bml0eSIsInR5cGUiOiJkZXYiLCJpYXQiOjE3ODM1MjAxMDEsImV4cCI6MTgxNTA1NjEwMX0.twdDa7_VK-tq14l9EBSoqHvJ0BJua75TYd15uEA1QO2pHlpT6T-Tc1qdgxvL36KAYXyP98eQXo2HyUYgp364Dg',
 })
 
 app.component('Button', Button)
@@ -72,6 +77,7 @@ app.component('Checkbox', Checkbox)
 app.component('CheckboxGroup', CheckboxGroup)
 app.component('Chip', Chip)
 app.component('Column', Column)
+app.component('ConfirmPopup', ConfirmPopup)
 app.component('Divider', Divider)
 app.component('DataTable', DataTable)
 app.component('DatePicker', DatePicker)
@@ -104,14 +110,15 @@ app.component('Toast', Toast)
 app.component('ToggleSwitch', ToggleSwitch)
 app.component('ToggleButton', ToggleButton)
 app.component('Toolbar', Toolbar)
+app.component('BlockUI', BlockUI)
 app.directive('tooltip', Tooltip)
-app.directive('badge', BadgeDirective)
+// app.directive('badge', BadgeDirective)
 app.directive('ripple', Ripple)
 app.directive('styleclass', StyleClass)
 app.directive('focustrap', FocusTrap)
 app.directive('animateonscroll', AnimateOnScroll)
 app.component('Message', Message)
-
+app.component('ExclamationTriangle', ExclamationTriangle)
 declare global {
   interface Window {
     rootInstance: any

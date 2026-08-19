@@ -5,7 +5,7 @@ import * as joint from '@joint/plus'
 import { defineAsyncComponent, onMounted, ref, watch } from 'vue'
 const HIDDEN_CLASS_NAME = 'hidden'
 const ShadeEditorAsyncComponent = defineAsyncComponent(
-  () => import('@/components/Planner/editShades.vue'),
+  () => import('@/components/planner/editShades.vue'),
 )
 
 const inspector = ref<joint.ui.Inspector | null>(null)
@@ -19,7 +19,13 @@ const inspectCell = ref<joint.dia.Cell | null>(null)
 const shadeDialog = ref(false)
 const shade = ref<Shade | null>(null)
 const partStore = usePartStore()
-const emit = defineEmits(['inspectorLoaded', 'shadeUpdated', 'statusUpdated', 'labelUpdated'])
+const emit = defineEmits([
+  'inspectorLoaded',
+  'shadeUpdated',
+  'statusUpdated',
+  'labelUpdated',
+  'copiedToClipBoard',
+])
 
 const props = defineProps({
   cell: {
@@ -32,7 +38,11 @@ const props = defineProps({
   },
 })
 const localCell = ref(props.cell)
-
+const tooltip = new joint.ui.Tooltip({
+  target: '[data-tooltip]',
+  direction: joint.ui.Tooltip.TooltipArrowPosition.Auto,
+  padding: 20,
+})
 onMounted(async () => {
   inspectCell.value = props.cell
   inspector.value = await createDynamic(inspectCell.value as joint.dia.Cell)
@@ -244,13 +254,13 @@ function getInspectorConfig(): { [key: string]: any } {
       inputs: {
         partInfo: {
           name: {
-            type: 'textarea',
+            type: 'non-editable',
             label: 'Name',
             group: 'partInfo',
             index: 3,
           },
           partNumber: {
-            type: 'text',
+            type: 'non-editable',
             label: 'PartNumber',
             group: 'partInfo',
             index: 4,
@@ -401,6 +411,30 @@ function getInspectorConfig(): { [key: string]: any } {
             })
 
             return editShadesButtonSet
+          case 'non-editable':
+            let nonEditable = document.createElement('div')
+            nonEditable.style.overflow = 'auto'
+            nonEditable.setAttribute('data-tooltip', 'click to copy')
+            let addALabel = document.createElement('label')
+            addALabel.textContent = options.label
+
+            let display = document.createElement('div')
+            display.style.overflow = 'auto'
+            display.style.border = '1px solid black'
+            display.style.padding = '5px 10px'
+            display.style.color = 'black'
+            display.style.fontWeight = '600'
+            display.classList.add('non-editable-display')
+            display.textContent = value
+            nonEditable.appendChild(addALabel)
+            nonEditable.appendChild(display)
+
+            nonEditable.addEventListener('click', function () {
+              //let cell = inspector.options.cell
+              navigator.clipboard.writeText(value)
+              emit('copiedToClipBoard', { message: 'Copied to clipboard', severity: 'success' })
+            })
+            return nonEditable
           default:
             return undefined
         }
@@ -421,25 +455,38 @@ function getInspectorConfig(): { [key: string]: any } {
             group: 'shelfInfo',
             index: 3,
           },
-          attrs: {
-            '#label': {
-              text: {
-                type: 'textarea',
-                name: 'shelf-label',
-                id: 'shelfLabel',
-                label: 'Label',
-                group: 'shelfInfo',
-                max: 47,
-                index: 1,
-              },
-              save: {
-                type: 'pm-textarea',
-                label: 'save',
-                group: 'shelfInfo',
-                index: 2,
-              },
-            },
+          label: {
+            type: 'textarea',
+            label: 'Label',
+            group: 'shelfInfo',
+            index: 4,
           },
+          save: {
+            type: 'pm-textarea',
+            label: 'save',
+            group: 'shelfInfo',
+            index: 5,
+          },
+
+          // attrs: {
+          //   '#label': {
+          //     text: {
+          //       type: 'textarea',
+          //       name: 'shelf-label',
+          //       id: 'shelfLabel',
+          //       label: 'Label',
+          //       group: 'shelfInfo',
+          //       max: 47,
+          //       index: 1,
+          //     },
+          //     save: {
+          //       type: 'pm-textarea',
+          //       label: 'save',
+          //       group: 'shelfInfo',
+          //       index: 2,
+          //     },
+          //   },
+          // },
 
           //statusId: {
           //  type: 'select-box',
@@ -490,7 +537,7 @@ function getInspectorConfig(): { [key: string]: any } {
           case 'non-editable':
             let nonEditable = document.createElement('div')
             nonEditable.style.overflow = 'auto'
-
+            nonEditable.setAttribute('data-tooltip', 'click to copy')
             let addLabel = document.createElement('label')
             addLabel.textContent = options.label
 
@@ -500,10 +547,16 @@ function getInspectorConfig(): { [key: string]: any } {
             display.style.padding = '5px 10px'
             display.style.color = 'black'
             display.style.fontWeight = '600'
+            display.classList.add('non-editable-display')
             display.textContent = value
             nonEditable.appendChild(addLabel)
             nonEditable.appendChild(display)
 
+            nonEditable.addEventListener('click', function () {
+              //let cell = inspector.options.cell
+              navigator.clipboard.writeText(value)
+              emit('copiedToClipBoard', { message: 'Copied to clipboard', severity: 'success' })
+            })
             return nonEditable
           // case 'select2':
           //     var $select = $('').width(170).hide();

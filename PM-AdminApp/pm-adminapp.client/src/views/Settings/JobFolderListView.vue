@@ -104,6 +104,7 @@ onMounted(async () => {
 
   var filter = new JobFolderFilter()
   filter.brandId = brandid
+  filter.includeChildren = true
   await jobsService.searchJobFolders(filter).then((response) => {
     jobFolders.value = response.data
     console.log('Job Folders loaded', jobFolders.value)

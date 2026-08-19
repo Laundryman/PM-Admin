@@ -1,27 +1,29 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using PMApplication.Entities.PartAggregate;
-using PMApplication.Entities;
-using PMApplication.Interfaces;
-using PMApplication.Interfaces.ServiceInterfaces;
-using PMApplication.Dtos;
-using PMApplication.Dtos.PlanModels;
-using System.Net;
-using System.Net.Http.Headers;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using PMApplication.Entities.PlanogramAggregate;
-using PMApplication.Enums;
-using PMApplication.Services;
-using PMApplication.Specifications.Filters;
-using System.Web;
 //using IronPdf.Engines.Chrome;
 //using IronPdf.Rendering;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using PM_AdminApp.Server.Exceptions;
 using PM_AdminApp.Server.Extensions;
+using PMApplication.Dtos;
+using PMApplication.Dtos.Filters;
+using PMApplication.Dtos.PlanModels;
+using PMApplication.Entities;
 using PMApplication.Entities.ClusterAggregate;
 using PMApplication.Entities.CountriesAggregate;
+using PMApplication.Entities.PartAggregate;
+using PMApplication.Entities.PlanogramAggregate;
+using PMApplication.Enums;
+using PMApplication.Interfaces;
+using PMApplication.Interfaces.RepositoryInterfaces;
+using PMApplication.Interfaces.ServiceInterfaces;
+using PMApplication.Services;
+using PMApplication.Specifications.Filters;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Web;
 
 namespace PM_AdminApp.Server.Controllers.Planner
 {
@@ -34,51 +36,51 @@ namespace PM_AdminApp.Server.Controllers.Planner
         private readonly ILogger<ClusterController> _logger;
         private readonly IBrandService _brandService;
         private readonly IPartService _partService;
-        private readonly IProductService _productService;
         private readonly IPlanogramService _planogramService;
         private readonly IClusterService _clusterService;
-        private readonly ICountryService _countryService;
         private readonly IAuditService _auditService;
         private readonly IConfiguration _config;
-        private readonly IWebHostEnvironment _env;
         private readonly ICategoryService _categoryService;
-        //private readonly IAIdentityService _identityService;
-        //private readonly IProductService _productService;
+        private readonly IClusterRepository _clusterRepository;
         private readonly IStandService _standService;
 
         public ClusterController(IPartService partService,
-                //ICategoryService categoryService,
                 IStandService standService,
                 IBrandService brandService,
-                //ICountryService countryService,
-                //IProductService productService,
                 IPlanogramService planogramService,
-                //IAIdentityService identityService, 
-                IMapper mapper, ILogger<ClusterController> logger, ICountryService countryService, IAuditService auditService, IConfiguration config, IProductService productService, IWebHostEnvironment env, ICategoryService categoryService, IClusterService clusterService)
-            //IPlanogramVersionService versionService)
+                IMapper mapper, ILogger<ClusterController> logger, IAuditService auditService, IConfiguration config, ICategoryService categoryService, IClusterService clusterService, IClusterRepository clusterRepository)
         {
             _partService = partService;
             _standService = standService;
-            //this._categoryService = categoryService;
-            //this._productService = productService;
-            //this._countryService = countryService;
             _brandService = brandService;
             _planogramService = planogramService;
-            //this._identityService = identityService;
             _mapper = mapper;
             _logger = logger;
-            _countryService = countryService;
             _auditService = auditService;
             _config = config;
-            _productService = productService;
-            _env = env;
             _categoryService = categoryService;
             _clusterService = clusterService;
+            _clusterRepository = clusterRepository;
             //this._versionService = versionService;
         }
 
+        [HttpPost]
+        public async Task<IActionResult> SearchClusters(ClusterFilterDto filterDto)
+        {
+            try
+            {
+                //var spec = new ProductSpecification(_mapper.Map<ProductFilter>(filterDto));
+                var clusters = await _clusterRepository.SearchClusters(filterDto);
 
-        //[Route("/get-menu-categories/{planogramId}")]
+                return Ok(clusters);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Something went wrong inside SearchClusters action: {ex.Message}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetMenuCategories(long id)
         {
@@ -382,8 +384,53 @@ namespace PM_AdminApp.Server.Controllers.Planner
             }
         }
 
-        //[Route("api/v2/planx/save-planogram")]
         [HttpPost]
+        public async Task<IActionResult> SaveLayoutDetails(SaveLayoutDto layoutData)
+        {
+
+            try
+            {
+                var userProfile = await this.MappedUser();
+                //get the clusterID
+                var clusterId = layoutData.Id;
+                var layout = await _clusterService.GetCluster((long)clusterId);
+
+                if (layout == null)
+                {
+                    return NotFound("Cluster not found");
+                }
+
+                layout.Name = layoutData.Name;
+                layout.Published = layoutData.Published;
+                layout.DateUpdated = DateTime.Now;
+                await _clusterService.SaveCluster(layout);
+
+                var audit = new AuditLog
+                {
+                    UserId = userProfile.Id,
+                    Date = DateTime.Now,
+                    BrandId = layout.BrandId,
+                    Roles = userProfile.RoleIds,
+                    UserName = userProfile.DisplayName,
+                    Action = (int)LogActionEnum.EditlLayout,
+                    Message = userProfile.DisplayName + " updated layout details for layout with Id " + layout.Id,
+                    PlanoId = layout.Id
+                };
+
+                var auditEvent = await _auditService.AuditEvent(audit);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error saving layout details for clusterId " + layoutData.Id +
+                                 "---- error message - " + ex.Message + " --- " + ex.StackTrace);
+                return StatusCode(500, "Internal server error saving layout details");
+            }
+        }
+
+        //[Route("api/v2/planx/save-planogram")]
+            [HttpPost]
         public async Task<IActionResult> SaveCluster(PlanmPlanogramInfo clusterData)
         {
 
@@ -476,9 +523,19 @@ namespace PM_AdminApp.Server.Controllers.Planner
                     }
                 }
 
-                //Now handle any parts not associated with shelves
-                //await SaveCassettes(clusterData.ClusterId, clusterData.CassetteInfo.ToList());
+                var audit = new AuditLog
+                {
+                    UserId = userProfile.Id,
+                    Date = DateTime.Now,
+                    BrandId = cluster.BrandId,
+                    Roles = userProfile.RoleIds,
+                    UserName = userProfile.DisplayName,
+                    Action = (int)LogActionEnum.EditlLayout,
+                    Message = userProfile.DisplayName + " updated layout details for layout with Id " + cluster.Id,
+                    PlanoId = cluster.Id
+                };
 
+                var auditEvent = await _auditService.AuditEvent(audit);
                 return Ok();
             }
             catch (Exception ex)
@@ -787,7 +844,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
 
                 newShelf.PartId = shelf.PartId;
                 newShelf.PartStatusId = shelf.StatusId ?? 0;
-                var label = shelf.Label;
+                newShelf.Label = shelf.Label;
 
                 if (shelfId != null)
                 {

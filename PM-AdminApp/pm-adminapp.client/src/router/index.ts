@@ -128,12 +128,6 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/Clusters/editCluster.vue'),
         meta: { requiresAuth: true },
       },
-      {
-        path: '/clusters/view/:id',
-        name: 'viewCluster',
-        component: () => import('@/views/Clusters/EditClusterView.vue'),
-        meta: { requiresAuth: true },
-      },
 
       {
         path: '/clusters/create',
@@ -178,6 +172,18 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true },
       },
       {
+        path: '/categories',
+        name: 'categories',
+        component: () => import('@/views/Settings/CategoryListView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/standtypes',
+        name: 'standtypes',
+        component: () => import('@/views/Settings/StandTypeListView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
         path: '/user',
         name: 'user',
         component: () => import('@/views/UserView.vue'),
@@ -214,12 +220,6 @@ const routes: RouteRecordRaw[] = [
       // { path: '/pages/crud', name: 'crud', component: () => import('@/views/pages/Crud.vue') },
       // { path: '/documentation', name: 'documentation', component: () => import('@/views/pages/Documentation.vue') }
     ],
-  },
-  {
-    path: '/testCluster/:id',
-    name: 'testEditCluster',
-    component: () => import('@/views/Clusters/EditClusterView.vue'),
-    meta: { requiresAuth: true },
   },
   // {
   //   path: '/pages/notfound',

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import PlanMatrPlanner from '@/components/Planner/PlanMatrPlanner.vue'
+import PlanMatrPlanner from '@/components/planner/PlanMatrPlanner.vue'
 import { AppMode } from '@/planner/models/Enumerations'
 import { default as planogramService } from '@/services/Planograms/PlanogramService'
 import { usePlanogramStore } from '@/stores/planogramStore'

@@ -99,6 +99,7 @@ async function onRegionChange() {
     filter.brandId = brandStore.activeBrand?.id ?? 0
 
     filter.regionId = selectedRegion.value
+    filter.regionsList = selectedRegion.value ? selectedRegion.value.toString() : ''
     await planogramService.searchPlanograms(filter).then((response) => {
       planograms.value = response
       console.log('Planograms loaded', planograms.value)
@@ -113,6 +114,8 @@ async function onCountryChange() {
     let filter = new PlanogramFilter()
     filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.countryId = selectedCountry.value
+    filter.countriesList = selectedCountry.value ? selectedCountry.value.toString() : ''
+    filter.regionsList = selectedRegion.value ? selectedRegion.value.toString() : ''
     await planogramService.searchPlanograms(filter).then((response) => {
       planograms.value = response
       console.log('Planograms loaded', planograms.value)
@@ -251,6 +254,7 @@ function editPlanogram(planogram: searchPlanogramInfo) {
         ref="dt"
         v-model:filters="filters"
         :value="planograms"
+        :loading="loading"
         :globalFilterFields="[
           'name',
           'standTypeName',

@@ -4,8 +4,9 @@ export class searchClusterInfo {
   clusterPartNumber!: string
   standId!: number
   standName!: number
+  standTypeId!: number
   standTypeName!: string
-  StandAssemblyNumber!: string
+  standAssemblyNumber!: string
   discription!: boolean
   rows!: number
   cols!: number

@@ -73,7 +73,7 @@ onMounted(async () => {
     stands.value = response
     console.log('Stands loaded', stands.value)
   })
-
+  loading.value = false
   //   FilterService.register(part_FILTER.value, (value: any, filter: any) => {
   //     if (filter === undefined || filter === null || filter.trim() === '') {
   //       return true
@@ -93,10 +93,12 @@ async function onRegionChange() {
     let filter = new StandFilter()
     filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.regionId = selectedRegion.value
+    loading.value = true
     await standService.searchStands(filter).then((response) => {
       stands.value = response
       console.log('Stands loaded', stands.value)
     })
+    loading.value = false
   } else {
     countries.value = []
   }
@@ -107,10 +109,12 @@ async function onCountryChange() {
     let filter = new StandFilter()
     filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.countryId = selectedCountry.value
+    loading.value = true
     await standService.searchStands(filter).then((response) => {
       stands.value = response
       console.log('Stands loaded', stands.value)
     })
+    loading.value = false
   } else {
     countries.value = []
   }
@@ -195,6 +199,7 @@ function copyStand(stand: searchStandInfo) {
         ref="dt"
         v-model:selection="selectedStands"
         v-model:filters="filters"
+        :loading="loading"
         :globalFilterFields="[
           //'categoryName',
           'name',
