@@ -67,6 +67,19 @@ export default {
     //   throw new Error('PlanogramService not initialized')
     // }
   },
+  async lockPlanogram(planogramId: number): Promise<void> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    await apiClient
+      .get('/lockplanogram/', { params: { id: planogramId } })
+      .then(() => {
+        return
+      })
+      .catch((error) => {
+        throw error
+      })
+  },
   async unlockPlanogram(planogramId: number): Promise<void> {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`

@@ -82,9 +82,9 @@ namespace PM_AdminApp.Server.Extensions
             services.AddTransient<IProductRepository, ProductRepository>();
             services.AddTransient<IRegionRepository, RegionRepository>();
             services.AddTransient<IStandRepository, StandRepository>();
-            //services.AddTransient<IStandColumnRepository, StandColumnRepository>();
-            //services.AddTransient<IStandColumnUprightRepository, StandColumnUprightRepository>();
-            //services.AddTransient<IStandRowRepository, StandRowRepository>();
+            services.AddTransient<IStandColumnRepository, StandColumnRepository>();
+            services.AddTransient<IStandColumnUprightRepository, StandColumnUprightRepository>();
+            services.AddTransient<IStandRowRepository, StandRowRepository>();
             services.AddTransient<IStandTypeRepository, StandTypeRepository>();
             services.AddTransient<IShadeRepository, ShadeRepository>();
             services.AddTransient<IScratchPadRepository, ScratchPadRepository>();

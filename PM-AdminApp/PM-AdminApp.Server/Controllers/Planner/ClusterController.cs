@@ -690,7 +690,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
             catch (Exception ex)
             {
                 //we caught an exception
-                throw (ex);
+                throw;
             }
 
         }

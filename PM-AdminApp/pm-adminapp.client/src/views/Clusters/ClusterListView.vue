@@ -15,6 +15,7 @@ import { FilterMatchMode } from '@primevue/core/api/'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
 import { useRouter } from 'vue-router'
+
 const manageCluster = useManageCluster()
 const { regions, countries } = useLocationFilters()
 const selectedRegion = ref()
@@ -171,7 +172,9 @@ async function onSelectCluster(event: any) {
     loadingCluster.value = false
   })
 }
-
+function openNew() {
+  router.push({ name: 'createCluster' })
+}
 async function saveLayout({ valid }: any) {
   if (!valid) {
     return
@@ -241,7 +244,16 @@ async function saveLayout({ valid }: any) {
         />
       </template>
 
-      <template #end> </template>
+      <template #end>
+        <Button
+          label="New"
+          icon="pi pi-plus"
+          severity="primary"
+          class="mr-2"
+          @click="openNew"
+          v-tooltip.left="'Create a cluster'"
+        />
+      </template>
     </Toolbar>
     <div class="card">
       <DataTable
@@ -281,13 +293,13 @@ async function saveLayout({ valid }: any) {
           </div>
         </template>
         <!-- <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column> -->
-        <Column field="name" header="Name" sortable style="min-width: 6rem"></Column>
+        <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
         <Column field="standName" header="Stand Name" sortable style="min-width: 12rem"></Column>
         <Column
           field="standTypeName"
           header="StandType"
           filterField="standTypeName"
-          style="min-width: 16rem"
+          style="min-width: 10rem"
         >
           <template #filter="{ filterModel, filterCallback }">
             <InputText
@@ -302,31 +314,32 @@ async function saveLayout({ valid }: any) {
           field="standAssemblyNumber"
           header="Assembly Number"
           sortable
-          style="min-width: 12rem"
+          style="min-width: 6rem"
         ></Column>
 
         <Column field="height" header="Height" sortable style="min-width: 6rem"></Column>
         <Column field="width" header="Width" sortable style="min-width: 6rem"></Column>
-        <Column field="published" header="Published" sortable style="min-width: 12rem"></Column>
-        <Column field="dateCreated" header="Date Created" sortable style="min-width: 12rem">
+        <Column field="published" header="Published" sortable style="min-width: 4rem"></Column>
+        <Column field="dateCreated" header="Date Created" sortable style="min-width: 4rem">
           <template #body="slotProps">
             {{ new Date(slotProps.data.dateCreated).toLocaleDateString() }}
           </template>
         </Column>
-        <Column field="dateUpdated" header="Last Updated" sortable style="min-width: 12rem">
+        <Column field="dateUpdated" header="Last Updated" sortable style="min-width: 4rem">
           <template #body="slotProps">
             {{ new Date(slotProps.data.dateUpdated).toLocaleDateString() }}
           </template>
         </Column>
-        <Column :exportable="false" style="min-width: 12rem">
+        <Column :exportable="false" style="min-width: 4rem">
           <template #body="slotProps">
             <Button
-              icon="pi pi-pencil"
+              v-tooltip="'Edit Cluster'"
               variant="outlined"
               rounded
               class="mr-2"
               @click="editCluster(slotProps.data)"
-            />
+              ><Grip />
+            </Button>
           </template>
         </Column>
       </DataTable>

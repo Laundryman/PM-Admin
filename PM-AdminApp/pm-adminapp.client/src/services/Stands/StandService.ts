@@ -103,6 +103,22 @@ export default {
     return response.data
   },
 
+  async createStand(standData: Stand): Promise<Stand> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    let response = await apiClient
+      .post('/createStand', standData)
+      .then((response) => {
+        return response
+      })
+      .catch((err) => {
+        console.error('Error creating stand:', err)
+        throw err
+      })
+    return response.data
+  },
+
   async initialise() {
     const authStore = useAuthStore()
     if (!authStore.initialized) {

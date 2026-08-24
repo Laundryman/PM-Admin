@@ -209,11 +209,19 @@ function copyPart(part: SearchPartInfo) {
           label="Clear"
           variant="outlined"
           @click="clearFilters()"
+          v-tooltip="'Clear filters'"
         />
       </template>
 
       <template #end>
-        <Button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" @click="openNew" />
+        <Button
+          label="New"
+          icon="pi pi-plus"
+          severity="primary"
+          class="mr-2"
+          @click="openNew"
+          v-tooltip="'Create a part'"
+        />
       </template>
     </Toolbar>
     <div class="card">

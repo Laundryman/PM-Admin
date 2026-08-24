@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Graph.Models;
-using System.Text.Json;
+using PM_AdminApp.Server.Extensions;
 using PMApplication.Dtos;
 using PMApplication.Dtos.Filters;
 using PMApplication.Entities;
@@ -15,6 +15,8 @@ using PMApplication.Interfaces.RepositoryInterfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
 using PMInfrastructure.Repositories;
+using System.Text.Json;
+using PMApplication.Dtos.PlanModels;
 using Page = PMApplication.Dtos.Page;
 
 namespace PM_AdminApp.Server.Controllers
@@ -28,6 +30,9 @@ namespace PM_AdminApp.Server.Controllers
         private readonly IMapper _mapper;
         private readonly IAsyncRepository<Stand> _asyncStandRepository;
         private readonly IStandRepository _standRepository;
+        private readonly IStandTypeRepository _standTypeRepository;
+        private readonly IStandColumnRepository _standColumnRepository;
+        private readonly IStandColumnUprightRepository _standColumnUprightRepository;
         private readonly IAsyncRepository<Region> _regionRepository;
         private readonly IAsyncRepository<Country> _countryRepository;
         private readonly IAsyncRepository<Category> _categoryRepository;
@@ -36,7 +41,8 @@ namespace PM_AdminApp.Server.Controllers
 
         public StandsController(IMapper mapper, IAsyncRepository<Stand> asyncStandRepository,
             IAsyncRepository<Country> countryRepository, IAsyncRepository<Category> categoryRepository,
-            ILogger<StandsController> logger, IStandRepository standRepository, IAsyncRepository<Region> regionRepository)
+            ILogger<StandsController> logger, IStandRepository standRepository,
+            IAsyncRepository<Region> regionRepository, IStandTypeRepository standTypeRepository, IStandColumnRepository standColumnRepository, IStandColumnUprightRepository standColumnUprightRepository)
         {
             _logger = logger;
             _standRepository = standRepository;
@@ -45,6 +51,9 @@ namespace PM_AdminApp.Server.Controllers
             _categoryRepository = categoryRepository;
             _mapper = mapper;
             _regionRepository = regionRepository;
+            _standTypeRepository = standTypeRepository;
+            _standColumnRepository = standColumnRepository;
+            _standColumnUprightRepository = standColumnUprightRepository;
         }
 
 
@@ -157,7 +166,7 @@ namespace PM_AdminApp.Server.Controllers
 
                 var id = updateStand.Id;
                 var standFilter = new StandFilter() { Id = id };
-                var spec = new StandSpecification(standFilter);
+                var spec = new EditStandSpecification(standFilter);
                 var standEdit = await _standRepository.FirstAsync(spec);
                 if (standEdit == null)
                 {
@@ -165,13 +174,20 @@ namespace PM_AdminApp.Server.Controllers
                     return NotFound();
                 }
 
-                _mapper.Map(updateStand, standEdit );
+                _mapper.Map(updateStand, standEdit);
+                standEdit.DateUpdated = DateTime.Now;
+
                 await _standRepository.UpdateAsync(standEdit);
 
                 //Now manage relationships.
                 await UpdateStandCountryCollection(standEdit, updateStand);
                 await UpdateRegionsCollection(standEdit, updateStand);
-                return Ok();
+                await UpdateColumnCollection(standEdit, updateStand);
+                await UpdateRowCollection(standEdit, updateStand);
+                await _standRepository.UpdateAsync(standEdit);
+                var response = _mapper.Map<StandDto>(standEdit);
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -181,12 +197,30 @@ namespace PM_AdminApp.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateStand(StandDto createDto)
+        public async Task<IActionResult> CreateStand(StandUpdateDto createDto)
         {
             try
             {
+                //var userProfile = await this.MappedUser();
+
                 var stand = _mapper.Map<Stand>(createDto);
+                stand.DateCreated = DateTime.Now;
+                stand.DateUpdated = DateTime.Now;
+                stand.DateAvailable = DateTime.Now;
+
+                var standType = await _standTypeRepository.GetByIdAsync(createDto.StandTypeId);
+                var parentStandType = await _standTypeRepository.GetByIdAsync((int)standType.ParentStandTypeId);
+                stand.StandTypeName = standType.Name;
+                stand.ParentStandTypeId = standType.ParentStandTypeId;
+                stand.ParentStandTypeName = parentStandType.Name;
                 var createdStand = await _standRepository.AddAsync(stand);
+
+                await UpdateRegionsCollection(createdStand, createDto);
+                await UpdateStandCountryCollection(createdStand, createDto);
+                await UpdateColumnCollection(createdStand, createDto);
+                await UpdateRowCollection(createdStand, createDto);
+                //var createdStand = await _standRepository.AddAsync(stand);
+                await _standRepository.UpdateAsync(createdStand);
                 var response = _mapper.Map<StandDto>(createdStand);
                 return Ok(response);
             }
@@ -196,6 +230,7 @@ namespace PM_AdminApp.Server.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
         [ApiExplorerSettings(IgnoreApi = true)]
         private async Task UpdateRegionsCollection(Stand origStand, StandUpdateDto updateStand)
         {
@@ -210,20 +245,28 @@ namespace PM_AdminApp.Server.Controllers
                     origStand.Regions.Add(dbRegion);
                 }
             }
+
+            var regionsToDelete = new List<Region>();
             for (int i = origStand.Regions.Count - 1; i >= 0; i--)
             {
                 var origRegion = origStand.Regions[i];
                 var updatedRegion = updateStand.Regions.FirstOrDefault(r => r.Id == origRegion.Id);
                 if (updatedRegion == null)
                 {
-                    var dbRegion = await _regionRepository.GetByIdAsync(origRegion.Id);
-                    origStand.Regions.Remove(dbRegion);
+                    var dbRegion = origStand.Regions.FirstOrDefault(r => r.Id == origRegion.Id);
+                    regionsToDelete.Add(dbRegion);
                 }
+            }
+
+            foreach (var region in regionsToDelete)
+            {
+                origStand.Regions.Remove(region);
             }
 
             //update Part.RegionList string
             origStand.RegionsList = string.Join(",", origStand.Regions.Select(r => r.Id));
         }
+
         [ApiExplorerSettings(IgnoreApi = true)]
         private async Task UpdateStandCountryCollection(Stand origStand, StandUpdateDto updateStand)
         {
@@ -241,20 +284,175 @@ namespace PM_AdminApp.Server.Controllers
                     }
                 }
             }
+
             //remove deleted countries
-            for (int i = origStand.Countries.Count - 1; i >= 0; i--)
+            var countriesToDelete = new List<Country>();
+            for (int i = 0; i < origStand.Countries.Count; i++)
             {
                 var origCountry = origStand.Countries[i];
                 var updatedCountry = updateStand.Countries.FirstOrDefault(c => c.Id == origCountry.Id);
                 if (updatedCountry == null)
                 {
-                    var dbCountry = await _countryRepository.GetByIdAsync(origCountry.Id);
-                    origStand.Countries.Remove(dbCountry);
+                    countriesToDelete.Add(origCountry);
                 }
+            }
+
+            foreach (var country in countriesToDelete)
+            {
+                origStand.Countries.Remove(country);
             }
 
             //update Part.CountryList string
             origStand.CountriesList = string.Join(",", origStand.Countries.Select(c => c.Id));
+        }
+
+        private async Task UpdateColumnCollection(Stand origStand, StandUpdateDto updateStand)
+        {
+            var existingCols = origStand.ColumnList;
+            var newCols = updateStand.ColumnList;
+
+            foreach (var col in updateStand.ColumnList)
+            {
+                var origCol = origStand.ColumnList.FirstOrDefault(c => c.Position == col.Position);
+                if (origCol == null)
+                {
+                    StandColumn newCol = new StandColumn()
+                    {
+                        Position = col.Position,
+                        StandId = col.StandId,
+                        Width = col.Width,
+                    };
+                    List<StandColumnUpright> newUprightList = new List<StandColumnUpright>();
+                    foreach (var upright in col.ColumnUprightList)
+                    {
+                        StandColumnUpright newUpright = new StandColumnUpright()
+                        {
+                            Height = upright.Height,
+                            Position = upright.Position,
+                            StandId = col.StandId
+
+                        };
+                        newUprightList.Add(newUpright);
+
+                    }
+
+                    newCol.StandColumnUprights = newUprightList;
+                    origStand.ColumnList.Add(newCol);
+                }
+                else
+                {
+                    origCol.Width = col.Width;
+                    await updateStandColumnUprights(origCol, col);
+                }
+            }
+
+            var columnsToDelete = new List<StandColumn>();
+            //remove deleted columns
+            for (int i = origStand.ColumnList.Count - 1; i >= 0; i--)
+            {
+                var origCol = origStand.ColumnList[i];
+                var updatedColumn = updateStand.ColumnList.FirstOrDefault(c => c.Id == origCol.Id);
+                if (updatedColumn == null)
+                {
+                    var dbCol = origStand.ColumnList.FirstOrDefault(c => c.Id == origCol.Id);
+                    columnsToDelete.Add(dbCol);
+                }
+            }
+
+            foreach (var col in columnsToDelete)
+            {
+                origStand.ColumnList.Remove(col);
+            }
+
+        }
+
+        private async Task updateStandColumnUprights(StandColumn origCol, PlanmStandColumnDto editCol)
+        {
+            List<StandColumnUpright> newUprightList = new List<StandColumnUpright>();
+            foreach (var upright in editCol.ColumnUprightList)
+            {
+                var currUpright = origCol.StandColumnUprights.First(c => c.Id == upright.Id);
+                if (currUpright != null)
+                {
+                    currUpright.Position = upright.Position;
+                    currUpright.Height = upright.Height;
+                }
+                else
+                {
+                    StandColumnUpright newUpright = new StandColumnUpright()
+                    {
+                        Height = upright.Height,
+                        Position = upright.Position,
+                        //StandId = origCol.StandId
+
+                    };
+                    origCol.StandColumnUprights.Add(newUpright);
+                }
+
+            }
+
+            //remove uprights
+            var urToRemove = new List<StandColumnUpright>();
+            foreach (var ur in origCol.StandColumnUprights)
+            {
+                var existUR = editCol.ColumnUprightList.First(c => c.Id == ur.Id);
+                if (existUR == null)
+                {
+                    urToRemove.Add(ur);
+                }
+            }
+
+            foreach (var ur in urToRemove)
+            {
+                origCol.StandColumnUprights.Remove(ur);
+            }
+
+            //reset the upright list
+            origCol.StandColumnUprights = newUprightList;
+        }
+
+        private async Task UpdateRowCollection(Stand origStand, StandUpdateDto updateStand)
+        {
+            var existingRows = origStand.RowList;
+            var newRows = updateStand.RowList;
+
+            foreach (var row in updateStand.RowList)
+            {
+                var origRow = origStand.RowList.FirstOrDefault(r => r.Position == row.Position);
+                if (origRow == null)
+                {
+                    StandRow newRow = new StandRow()
+                    {
+                        Position = row.Position,
+                        StandId = row.StandId,
+                        Height = row.Height,
+                    };
+                    origStand.RowList.Add(newRow);
+                }
+                else
+                {
+                    origRow.Height = row.Height;
+                }
+            }
+
+            var rowsToDelete = new List<StandRow>();
+            //remove deleted rows
+            for (int i = origStand.RowList.Count - 1; i >= 0; i--)
+            {
+                var origRow = origStand.RowList[i];
+                var updatedRow = updateStand.RowList.FirstOrDefault(r => r.Id == origRow.Id);
+                if (updatedRow == null)
+                {
+                    var dbRow = origStand.RowList.FirstOrDefault(r => r.Id == origRow.Id);
+                    rowsToDelete.Add(dbRow);
+                }
+            }
+
+            foreach (var row in rowsToDelete)
+            {
+                origStand.RowList.Remove(row);
+            }
+
         }
     }
 }

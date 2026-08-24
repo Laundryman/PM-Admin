@@ -1143,7 +1143,7 @@ async function onFormSubmit({ valid }: any) {
                   name="createdDate"
                   placeholder="Created Date"
                   fluid
-                  v-model="dateCreated"
+                  v-model="partModel.dateCreated"
                   disabled
                   @date-select="updateDateCreated($event)"
                 />

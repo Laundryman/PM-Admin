@@ -187,11 +187,19 @@ function copyStand(stand: searchStandInfo) {
           label="Clear"
           variant="outlined"
           @click="clearFilters()"
+          v-tooltip="'Clear filters'"
         />
       </template>
 
       <template #end>
-        <Button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" @click="openNew" />
+        <Button
+          label="New"
+          icon="pi pi-plus"
+          severity="primary"
+          class="mr-2"
+          @click="openNew"
+          v-tooltip.left="'Create a stand'"
+        />
       </template>
     </Toolbar>
     <div class="card">
@@ -216,7 +224,7 @@ function copyStand(stand: searchStandInfo) {
         :rows="10"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         :rowsPerPageOptions="[5, 10, 25]"
-        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} parts"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} stands"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
@@ -229,7 +237,6 @@ function copyStand(stand: searchStandInfo) {
             </IconField>
           </div>
         </template>
-        <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
         <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
         <Column
           field="parentStandTypeName"
@@ -262,16 +269,26 @@ function copyStand(stand: searchStandInfo) {
           </template>
         </Column>
         <Column
-          field="standAssembleyNumber"
+          field="standAssemblyNumber"
           header="Assembly Number"
           sortable
           style="min-width: 12rem"
         ></Column>
+        <Column field="height" header="Height" sortable style="min-width: 4rem"></Column>
+        <Column field="width" header="Width" sortable style="min-width: 4rem"></Column>
 
-        <Column field="height" header="Height" sortable style="min-width: 16rem"></Column>
-        <Column field="width" header="Width" sortable style="min-width: 12rem"></Column>
+        <Column field="dateCreated" header="Date Created" sortable style="min-width: 4rem">
+          <template #body="slotProps">
+            {{ new Date(slotProps.data.dateCreated).toLocaleDateString() }}
+          </template></Column
+        >
+        <Column field="dateUpdated" header="Date Updated" sortable style="min-width: 4rem">
+          <template #body="slotProps">
+            {{ new Date(slotProps.data.dateUpdated).toLocaleDateString() }}
+          </template>
+        </Column>
 
-        <Column :exportable="false" style="min-width: 12rem">
+        <Column :exportable="false" style="min-width: 4rem">
           <template #body="slotProps">
             <Button
               v-tooltip="'Edit Stand'"

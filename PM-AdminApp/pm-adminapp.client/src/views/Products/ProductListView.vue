@@ -200,11 +200,19 @@ function copyProduct(product: searchProductInfo) {
           label="Clear"
           variant="outlined"
           @click="clearFilters()"
+          v-tooltip="'Clear filters'"
         />
       </template>
 
       <template #end>
-        <Button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" @click="openNew" />
+        <Button
+          label="New"
+          icon="pi pi-plus"
+          severity="primary"
+          class="mr-2"
+          @click="openNew"
+          v-tooltip="'Create a product'"
+        />
       </template>
     </Toolbar>
     <div class="card">
@@ -222,14 +230,13 @@ function copyProduct(product: searchProductInfo) {
           'stock',
         ]"
         filterDisplay="menu"
-        showGridlines
         :value="products"
         dataKey="id"
         :paginator="true"
         :rows="10"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         :rowsPerPageOptions="[5, 10, 25]"
-        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} parts"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
@@ -242,7 +249,6 @@ function copyProduct(product: searchProductInfo) {
             </IconField>
           </div>
         </template>
-        <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
         <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
         <Column
           field="parentCategoryName"

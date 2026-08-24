@@ -170,7 +170,7 @@ namespace PM_AdminApp.Server.Controllers
             {
                 var spec = new RegionSpecification(_mapper.Map<RegionFilter>(filterDto));
                 var regions = await _regionRepository.ListAsync(spec);
-
+                var regionsSorted = regions.OrderBy(r => r.Name.ToLower());
                 var response = _mapper.Map<List<RegionDto>>(regions);
                 return Ok(response);
             }

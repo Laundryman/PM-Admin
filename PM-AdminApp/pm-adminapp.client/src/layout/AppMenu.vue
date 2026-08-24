@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref } from 'vue'
 
-import AppMenuItem from './AppMenuItem.vue';
+import AppMenuItem from './AppMenuItem.vue'
 
 const model = ref([
   {
@@ -26,11 +26,11 @@ const model = ref([
         icon: 'pi pi-fw pi-check-square',
         to: '/planograms',
       },
-      {
-        label: 'Create Planogram',
-        icon: 'pi pi-fw pi-check-square',
-        to: '/planograms/create',
-      },
+      // {
+      //   label: 'Create Planogram',
+      //   icon: 'pi pi-fw pi-check-square',
+      //   to: '/planograms/create',
+      // },
     ],
   },
   {

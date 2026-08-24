@@ -16,7 +16,7 @@ export class searchStandInfo {
   rows!: number
   allowOverhang!: string
   layoutStyle!: number
-  StandAssemblyNumber!: string
+  standAssemblyNumber!: string
   height!: number
   width!: number
   spanShelves!: boolean

@@ -199,7 +199,26 @@ function unlock(planogram: searchPlanogramInfo) {
     .catch((error) => {
       console.error('Error unlocking planogram', error)
     })
-  console.log('Unlock planogram', planogram)
+  // console.log('Unlock planogram', planogram)
+  // layout.setActivePart(part)
+  // Navigate to edit page
+}
+
+function lock(planogram: searchPlanogramInfo) {
+  planogramService
+    .lockPlanogram(planogram.id)
+    .then(() => {
+      console.log('Planogram locked', planogram)
+      // Refresh the planogram list after locking
+      planograms.value = planograms.value.map((p) =>
+        p.id === planogram.id ? { ...p, locked: true } : p,
+      )
+      // clearFilters()
+    })
+    .catch((error) => {
+      console.error('Error locking planogram', error)
+    })
+  // console.log('Lock planogram', planogram)
   // layout.setActivePart(part)
   // Navigate to edit page
 }
@@ -366,22 +385,30 @@ function editPlanogram(planogram: searchPlanogramInfo) {
             />
           </template>
         </Column>
-        <Column :exportable="false" style="min-width: 12rem">
+        <Column :exportable="false" style="min-width: 12rem" header="Locked">
           <template #body="slotProps">
             <Button
               v-if="slotProps.data.locked"
               v-tooltip="'Unlock Planogram'"
-              icon="pi pi-lock-open"
+              icon="pi pi-lock"
               variant="outlined"
               rounded
               class="mr-2"
               @click="unlock(slotProps.data)"
             />
+            <Button
+              v-if="!slotProps.data.locked"
+              v-tooltip="'Lock Planogram'"
+              icon="pi pi-lock-open"
+              variant="outlined"
+              rounded
+              class="mr-2"
+              @click="lock(slotProps.data)"
+            />
           </template>
         </Column>
-        <Column :exportable="false" style="min-width: 12rem">
+        <!-- <Column :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
-            <!-- <Button v-if="slotProps.data.locked" v-tooltip="'Unlock Planogram'" icon="pi pi-lock-open" variant="outlined" rounded class="mr-2" @click="unlock(slotProps.data)" /> -->
             <Button
               v-tooltip="'Edit Planogram'"
               icon="pi pi-pencil"
@@ -391,7 +418,7 @@ function editPlanogram(planogram: searchPlanogramInfo) {
               @click="editPlanogram(slotProps.data)"
             />
           </template>
-        </Column>
+        </Column> -->
       </DataTable>
     </div>
   </div>

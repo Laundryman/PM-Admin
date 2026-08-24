@@ -16,12 +16,15 @@ import { useBrandStore } from '@/stores/brandStore'
 import { useStandStore } from '@/stores/standStore'
 import { useSystemStore } from '@/stores/systemStore'
 import { Form } from '@primevue/forms'
+import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { z } from 'zod'
 /// consider this selector -> https://codepen.io/jmhmd/pen/JdPGgW
 const router = useRouter()
+const newStand = ref(false)
 const multiSelectLists = useMultiSelectLists()
 const standTypes = useStandTypes()
 const standModel = ref<Stand>(new Stand())
@@ -33,10 +36,10 @@ const layout = useSystemStore()
 const brandStore = useBrandStore()
 const brand = storeToRefs(brandStore).activeBrand
 const standStore = useStandStore()
-const colsCount = ref<number>()
-const pitchCount = ref<number>()
+const colsCount = ref<number>(0)
+const pitchCount = ref<number>(0)
 const colsTable = ref<Column[] | null>(null)
-const rowsCount = ref<number>()
+const rowsCount = ref<number>(0)
 const rowsTable = ref<Row[] | null>(null)
 
 const locationFilters = useLocationFilters()
@@ -50,7 +53,6 @@ const selectAllCountries = ref(false)
 const selectAllProducts = ref(false)
 const standTypesList = ref<StandType[] | null>(null)
 const selectedStandType = ref<number | null>(null)
-
 const headerGraphicUrl = import.meta.env.VITE_APP_HEADERGRAPHIC_URL
 const headerGraphicSrc = ref()
 const imageFile = ref<File | null>(null)
@@ -62,6 +64,62 @@ const standLayoutStylesList = ref([
   { name: 'Pitch', id: 2 },
   { name: 'Column + Pitch', id: 3 },
 ])
+const baseSchema = z.object({
+  name: z.string().nonempty({ message: 'Name is required.' }),
+  // description: z.string().nonempty({ message: 'Description is required.' }),
+  // categoryId: z.number().nonnegative({ message: 'Category is required.' }),
+  // parentCategoryId: z.number().nonnegative({ message: 'Parent Category is required.' }),
+  standType: z.number().nonnegative({ message: 'Stand Type is required.' }),
+  layoutStyle: z.number().nonnegative({ message: 'Layout Style is required.' }),
+  width: z.number({ message: 'Width is required.' }),
+  height: z.number({ message: 'Height is required.' }),
+  footerHeight: z.number({ message: 'Footer height is required.' }),
+  headerHeight: z.number({ message: 'Header height is required.' }),
+  merchWidth: z.number({ message: 'Merch width is required.' }),
+  merchHeight: z.number({ message: 'Merch height is required.' }),
+  msregions: z.array(z.number()).min(1, { message: 'At least one region is required.' }),
+  countries: z.array(z.number()).min(1, { message: 'At least one country is required.' }),
+})
+
+const schema = baseSchema
+  .refine((data) => data.merchWidth <= data.width, {
+    message: 'Merch width must be less than or equal to stand width.',
+    path: ['merchWidth'],
+    when(payload) {
+      return baseSchema.pick({ merchWidth: true, width: true }).safeParse(payload.value).success
+    },
+  })
+  .refine((data) => data.merchHeight <= data.height, {
+    message: 'Merch height must be less than or equal to stand height.',
+    path: ['merchHeight'],
+    when(payload) {
+      return baseSchema
+        .pick({ merchHeight: true, height: true, footerHeight: true, headerHeight: true })
+        .safeParse(payload.value).success
+    },
+  })
+const resolver = ref(zodResolver(schema))
+
+// const resolver = ({ values }: any) => {
+//   const errors = {} as any
+//   console.log('Validating form with values:', values)
+//   if (!values.name) {
+//     errors.name = [{ message: 'Name is required.' }]
+//   }
+//   if (!values.description) {
+//     errors.description = [{ message: 'Description is required.' }]
+//   }
+//   if (!values.categoryId) {
+//     errors.categoryId = [{ message: 'Category is required.' }]
+//   }
+//   if (!values.parentCategoryId) {
+//     errors.parentCategoryId = [{ message: 'Parent Category is required.' }]
+//   }
+//   return {
+//     values, // (Optional) Used to pass current form values to submit event.
+//     errors,
+//   }
+// }
 /////////////////////////////////////////////////////
 // Lifecycle Hooks
 /////////////////////////////////////////////////////
@@ -72,13 +130,44 @@ onMounted(async () => {
   standFilter.id = Number(router.currentRoute.value.params.id) || 0
   await standStore.initialize(standFilter.id)
   standModel.value = { ...standStore.stand } as Stand //clone(product.value)
+
+  if (
+    router.currentRoute.value.name === 'editStand' ||
+    router.currentRoute.value.name === 'copyStand'
+  ) {
+    standform.value.setFieldValue('name', standStore.stand.name)
+    standform.value.setFieldValue('description', standStore.stand.description)
+    standform.value.setFieldValue('layoutStyle', standStore.stand.layoutStyle)
+    standform.value.setFieldValue('height', standStore.stand.height)
+    standform.value.setFieldValue('width', standStore.stand.width)
+    standform.value.setFieldValue('merchHeight', standStore.stand.merchHeight)
+    standform.value.setFieldValue('merchWidth', standStore.stand.merchWidth)
+    standform.value.setFieldValue('footerHeight', standStore.stand.footerHeight)
+    standform.value.setFieldValue('headerHeight', standStore.stand.headerHeight)
+    colsCount.value = standStore.stand.cols ?? 0
+    rowsCount.value = standStore.stand.rows ?? 0
+  }
+  await standTypes.getStandTypes().then((response) => {
+    standTypesList.value = response
+    standModel.value.standType = standTypesList.value?.find(
+      (st) => st.id === standModel.value.standTypeId,
+    ) as StandType
+    if (
+      router.currentRoute.value.name === 'editStand' ||
+      router.currentRoute.value.name === 'copyStand'
+    ) {
+      selectedStandType.value = standModel.value.standType.id ?? null
+      standform.value.setFieldValue('standType', standModel.value.standType.id)
+    }
+  })
+
   if (router.currentRoute.value.name === 'newStand') {
+    newStand.value = true
     standModel.value.brandId = brandStore.activeBrand?.id ?? 0
   }
 
-  if (router.currentRoute.value.name === 'editStand') initialiseStandForm()
-
-  colsTable.value = standModel.value.columnList ?? []
+  if (router.currentRoute.value.name !== 'newStand')
+    colsTable.value = standModel.value.columnList ?? []
   rowsTable.value = standModel.value.rowList ?? []
   let brandid = brandStore.activeBrand?.id ?? 0
   let rFilter = new regionFilter()
@@ -107,18 +196,13 @@ onMounted(async () => {
     ms_selectedRegions.value = standModel.value.regions.map((c) => c.id)
     countrySelectList.value = await locationFilters.getCountriesForRegions(ms_selectedRegions.value)
     ms_selectedCountries.value = standModel.value.countries.map((c) => c.id)
-    // dateCreated.value = new Date(standModel.value.dateCreated) //added to bind date picker
+    standform.value?.setFieldValue('msregions', ms_selectedRegions.value ?? [])
+    standform.value?.setFieldValue(
+      'countries',
+      countrySelectList.value?.map((item) => item.id) ?? [],
+    )
   }
-
-  await standTypes.getStandTypes().then((response) => {
-    standTypesList.value = response
-    standModel.value.standType = standTypesList.value?.find(
-      (st) => st.id === standModel.value.standTypeId,
-    ) as StandType
-    if (router.currentRoute.value.name === 'editStand') {
-      selectedStandType.value = standModel.value.standType.id ?? null
-    }
-  })
+  loading.value = false
 })
 
 function initialiseStandForm() {
@@ -158,6 +242,8 @@ async function onRegionChange(evt: any) {
   )
 
   standModel.value.regionsList = standModel.value.regions?.map((r) => r.id).join(',') || ''
+  standModel.value.regions =
+    regionSelectList.value?.filter((r) => ms_selectedRegions.value?.includes(r.id)) || []
 }
 
 async function onCountryChange(evt: any) {
@@ -167,24 +253,36 @@ async function onCountryChange(evt: any) {
     countrySelectList.value ?? [],
     standModel.value.countries ?? [],
   )
-  console.log('Selected Countries after region change', ms_selectedCountries.value)
-  console.log('Part Model Countries after region change', standModel.value.countries)
-  let someArray = standModel.value.countries ?? []
+  // console.log('Selected Countries after region change', ms_selectedCountries.value)
+  // console.log('Part Model Countries after region change', standModel.value.countries)
+  // let someArray = standModel.value.countries ?? []
 
   standModel.value.countriesList = standModel.value.countries?.map((c) => c.id).join(',') || ''
+  standModel.value.countries =
+    countrySelectList.value?.filter((c) => ms_selectedCountries.value?.includes(c.id)) || []
 }
 
 function onSelectAllCountriesChange(event: any) {
-  ms_selectedCountries.value = event.checked
-    ? (countrySelectList.value?.map((item) => item.id) ?? [])
-    : []
+  if (event.checked) {
+    standform.value?.setFieldValue(
+      'countries',
+      countrySelectList.value?.map((item) => item.id) ?? [],
+    )
+    ms_selectedCountries.value = countrySelectList.value?.map((item) => item.id) ?? []
+  } else {
+    ms_selectedCountries.value = []
+  }
   selectAllCountries.value = event.checked
   multiSelectLists.manageSelectedValues(
     ms_selectedCountries.value,
     countrySelectList.value ?? [],
     standModel.value.countries ?? [],
   )
-  standModel.value.countriesList = standModel.value.countries?.map((c) => c.id).join(',') || ''
+
+  //convert the selected countries to a comma separated list of ids for the stand model
+  standModel.value.countriesList = ms_selectedCountries.value?.join(',') ?? ''
+  standModel.value.countries =
+    countrySelectList.value?.filter((c) => ms_selectedCountries.value?.includes(c.id)) || []
 }
 
 function clearCountrySelection() {
@@ -196,65 +294,74 @@ function clearCountrySelection() {
 ////////////////////////////////////////////////////
 // Stand Layout Handlers (rows/columns/uprights)
 /////////////////////////////////////////////////////
-watch(colsCount, async (newValue: number | undefined) => {
-  //colsTable.value = []
-  if (newValue == undefined) newValue = 0
 
-  if (colsCount.value == null || colsTable.value == null) {
-    colsTable.value = []
-  }
-  if (newValue < standModel.value.cols) {
-    colsTable.value = standModel.value.columnList?.slice(0, newValue) ?? []
-  }
-  if (newValue > standModel.value.cols) {
-    for (let i = standModel.value.cols - 1; i < (newValue ?? 0); i++) {
-      var col = new Column()
-      col.position = i + 1
-      colsTable.value.push(col)
+watch(
+  () => standModel.value.cols,
+  (newValue: number | undefined) => {
+    //colsTable.value = []
+    if (newValue == undefined) newValue = 0
+
+    if (colsCount.value == null || colsTable.value == null) {
+      colsTable.value = []
     }
-    standModel.value.columnList = colsTable.value
-  }
-
-  standModel.value.cols = newValue ?? 0
-  standModel.value.defaultColWidth = Math.floor(standModel.value.merchWidth / (newValue ?? 1))
-  if (standModel.value.equalCols) {
-    standModel.value.totalColWidth =
-      (standModel.value.cols ?? 0) * (standModel.value.defaultColWidth ?? 0)
-  } else {
-    standModel.value.totalColWidth =
-      standModel.value.columnList?.reduce((total, col) => total + (col.width ?? 0), 0) ?? 0
-  }
-})
-
-watch(rowsCount, async (newValue: number | undefined) => {
-  //colsTable.value = []
-  if (newValue == undefined) newValue = 0
-
-  if (rowsCount.value == null || rowsTable.value == null) {
-    rowsTable.value = []
-  }
-  if (newValue < standModel.value.rows) {
-    rowsTable.value = standModel.value.rowList?.slice(0, newValue) ?? []
-  }
-  if (newValue > standModel.value.rows) {
-    for (let i = standModel.value.rows - 1; i < (newValue ?? 0); i++) {
-      var row = new Row()
-      row.position = i + 1
-      rowsTable.value.push(row)
+    if (newValue < colsCount.value) {
+      colsTable.value = standModel.value.columnList?.slice(0, newValue) ?? []
+      standModel.value.columnList = colsTable.value
     }
-    standModel.value.rowList = rowsTable.value
-  }
+    if (newValue > colsCount.value) {
+      for (let i = colsCount.value; i < (newValue ?? 0); i++) {
+        var col = new Column()
+        col.position = i + 1
+        colsTable.value.push(col)
+      }
+      standModel.value.columnList = colsTable.value
+    }
 
-  standModel.value.rows = newValue ?? 0
-  standModel.value.defaultRowHeight = Math.floor(standModel.value.merchHeight / (newValue ?? 1))
-  if (standModel.value.equalRows) {
-    standModel.value.totalRowHeight =
-      (standModel.value.rows ?? 0) * (standModel.value.defaultRowHeight ?? 0)
-  } else {
-    standModel.value.totalRowHeight =
-      standModel.value.rowList?.reduce((total, row) => total + (row.height ?? 0), 0) ?? 0
-  }
-})
+    colsCount.value = newValue ?? 0
+    standModel.value.defaultColWidth = Math.floor(standModel.value.merchWidth / (newValue ?? 1))
+    if (standModel.value.equalCols) {
+      standModel.value.totalColWidth =
+        (colsCount.value ?? 0) * (standModel.value.defaultColWidth ?? 0)
+    } else {
+      standModel.value.totalColWidth =
+        standModel.value.columnList?.reduce((total, col) => total + (col.width ?? 0), 0) ?? 0
+    }
+  },
+)
+
+watch(
+  () => standModel.value.rows,
+  (newValue: number | undefined) => {
+    //colsTable.value = []
+    if (newValue == undefined) newValue = 0
+
+    if (rowsCount.value == null || rowsTable.value == null) {
+      rowsTable.value = []
+    }
+    if (newValue < rowsCount.value) {
+      rowsTable.value = standModel.value.rowList?.slice(0, newValue) ?? []
+      standModel.value.rowList = rowsTable.value
+    }
+    if (newValue > rowsCount.value) {
+      for (let i = rowsCount.value; i < (newValue ?? 0); i++) {
+        var row = new Row()
+        row.position = i + 1
+        rowsTable.value.push(row)
+      }
+      standModel.value.rowList = rowsTable.value
+    }
+
+    rowsCount.value = newValue ?? 0
+    standModel.value.defaultRowHeight = Math.floor(standModel.value.merchHeight / (newValue ?? 1))
+    if (standModel.value.equalRows) {
+      standModel.value.totalRowHeight =
+        (rowsCount.value ?? 0) * (standModel.value.defaultRowHeight ?? 0)
+    } else {
+      standModel.value.totalRowHeight =
+        standModel.value.rowList?.reduce((total, row) => total + (row.height ?? 0), 0) ?? 0
+    }
+  },
+)
 
 function addUpright(position: number) {
   let col = colsTable.value?.find((c) => c.position === position)
@@ -277,6 +384,11 @@ function delUpright(colPosition: number, position: number) {
   } //
   //if (col && col.uprights && col.uprights.length > 0) { col.uprights.pop() } }
 }
+
+function changecolCount(event: any) {
+  // colsCount.value = event
+  // standModel.value.cols = event
+}
 //Column Layout Change Handler
 function changeColLayout(event: any) {
   if (event.value) {
@@ -295,45 +407,86 @@ function changeRowLayout(event: any) {
   }
 }
 
-const resolver = ({ values }: any) => {
-  const errors = {} as any
-  console.log('Validating form with values:', values)
-  if (!values.name) {
-    errors.name = [{ message: 'Name is required.' }]
-  }
-  if (!values.description) {
-    errors.description = [{ message: 'Description is required.' }]
-  }
-  if (!values.categoryId) {
-    errors.categoryId = [{ message: 'Category is required.' }]
-  }
-  if (!values.parentCategoryId) {
-    errors.parentCategoryId = [{ message: 'Parent Category is required.' }]
-  }
-  return {
-    values, // (Optional) Used to pass current form values to submit event.
-    errors,
+async function changeTab(tab: string) {
+  const valid = await standform.value?.validate()
+  if (valid.values) {
+    tabId.value = tab
   }
 }
 
 async function onFormSubmit({ valid }: any) {
   if (valid) {
-    await standStore.saveStand(standModel.value).then((response) => {
-      if (response) {
-        toast.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'Stand saved successfully.',
-          life: 3000,
-        })
-        router.push({ name: 'stands' })
-      } else {
-        toast.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'An error occurred while saving the stand.',
-          life: 3000,
-        })
+    standModel.value.brandId = brandStore.activeBrand?.id ?? 0
+    standModel.value.standTypeId = selectedStandType.value ?? 0
+    standModel.value.regionsList = ms_selectedRegions.value?.join(',') ?? ''
+    standModel.value.countriesList = ms_selectedCountries.value?.join(',') ?? ''
+    standModel.value.footerHeight = standModel.value.footerHeight ?? 0
+    standModel.value.footerWidth = standModel.value.footerWidth ?? 0
+    await AddColumnsAndRowsToModel()
+    if (newStand) {
+      await standStore.createStand(standModel.value).then((response) => {
+        if (response) {
+          toast.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Stand saved successfully.',
+            life: 3000,
+          })
+          router.push({ name: 'stands' })
+        } else {
+          toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'An error occurred while creating the stand.',
+            life: 3000,
+          })
+        }
+      })
+    } else {
+      // await standStore.initialize(standModel.value.id ?? 0)
+      await standStore.saveStand(standModel.value).then((response) => {
+        if (response) {
+          toast.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Stand saved successfully.',
+            life: 3000,
+          })
+          router.push({ name: 'stands' })
+        } else {
+          toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'An error occurred while saving the stand.',
+            life: 3000,
+          })
+        }
+      })
+    }
+  }
+
+  async function AddColumnsAndRowsToModel() {
+    const cols = colsTable.value ?? []
+    const rows = rowsTable.value ?? []
+    const uprights: Upright[] = []
+    const origCols = standModel.value.columnList ?? []
+    standModel.value.columnList.forEach((element) => {
+      let editCol = cols.find((c) => c.position === element.position)
+      if (editCol) {
+        element.width = editCol.width ?? 0
+      }
+      if (element.uprights) {
+      }
+    })
+    cols.forEach((element) => {
+      let origCol = origCols.find((c) => c.position === element.position)
+      if (!origCol) {
+        //new column
+        let newCol = new Column()
+        newCol.position = element.position
+        newCol.width = element.width ?? 0
+        newCol.uprights = element.uprights ?? []
+        standModel.value.columnList?.push(newCol)
       }
     })
   }
@@ -341,146 +494,465 @@ async function onFormSubmit({ valid }: any) {
 </script>
 
 <template>
-  <div>
-    <h1>Edit Stand</h1>
-    <div class="edit-stand-view">
-      <Toast position="top-right" group="tr" />
-      <Toast position="bottom-center" group="bc" />
-      <div class="mb-5">
-        <Button
-          label="Back to Stands"
-          icon="pi pi-arrow-left"
-          class="p-button-text"
-          @click="router.back()"
-        />
-      </div>
-      <div class="w-full sticky bg-white top-16 block p-10 z-10">
-        <h2>Edit Stand</h2>
-        <div class="m-5 p-5 mb-0 pb-0 grid gap-2 grid-cols-3">
-          <div class="flex flex-col gap-1">
-            <span class="font-bold text-x inline">{{ standModel.name }}</span>
-            <span class="text-gray-600 inline"
-              >Stand Assembly Number: {{ standModel.standAssemblyNumber }}</span
-            >
-          </div>
-          <div class="flex flex-col gap-1">
-            <div class="flex gap-2">
-              <span class="font-bold inline">{{ standModel.standType?.name }}</span>
-            </div>
-            <div class="flex gap-2">
-              <span class="text-gray-600 inline">Layout Style: </span>
-              <span class="text-gray-600 inline">{{
-                standLayoutStylesList.find((style) => style.id === standModel.layoutStyle)?.name
-              }}</span>
-            </div>
-          </div>
-          <div class="flex flex-col gap-1">
-            <div class="flex gap-2">
-              <span class="font-bold inline"> Height x Width: </span>
+  <ProgressSpinner v-if="loading" class="z-1110" style="position: fixed; top: 50%; left: 55%" />
+  <BlockUI :blocked="loading">
+    <div
+      class="flex absolute w-full h-full justify-center items-center"
+      :class="{ hidden: !loading }"
+    ></div>
+    <div>
+      <h1>Edit Stand</h1>
+      <div class="edit-stand-view">
+        <Toast position="top-right" group="tr" />
+        <Toast position="bottom-center" group="bc" />
+        <div class="mb-5">
+          <Button
+            label="Back to Stands"
+            icon="pi pi-arrow-left"
+            class="p-button-text"
+            @click="router.back()"
+          />
+        </div>
+        <div :class="{ 'z-10': !loading }" class="w-full sticky bg-white top-16 block p-10">
+          <h2>Edit Stand</h2>
+          <div class="m-5 p-5 mb-0 pb-0 grid gap-2 grid-cols-3">
+            <div class="flex flex-col gap-1">
+              <span class="font-bold text-x inline">{{ standModel.name }}</span>
               <span class="text-gray-600 inline"
-                >{{ standModel.height }} x {{ standModel.width }}
-              </span>
+                >Stand Assembly Number: {{ standModel.standAssemblyNumber }}</span
+              >
             </div>
-            <div class="flex gap-2">
-              <span class="font-bold inline"> Merch Space: </span>
-              <span class="text-gray-600 inline">
-                {{ standModel.merchHeight }} x{{ standModel.merchWidth }}
-              </span>
+            <div class="flex flex-col gap-1">
+              <div class="flex gap-2">
+                <span class="font-bold inline">{{ standModel.standType?.name }}</span>
+              </div>
+              <div class="flex gap-2">
+                <span class="text-gray-600 inline">Layout Style: </span>
+                <span class="text-gray-600 inline">{{
+                  standLayoutStylesList.find((style) => style.id === standModel.layoutStyle)?.name
+                }}</span>
+              </div>
             </div>
-          </div>
+            <div class="flex flex-col gap-1">
+              <div class="flex gap-2">
+                <span class="font-bold inline"> Height x Width: </span>
+                <span class="text-gray-600 inline"
+                  >{{ standModel.height }} x {{ standModel.width }}
+                </span>
+              </div>
+              <div class="flex gap-2">
+                <span class="font-bold inline"> Merch Space: </span>
+                <span class="text-gray-600 inline">
+                  {{ standModel.merchHeight }} x{{ standModel.merchWidth }}
+                </span>
+              </div>
+            </div>
 
-          <!-- <div class="flex flex-col gap-1">
+            <!-- <div class="flex flex-col gap-1">
             <img :src="productImageSrc" class="cassette-icon max-w-40"></img>
         </div> -->
+          </div>
+          <div class="w-full p-10 pb-0">
+            <Button @click="changeTab('0')" label="Details" class="" :outlined="tabId !== '0'" />
+            <Button @click="changeTab('1')" label="Layout" class="" :outlined="tabId !== '1'" />
+            <!-- <Button @click="tabId = '2'" label="Rows" class="" :outlined="tabId !== '2'" /> -->
+          </div>
         </div>
-        <div class="w-full p-10 pb-0">
-          <Button @click="tabId = '0'" label="Details" class="" :outlined="tabId !== '0'" />
-          <Button @click="tabId = '1'" label="Layout" class="" :outlined="tabId !== '1'" />
-          <!-- <Button @click="tabId = '2'" label="Rows" class="" :outlined="tabId !== '2'" /> -->
-        </div>
-      </div>
 
-      <div class="card grid grid-cols-1 gap-4 justify-center">
-        <Form
-          ref="stand-form"
-          v-slot="$form"
-          :initialValues
-          :resolver
-          @submit="onFormSubmit"
-          class=""
-        >
-          <Tabs v-model:value="tabId">
-            <TabPanels>
-              <TabPanel value="0">
-                <div class="bg-gray-50 col-span-2 p-10 mb-5">
-                  <fieldset legend="Part Details" class="col-span-2 mb-12">
-                    <legend class="text-lg font-bold mb-2">Details</legend>
-                    <div class="grid grid-cols-2 gap-10">
-                      <div class="flex flex-col gap-1">
-                        <label for="name">Stand Name:</label>
-                        <InputText
-                          v-model="standModel.name"
-                          name="name"
-                          :value="standModel.name"
-                          type="text"
-                          length="255"
-                          placeholder="Part Name"
-                          fluid
-                        />
-                        <Message
-                          v-if="$form.name?.invalid"
-                          severity="error"
-                          size="small"
-                          variant="simple"
-                          >{{ $form.name.error?.message }}</Message
-                        >
+        <div class="card grid grid-cols-1 gap-4 justify-center">
+          <Form
+            ref="stand-form"
+            v-slot="$form"
+            :initialValues
+            :resolver
+            @submit="onFormSubmit"
+            class=""
+          >
+            <Tabs v-model:value="tabId">
+              <TabPanels>
+                <TabPanel value="0">
+                  <div class="bg-gray-50 col-span-2 p-10 mb-5">
+                    <fieldset legend="Part Details" class="col-span-2 mb-12">
+                      <legend class="text-lg font-bold mb-2">Details</legend>
+                      <div class="grid grid-cols-2 gap-10">
+                        <div class="flex flex-col gap-1">
+                          <label for="name">Stand Name:</label>
+                          <InputText
+                            v-model="standModel.name"
+                            name="name"
+                            :value="standModel.name"
+                            type="text"
+                            length="255"
+                            placeholder="Stand Name"
+                            fluid
+                          />
+                          <Message
+                            v-if="$form.name?.invalid"
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                            >{{ $form.name.error?.message }}</Message
+                          >
+                        </div>
+                        <div class="flex flex-col gap-1">
+                          <label for="description">Stand Assembly Number:</label>
+                          <InputText
+                            v-model="standModel.standAssemblyNumber"
+                            name="standAssemblyNumber"
+                            type="text"
+                            length="255"
+                            placeholder="Stand Assembly Number"
+                            fluid
+                          />
+                          <Message
+                            v-if="$form.standAssemblyNumber?.invalid"
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                            >{{ $form.standAssemblyNumber.error?.message }}</Message
+                          >
+                        </div>
                       </div>
-                      <div class="flex flex-col gap-1">
-                        <label for="description">Stand Assembly Number:</label>
-                        <InputText
-                          v-model="standModel.standAssemblyNumber"
-                          name="standAssemblyNumber"
-                          type="text"
-                          length="255"
-                          placeholder="Stand Assembly Number"
-                          fluid
-                        />
-                        <Message
-                          v-if="$form.standAssemblyNumber?.invalid"
-                          severity="error"
-                          size="small"
-                          variant="simple"
-                          >{{ $form.standAssemblyNumber.error?.message }}</Message
-                        >
+                      <div class="grid grid-cols-2 gap-10 mt-10">
+                        <div class="flex flex-col gap-2">
+                          <label for="standType">Stand Type:</label>
+                          <Select
+                            v-model="selectedStandType"
+                            :options="standTypesList ?? []"
+                            id="standType"
+                            name="standType"
+                            class="w-full"
+                            option-label="name"
+                            option-value="id"
+                          >
+                            <template #option="option">
+                              <div class="flex align-items-center">
+                                <span>{{ option.option.name }}</span>
+                              </div>
+                            </template>
+                          </Select>
+                          <Message
+                            v-if="$form.standType?.invalid"
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                            >{{ $form.standType.error?.message }}
+                          </Message>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                          <label for="layoutStyle">Layout Style:</label>
+                          <Select
+                            v-model="standModel.layoutStyle"
+                            :options="standLayoutStylesList ?? []"
+                            id="layoutStyle"
+                            name="layoutStyle"
+                            class="w-full"
+                            option-label="name"
+                            option-value="id"
+                          >
+                            <template #option="option">
+                              <div class="flex align-items-center">
+                                <span>{{ option.option.name }}</span>
+                              </div>
+                            </template>
+                          </Select>
+                          <Message
+                            v-if="$form.layoutStyle?.invalid"
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                            >{{ $form.layoutStyle.error?.message }}
+                          </Message>
+                        </div>
                       </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-10 mt-10">
-                      <div class="flex flex-col gap-2">
-                        <label for="standType">Stand Type:</label>
-                        <Select
-                          v-model="selectedStandType"
-                          :options="standTypesList ?? []"
-                          id="standType"
-                          name="standType"
-                          class="w-full"
-                          option-label="name"
-                          option-value="id"
-                        >
-                          <template #option="option">
-                            <div class="flex align-items-center">
-                              <span>{{ option.option.name }}</span>
-                            </div>
+                      <div class="grid grid-cols-2 gap-10 mt-10">
+                        <div class="flex flex-col gap-1">
+                          <label for="discontinued">Discontinued:</label>
+                          <ToggleButton
+                            name="discontinued"
+                            v-model="standModel.discontinued"
+                            onLabel="Yes"
+                            offLabel="No"
+                            onIcon="pi pi-check"
+                            offIcon="pi pi-times"
+                            class="w-24 mt-2"
+                          ></ToggleButton>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                          <label for="published">Published:</label>
+                          <ToggleButton
+                            name="published"
+                            v-model="standModel.published"
+                            onLabel="Yes"
+                            offLabel="No"
+                            onIcon="pi pi-check"
+                            offIcon="pi pi-times"
+                            class="w-24 mt-2"
+                          ></ToggleButton>
+                        </div>
+                      </div>
+                    </fieldset>
+                  </div>
+                  <div class="bg-gray-50 col-span-2 p-10 mb-5">
+                    <fieldset legend="Location" class="col-span-2">
+                      <legend class="text-lg font-bold mb-2">Location</legend>
+                      <div class="grid grid-cols-3 gap-10">
+                        <div class="flex flex-col gap-2">
+                          <label for="msregions">Region:</label>
+                          <MultiSelect
+                            name="msregions"
+                            id="msregions"
+                            v-model="ms_selectedRegions"
+                            :options="regionSelectList ?? []"
+                            class="w-full"
+                            option-label="name"
+                            option-value="id"
+                            @change="onRegionChange"
+                          >
+                            <template #option="option">
+                              <div class="flex align-items-center">
+                                <span>{{ option.option.name }}</span>
+                              </div>
+                            </template>
+                          </MultiSelect>
+                          <Message
+                            v-if="$form.msregions?.invalid"
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                            >{{ $form.msregions.error?.message }}
+                          </Message>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                          <label for="country">Country:</label>
+                          <MultiSelect
+                            name="countries"
+                            v-model="ms_selectedCountries"
+                            :options="countrySelectList ?? []"
+                            id="country"
+                            class="w-full"
+                            option-label="name"
+                            option-value="id"
+                            @change="onCountryChange"
+                            :selectAll="selectAllCountries"
+                            @selectall-change="onSelectAllCountriesChange($event)"
+                          >
+                            <template #option="option">
+                              <div class="">
+                                <span>{{ option.option.name }}</span>
+                              </div>
+                            </template>
+                          </MultiSelect>
+                          <Message
+                            v-if="$form.countries?.invalid"
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                            >{{ $form.countries.error?.message }}</Message
+                          >
+                        </div>
+                        <div class="flex gap-2 flex-wrap max-h-40 overflow-auto">
+                          <Button
+                            label="Clear Selection"
+                            class="w-text-left"
+                            @click="clearCountrySelection"
+                          />
+                          <template v-for="country in standModel.countries">
+                            <Chip class="flex-wrap" :label="country.name"></Chip>
                           </template>
-                        </Select>
+                        </div>
                       </div>
-                      <div class="flex flex-col gap-2">
+                    </fieldset>
+                  </div>
+                  <div class="bg-gray-50 col-span-2 p-10 mb-5">
+                    <fieldset legend="Dimensions" class="col-span-2">
+                      <legend class="text-lg font-bold mb-2">Dimensions</legend>
+                      <div class="grid grid-cols-2 gap-10">
+                        <div class="flex flex-col gap-1">
+                          <label for="Height">Height:</label>
+                          <InputNumber
+                            name="height"
+                            placeholder="Height"
+                            fluid
+                            v-model="standModel.height"
+                          />
+                          <Message
+                            v-if="$form.height?.invalid"
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                            >{{ $form.height.error?.message }}</Message
+                          >
+                        </div>
+                        <div class="flex flex-col gap-1">
+                          <label for="width">Width:</label>
+                          <InputNumber
+                            name="width"
+                            placeholder="Width"
+                            fluid
+                            v-model="standModel.width"
+                          />
+                          <Message
+                            v-if="$form.width?.invalid"
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                            >{{ $form.width.error?.message }}</Message
+                          >
+                        </div>
+                        <!-- <div class="flex flex-col gap-1">
+                        <label for="merchHeight">Merchendising Height:</label>
+                        <InputNumber
+                          name="merchHeight"
+                          placeholder="Merchendising Height"
+                          fluid
+                          v-model="standModel.merchHeight"
+                        />
+                      </div>
+
+                      <div class="flex flex-col gap-1">
+                        <label for="merchWidth">Merchendising Width:</label>
+                        <InputNumber
+                          name="merchWidth"
+                          placeholder="Merchendising Width"
+                          fluid
+                          v-model="standModel.merchWidth"
+                        />
+                        <Message
+                          v-if="$form.depth?.invalid"
+                          severity="error"
+                          size="small"
+                          variant="simple"
+                          >{{ $form.depth.error?.message }}</Message
+                        >
+                      </div> -->
+                        <div class="flex flex-col gap-1">
+                          <label for="headerHeight">Header Height:</label>
+                          <InputNumber
+                            name="headerHeight"
+                            placeholder="Header Height"
+                            fluid
+                            v-model="standModel.headerHeight"
+                          />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                          <label for="footerHeight">Footer Height:</label>
+                          <InputNumber
+                            name="footerHeight"
+                            placeholder="Footer Height"
+                            fluid
+                            v-model="standModel.footerHeight"
+                          />
+                        </div>
+                      </div>
+                    </fieldset>
+                  </div>
+                  <div class="bg-gray-50 col-span-2 p-10 mb-5">
+                    <fieldset legend="Dimensions" class="col-span-2">
+                      <legend class="text-lg font-bold mb-2">Merchandising Dimensions</legend>
+                      <div class="grid grid-cols-2 gap-10">
+                        <div class="flex flex-col gap-1">
+                          <label for="merchHeight">Merchendising Height:</label>
+                          <InputNumber
+                            name="merchHeight"
+                            placeholder="Merchendising Height"
+                            fluid
+                            v-model="standModel.merchHeight"
+                          />
+                          <Message
+                            v-if="$form.merchHeight?.invalid"
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                            >{{ $form.merchHeight.error?.message }}</Message
+                          >
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                          <label for="merchWidth">Merchendising Width:</label>
+                          <InputNumber
+                            name="merchWidth"
+                            placeholder="Merchendising Width"
+                            fluid
+                            v-model="standModel.merchWidth"
+                          />
+                          <Message
+                            v-if="$form.merchWidth?.invalid"
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                            >{{ $form.merchWidth.error?.message }}</Message
+                          >
+                        </div>
+                      </div>
+                    </fieldset>
+                  </div>
+
+                  <div class="bg-gray-50 col-span-2 p-10 mb-5">
+                    <fieldset legend="Stands" class="col-span-2">
+                      <legend class="text-lg font-bold mb-2">Settings</legend>
+                      <div class="grid grid-cols-3 gap-10 mt-10">
+                        <div class="flex flex-col gap-1">
+                          <label for="spanShelves">Span Shelves:</label>
+                          <ToggleButton
+                            name="spanShelves"
+                            v-model="standModel.spanShelves"
+                            onLabel="Yes"
+                            offLabel="No"
+                            onIcon="pi pi-check"
+                            offIcon="pi pi-times"
+                            class="w-24 mt-2"
+                          ></ToggleButton>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                          <label for="allowOverhang">Overhang:</label>
+                          <ToggleButton
+                            name="allowOverhang"
+                            v-model="standModel.allowOverHang"
+                            onLabel="Yes"
+                            offLabel="No"
+                            onIcon="pi pi-check"
+                            offIcon="pi pi-times"
+                            class="w-24 mt-2"
+                          ></ToggleButton>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                          <label for="description">Stand Cost:</label>
+                          <InputNumber
+                            v-model="standModel.standCost"
+                            name="standCost"
+                            type="text"
+                            length="255"
+                            placeholder="Stand Cost"
+                            fluid
+                          />
+                          <Message
+                            v-if="$form.standCost?.invalid"
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                            >{{ $form.standCost.error?.message }}</Message
+                          >
+                        </div>
+                      </div>
+                    </fieldset>
+                  </div>
+
+                  <Button type="submit" severity="secondary" label="Submit" />
+                </TabPanel>
+                <TabPanel value="1">
+                  <div class="card grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                      <h2>Layout</h2>
+                      <div class="flex flex-col gap-2 max-w-sm">
                         <label for="layoutStyle">Layout Style:</label>
                         <Select
                           v-model="standModel.layoutStyle"
                           :options="standLayoutStylesList ?? []"
                           id="layoutStyle"
                           name="layoutStyle"
-                          class="w-full"
+                          class="w-full border--500! border-2!"
                           option-label="name"
                           option-value="id"
                         >
@@ -492,525 +964,245 @@ async function onFormSubmit({ valid }: any) {
                         </Select>
                       </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-10 mt-10">
-                      <div class="flex flex-col gap-1">
-                        <label for="discontinued">Discontinued:</label>
-                        <ToggleButton
-                          name="discontinued"
-                          v-model="standModel.discontinued"
-                          onLabel="Yes"
-                          offLabel="No"
-                          onIcon="pi pi-check"
-                          offIcon="pi pi-times"
-                          class="w-24 mt-2"
-                        ></ToggleButton>
-                      </div>
-                      <div class="flex flex-col gap-1">
-                        <label for="published">Published:</label>
-                        <ToggleButton
-                          name="published"
-                          v-model="standModel.published"
-                          onLabel="Yes"
-                          offLabel="No"
-                          onIcon="pi pi-check"
-                          offIcon="pi pi-times"
-                          class="w-24 mt-2"
-                        ></ToggleButton>
-                      </div>
-                    </div>
-                  </fieldset>
-                </div>
-                <div class="bg-gray-50 col-span-2 p-10 mb-5">
-                  <fieldset legend="Location" class="col-span-2">
-                    <legend class="text-lg font-bold mb-2">Location</legend>
-                    <div class="grid grid-cols-3 gap-10">
-                      <div class="flex flex-col gap-2">
-                        <label for="region">Region:</label>
-                        <MultiSelect
-                          name="region"
-                          v-model="ms_selectedRegions"
-                          :options="regionSelectList ?? []"
-                          id="region"
-                          class="w-full"
-                          option-label="name"
-                          option-value="id"
-                          @change="onRegionChange"
-                        >
-                          <template #option="option">
-                            <div class="flex align-items-center">
-                              <span>{{ option.option.name }}</span>
+                    <div class="bg-gray-50 col-span-1 p-10 mb-5">
+                      <fieldset legend="Dimensions" class="col-span-2">
+                        <legend class="text-lg font-bold mb-2">Columns</legend>
+                        <div v-if="standModel.layoutStyle == 1 || standModel.layoutStyle == 3">
+                          <div class="grid grid-cols-4 gap-10">
+                            <div class="flex flex-col gap-1">
+                              <label for="cols">No. Columns:</label>
+                              <InputNumber
+                                name="cols"
+                                placeholder="No. Columns"
+                                fluid
+                                v-model="standModel.cols"
+                                @valueChange="changecolCount($event)"
+                              />
                             </div>
-                          </template>
-                        </MultiSelect>
-                      </div>
-                      <div class="flex flex-col gap-2">
-                        <label for="country">Country:</label>
-                        <MultiSelect
-                          name="countries"
-                          v-model="ms_selectedCountries"
-                          :options="countrySelectList ?? []"
-                          id="country"
-                          class="w-full"
-                          option-label="name"
-                          option-value="id"
-                          @change="onCountryChange"
-                          :selectAll="selectAllCountries"
-                          @selectall-change="onSelectAllCountriesChange($event)"
-                        >
-                          <template #option="option">
-                            <div class="">
-                              <span>{{ option.option.name }}</span>
+
+                            <div class="flex flex-col gap-1">
+                              <label for="equalCols">Equal Width:</label>
+                              <ToggleButton
+                                v-model="standModel.equalCols"
+                                name="equalCols"
+                                placeholder=""
+                                onIcon="pi pi-check"
+                                offIcon="pi pi-times"
+                                @valueChange="changeColLayout($event)"
+                              />
                             </div>
-                          </template>
-                        </MultiSelect>
-                        <Message
-                          v-if="$form.countries?.invalid"
-                          severity="error"
-                          size="small"
-                          variant="simple"
-                          >{{ $form.countries.error?.message }}</Message
-                        >
-                      </div>
-                      <div class="flex gap-2 flex-wrap max-h-40 overflow-auto">
-                        <Button
-                          label="Clear Selection"
-                          class="w-text-left"
-                          @click="clearCountrySelection"
-                        />
-                        <template v-for="country in standModel.countries">
-                          <Chip class="flex-wrap" :label="country.name"></Chip>
-                        </template>
-                      </div>
-                    </div>
-                  </fieldset>
-                </div>
-                <div class="bg-gray-50 col-span-2 p-10 mb-5">
-                  <fieldset legend="Dimensions" class="col-span-2">
-                    <legend class="text-lg font-bold mb-2">Dimensions</legend>
-                    <div class="grid grid-cols-2 gap-10">
-                      <div class="flex flex-col gap-1">
-                        <label for="Height">Height:</label>
-                        <InputNumber
-                          name="height"
-                          placeholder="Height"
-                          fluid
-                          v-model="standModel.height"
-                        />
-                        <Message
-                          v-if="$form.height?.invalid"
-                          severity="error"
-                          size="small"
-                          variant="simple"
-                          >{{ $form.height.error?.message }}</Message
-                        >
-                      </div>
-                      <div class="flex flex-col gap-1">
-                        <label for="width">Width:</label>
-                        <InputNumber
-                          name="width"
-                          placeholder="Width"
-                          fluid
-                          v-model="standModel.width"
-                        />
-                        <Message
-                          v-if="$form.width?.invalid"
-                          severity="error"
-                          size="small"
-                          variant="simple"
-                          >{{ $form.width.error?.message }}</Message
-                        >
-                      </div>
-                      <div class="flex flex-col gap-1">
-                        <label for="merchHeight">Merchendising Height:</label>
-                        <InputNumber
-                          name="merchHeight"
-                          placeholder="Merchendising Height"
-                          fluid
-                          v-model="standModel.merchHeight"
-                        />
-                      </div>
-
-                      <div class="flex flex-col gap-1">
-                        <label for="merchWidth">Merchendising Width:</label>
-                        <InputNumber
-                          name="merchWidth"
-                          placeholder="Merchendising Width"
-                          fluid
-                          v-model="standModel.merchWidth"
-                        />
-                        <Message
-                          v-if="$form.depth?.invalid"
-                          severity="error"
-                          size="small"
-                          variant="simple"
-                          >{{ $form.depth.error?.message }}</Message
-                        >
-                      </div>
-                      <div class="flex flex-col gap-1">
-                        <label for="headerHeight">Header Height:</label>
-                        <InputNumber
-                          name="headerHeight"
-                          placeholder="Header Height"
-                          fluid
-                          v-model="standModel.headerHeight"
-                        />
-                      </div>
-                      <div class="flex flex-col gap-1">
-                        <label for="footerHeight">Footer Height:</label>
-                        <InputNumber
-                          name="footerHeight"
-                          placeholder="Footer Height"
-                          fluid
-                          v-model="standModel.footerHeight"
-                        />
-                      </div>
-                    </div>
-                  </fieldset>
-                </div>
-                <div class="bg-gray-50 col-span-2 p-10 mb-5">
-                  <fieldset legend="Dimensions" class="col-span-2">
-                    <legend class="text-lg font-bold mb-2">Merchandising Dimensions</legend>
-                    <div class="grid grid-cols-2 gap-10">
-                      <div class="flex flex-col gap-1">
-                        <label for="merchHeight">Merchendising Height:</label>
-                        <InputNumber
-                          name="merchHeight"
-                          placeholder="Merchendising Height"
-                          fluid
-                          v-model="standModel.merchHeight"
-                        />
-                      </div>
-
-                      <div class="flex flex-col gap-1">
-                        <label for="merchWidth">Merchendising Width:</label>
-                        <InputNumber
-                          name="merchWidth"
-                          placeholder="Merchendising Width"
-                          fluid
-                          v-model="standModel.merchWidth"
-                        />
-                        <Message
-                          v-if="$form.depth?.invalid"
-                          severity="error"
-                          size="small"
-                          variant="simple"
-                          >{{ $form.depth.error?.message }}</Message
-                        >
-                      </div>
-                    </div>
-                  </fieldset>
-                </div>
-
-                <div class="bg-gray-50 col-span-2 p-10 mb-5">
-                  <fieldset legend="Stands" class="col-span-2">
-                    <legend class="text-lg font-bold mb-2">Settings</legend>
-                    <div class="grid grid-cols-3 gap-10 mt-10">
-                      <div class="flex flex-col gap-1">
-                        <label for="spanShelves">Span Shelves:</label>
-                        <ToggleButton
-                          name="spanShelves"
-                          v-model="standModel.spanShelves"
-                          onLabel="Yes"
-                          offLabel="No"
-                          onIcon="pi pi-check"
-                          offIcon="pi pi-times"
-                          class="w-24 mt-2"
-                        ></ToggleButton>
-                      </div>
-                      <div class="flex flex-col gap-1">
-                        <label for="allowOverhang">Overhang:</label>
-                        <ToggleButton
-                          name="allowOverhang"
-                          v-model="standModel.allowOverHang"
-                          onLabel="Yes"
-                          offLabel="No"
-                          onIcon="pi pi-check"
-                          offIcon="pi pi-times"
-                          class="w-24 mt-2"
-                        ></ToggleButton>
-                      </div>
-
-                      <div class="flex flex-col gap-1">
-                        <label for="description">Stand Cost:</label>
-                        <InputNumber
-                          v-model="standModel.standCost"
-                          name="standCost"
-                          type="text"
-                          length="255"
-                          placeholder="Stand Cost"
-                          fluid
-                        />
-                        <Message
-                          v-if="$form.standCost?.invalid"
-                          severity="error"
-                          size="small"
-                          variant="simple"
-                          >{{ $form.standCost.error?.message }}</Message
-                        >
-                      </div>
-                    </div>
-                  </fieldset>
-                </div>
-
-                <Button type="submit" severity="secondary" label="Submit" />
-              </TabPanel>
-              <TabPanel value="1">
-                <div class="card grid grid-cols-2 gap-4">
-                  <div class="col-span-2">
-                    <h2>Layout</h2>
-                    <div class="flex flex-col gap-2 max-w-sm">
-                      <label for="layoutStyle">Layout Style:</label>
-                      <Select
-                        v-model="standModel.layoutStyle"
-                        :options="standLayoutStylesList ?? []"
-                        id="layoutStyle"
-                        name="layoutStyle"
-                        class="w-full border--500! border-2!"
-                        option-label="name"
-                        option-value="id"
-                      >
-                        <template #option="option">
-                          <div class="flex align-items-center">
-                            <span>{{ option.option.name }}</span>
-                          </div>
-                        </template>
-                      </Select>
-                    </div>
-                  </div>
-                  <div class="bg-gray-50 col-span-1 p-10 mb-5">
-                    <fieldset legend="Dimensions" class="col-span-2">
-                      <legend class="text-lg font-bold mb-2">Columns</legend>
-                      <div v-if="standModel.layoutStyle == 1 || standModel.layoutStyle == 3">
-                        <div class="grid grid-cols-4 gap-10">
-                          <div class="flex flex-col gap-1">
-                            <label for="cols">No. Columns:</label>
-                            <InputNumber
-                              name="cols"
-                              placeholder="No. Columns"
-                              fluid
-                              v-model="standModel.cols"
-                            />
+                            <div class="flex flex-col gap-1">
+                              <label for="defaultColWidth">Column Width:</label>
+                              <InputNumber
+                                name="defaultColWidth"
+                                placeholder="Column Width"
+                                fluid
+                                v-model="standModel.defaultColWidth"
+                              />
+                            </div>
                           </div>
 
-                          <div class="flex flex-col gap-1">
-                            <label for="equalCols">Equal Width:</label>
-                            <ToggleButton
-                              v-model="standModel.equalCols"
-                              name="equalCols"
-                              placeholder=""
-                              onIcon="pi pi-check"
-                              offIcon="pi pi-times"
-                              @change="changeColLayout($event)"
-                            />
-                          </div>
-                          <div class="flex flex-col gap-1">
-                            <label for="defaultColWidth">Column Width:</label>
-                            <InputNumber
-                              name="defaultColWidth"
-                              placeholder="Column Width"
-                              fluid
-                              v-model="standModel.defaultColWidth"
-                            />
-                          </div>
-                        </div>
+                          <div class="flex gap-2 flex-wrap pt-1">
+                            <Card v-if="!standModel.equalCols">
+                              <template #content>
+                                <template v-for="col in colsTable">
+                                  <div class="flex flex-row flex-wrap gap-2 items-center mb-2">
+                                    <div class="p-2 shrink">
+                                      <FloatLabel variant="in">
+                                        <InputNumber
+                                          type="number"
+                                          v-model="col.position"
+                                          inputId="col"
+                                          fluid
+                                        />
 
-                        <div class="flex gap-2 flex-wrap pt-1">
-                          <Card v-if="!standModel.equalCols">
-                            <template #content>
-                              <template v-for="col in colsTable">
-                                <div class="flex flex-row flex-wrap gap-2 items-center mb-2">
-                                  <div class="p-2 shrink">
-                                    <FloatLabel variant="in">
-                                      <InputNumber
-                                        type="number"
-                                        v-model="col.position"
-                                        inputId="col"
-                                        fluid
-                                      />
-
-                                      <label for="col">Column</label>
-                                    </FloatLabel>
+                                        <label for="col">Column</label>
+                                      </FloatLabel>
+                                    </div>
+                                    <div class="p-2 shrink">
+                                      <FloatLabel variant="in" class="w-50">
+                                        <InputNumber
+                                          type="number"
+                                          v-model="col.width"
+                                          inputId="col-w"
+                                          class=""
+                                          fluid
+                                        />
+                                        <label for="col-w">Width</label>
+                                      </FloatLabel>
+                                    </div>
+                                    <div class="ml-5 p-2">
+                                      <Button
+                                        icon="pi pi-plus"
+                                        tooltip="Add Upright"
+                                        class="h-10 w-40"
+                                        @click="addUpright(col.position ?? 0)"
+                                      ></Button>
+                                    </div>
                                   </div>
-                                  <div class="p-2 shrink">
-                                    <FloatLabel variant="in" class="w-50">
-                                      <InputNumber
-                                        type="number"
-                                        v-model="col.width"
-                                        inputId="col-w"
-                                        class=""
-                                        fluid
-                                      />
-                                      <label for="col-w">Width</label>
-                                    </FloatLabel>
-                                  </div>
-                                  <div class="ml-5 p-2">
-                                    <Button
-                                      icon="pi pi-plus"
-                                      tooltip="Add Upright"
-                                      class="h-10 w-40"
-                                      @click="addUpright(col.position ?? 0)"
-                                    ></Button>
-                                  </div>
-                                </div>
-                                <div v-if="col.uprights" class="border p-5 mb-10">
-                                  <div class="font-bold mb-4">
-                                    Uprights for Column {{ col.position }}
-                                  </div>
-                                  <div v-for="upright in col.uprights">
-                                    <div class="flex flex-row flex-wrap gap-2 items-center mb-2">
-                                      <div class="p-5 shrink" style="width">
-                                        <FloatLabel variant="in">
-                                          <InputNumber
-                                            type="number"
-                                            v-model="upright.position"
-                                            inputId="upr-pos"
-                                          />
-                                          <label for="upr-pos">Upright</label>
-                                        </FloatLabel>
-                                      </div>
-                                      <div class="p-5 shrink">
-                                        <FloatLabel variant="in">
-                                          <InputNumber
-                                            type="number"
-                                            inputId="upr-w"
-                                            v-model="upright.width"
-                                            size="5"
-                                          />
-                                          <label for="upr-w">Width</label>
-                                        </FloatLabel>
-                                      </div>
-                                      <div class="flex flex-col gap-1 ml-10">
-                                        <Button
-                                          icon="pi pi-trash"
-                                          class="h-10 w-40"
-                                          @click="
-                                            delUpright(col.position ?? 0, upright.position ?? 0)
-                                          "
-                                        ></Button>
+                                  <div
+                                    v-if="col.uprights && col.uprights.length > 0"
+                                    class="border p-5 mb-10"
+                                  >
+                                    <div class="font-bold mb-4">
+                                      Uprights for Column {{ col.position }}
+                                    </div>
+                                    <div v-for="upright in col.uprights">
+                                      <div class="flex flex-row flex-wrap gap-2 items-center mb-2">
+                                        <div class="p-5 shrink" style="width">
+                                          <FloatLabel variant="in">
+                                            <InputNumber
+                                              type="number"
+                                              v-model="upright.position"
+                                              inputId="upr-pos"
+                                            />
+                                            <label for="upr-pos">Upright</label>
+                                          </FloatLabel>
+                                        </div>
+                                        <div class="p-5 shrink">
+                                          <FloatLabel variant="in">
+                                            <InputNumber
+                                              type="number"
+                                              inputId="upr-w"
+                                              v-model="upright.width"
+                                              size="5"
+                                            />
+                                            <label for="upr-w">Width</label>
+                                          </FloatLabel>
+                                        </div>
+                                        <div class="flex flex-col gap-1 ml-10">
+                                          <Button
+                                            icon="pi pi-trash"
+                                            class="h-10 w-40"
+                                            @click="
+                                              delUpright(col.position ?? 0, upright.position ?? 0)
+                                            "
+                                          ></Button>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
+                                </template>
                               </template>
-                            </template>
-                          </Card>
-                        </div>
-                      </div>
-                      <!-- Column layout container -->
-                      <div v-if="standModel.layoutStyle == 2">
-                        <div class="grid grid-cols-4 gap-10">
-                          <div class="flex flex-col gap-1">
-                            <label for="cols">No. Pitches:</label>
-                            <InputNumber
-                              name="cols"
-                              placeholder="No. Pitches"
-                              fluid
-                              v-model="standModel.horizontalPitchCount"
-                            />
+                            </Card>
                           </div>
+                        </div>
+                        <!-- Column layout container -->
+                        <div v-if="standModel.layoutStyle == 2">
+                          <div class="grid grid-cols-4 gap-10">
+                            <div class="flex flex-col gap-1">
+                              <label for="cols">No. Pitches:</label>
+                              <InputNumber
+                                name="cols"
+                                placeholder="No. Pitches"
+                                fluid
+                                v-model="standModel.horizontalPitchCount"
+                              />
+                            </div>
 
-                          <div class="flex flex-col gap-1">
-                            <label for="defaultPitchSize">Pitch Size:</label>
-                            <InputNumber
-                              name="defaultPitchSize"
-                              placeholder="Pitch Size"
-                              fluid
-                              v-model="standModel.horizontalPitchSize"
-                            />
+                            <div class="flex flex-col gap-1">
+                              <label for="defaultPitchSize">Pitch Size:</label>
+                              <InputNumber
+                                name="defaultPitchSize"
+                                placeholder="Pitch Size"
+                                fluid
+                                v-model="standModel.horizontalPitchSize"
+                              />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </fieldset>
-                  </div>
-                  <div class="bg-gray-50 col-span-1 p-10 mb-5">
-                    <fieldset legend="Dimensions" class="col-span-2">
-                      <legend class="text-lg font-bold mb-2">Rows</legend>
-                      <div v-if="standModel.layoutStyle == 1">
-                        <div class="grid grid-cols-4 gap-10">
-                          <div class="flex flex-col gap-1">
-                            <label for="rows">No. Rows:</label>
-                            <InputNumber
-                              name="rows"
-                              placeholder="No. Rows"
-                              fluid
-                              v-model="standModel.rows"
-                            />
-                          </div>
+                      </fieldset>
+                    </div>
+                    <div class="bg-gray-50 col-span-1 p-10 mb-5">
+                      <fieldset legend="Dimensions" class="col-span-2">
+                        <legend class="text-lg font-bold mb-2">Rows</legend>
+                        <div v-if="standModel.layoutStyle == 1">
+                          <div class="grid grid-cols-4 gap-10">
+                            <div class="flex flex-col gap-1">
+                              <label for="rows">No. Rows:</label>
+                              <InputNumber
+                                name="rows"
+                                placeholder="No. Rows"
+                                fluid
+                                v-model="standModel.rows"
+                              />
+                            </div>
 
-                          <div class="flex flex-col gap-1">
-                            <label for="equalRows">Equal Height:</label>
-                            <ToggleButton
-                              v-model="standModel.equalRows"
-                              name="equalRows"
-                              placeholder="Row Layout"
-                              onIcon="pi pi-check"
-                              offIcon="pi pi-times"
-                              @change="changeRowLayout($event)"
-                            />
+                            <div class="flex flex-col gap-1">
+                              <label for="equalRows">Equal Height:</label>
+                              <ToggleButton
+                                v-model="standModel.equalRows"
+                                name="equalRows"
+                                placeholder="Row Layout"
+                                onIcon="pi pi-check"
+                                offIcon="pi pi-times"
+                                @change="changeRowLayout($event)"
+                              />
+                            </div>
+                            <div class="flex flex-col gap-1">
+                              <label for="defaultRowHeight">Row Height:</label>
+                              <InputNumber
+                                name="defaultRowHeight"
+                                placeholder="Row Height"
+                                fluid
+                                v-model="standModel.defaultRowHeight"
+                              />
+                            </div>
                           </div>
-                          <div class="flex flex-col gap-1">
-                            <label for="defaultRowHeight">Row Height:</label>
-                            <InputNumber
-                              name="defaultRowHeight"
-                              placeholder="Row Height"
-                              fluid
-                              v-model="standModel.defaultRowHeight"
-                            />
-                          </div>
-                        </div>
-                        <div class="flex gap-2 flex-wrap pt-1">
-                          <Card v-if="!standModel.equalRows">
-                            <template #content>
-                              <template v-for="row in rowsTable">
-                                <div class="flex flex-wrap flex-row gap-2 items-center mb-2">
-                                  <div class="p-5 shrink">
-                                    <FloatLabel variant="in">
-                                      <InputNumber
-                                        type="number"
-                                        v-model="row.position"
-                                        inputId="row"
-                                      />
-                                      <label for="row">Row</label>
-                                    </FloatLabel>
+                          <div class="flex gap-2 flex-wrap pt-1">
+                            <Card v-if="!standModel.equalRows">
+                              <template #content>
+                                <template v-for="row in rowsTable">
+                                  <div class="flex flex-wrap flex-row gap-2 items-center mb-2">
+                                    <div class="p-5 shrink">
+                                      <FloatLabel variant="in">
+                                        <InputNumber
+                                          type="number"
+                                          v-model="row.position"
+                                          inputId="row"
+                                        />
+                                        <label for="row">Row</label>
+                                      </FloatLabel>
+                                    </div>
+                                    <div class="p-5 shrink">
+                                      <FloatLabel variant="in">
+                                        <InputNumber
+                                          type="number"
+                                          v-model="row.height"
+                                          inputId="row-h"
+                                        />
+                                        <label for="row-h">Height</label>
+                                      </FloatLabel>
+                                    </div>
                                   </div>
-                                  <div class="p-5 shrink">
-                                    <FloatLabel variant="in">
-                                      <InputNumber
-                                        type="number"
-                                        v-model="row.height"
-                                        inputId="row-h"
-                                      />
-                                      <label for="row-h">Height</label>
-                                    </FloatLabel>
-                                  </div>
-                                </div>
+                                </template>
                               </template>
-                            </template>
-                          </Card>
-                        </div>
-                      </div>
-                      <div v-if="standModel.layoutStyle == 2 || standModel.layoutStyle == 3">
-                        <div class="grid grid-cols-4 gap-10">
-                          <div class="flex flex-col gap-1">
-                            <label for="defaultPitchSize">Vertical Pitch:</label>
-                            <InputNumber
-                              name="defaultPitchSize"
-                              placeholder="Vertical Pitch"
-                              fluid
-                              v-model="standModel.shelfIncrement"
-                            />
+                            </Card>
                           </div>
                         </div>
-                      </div>
-                    </fieldset>
+                        <div v-if="standModel.layoutStyle == 2 || standModel.layoutStyle == 3">
+                          <div class="grid grid-cols-4 gap-10">
+                            <div class="flex flex-col gap-1">
+                              <label for="defaultPitchSize">Vertical Pitch:</label>
+                              <InputNumber
+                                name="defaultPitchSize"
+                                placeholder="Vertical Pitch"
+                                fluid
+                                v-model="standModel.shelfIncrement"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </fieldset>
+                    </div>
                   </div>
-                </div>
-                <Button type="submit" severity="secondary" label="Submit" />
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </Form>
+                  <Button type="submit" severity="secondary" label="Submit" />
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
+          </Form>
+        </div>
       </div>
     </div>
-  </div>
+  </BlockUI>
 </template>
