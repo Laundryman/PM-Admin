@@ -541,7 +541,7 @@ namespace PM_AdminApp.Server.Controllers
                 var filterRegionList = new List<int>();
                 foreach (var region in regions)
                 {
-                    if (region.CountryList != null)
+                    if (!string.IsNullOrEmpty(region.CountryList))
                     {
                         var regionCountryList = region.CountryList.Split(",").Select(int.Parse).ToList();
                         for (int i = 0; i < regionCountryList.Count; i++)

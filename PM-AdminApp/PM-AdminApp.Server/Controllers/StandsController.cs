@@ -231,6 +231,23 @@ namespace PM_AdminApp.Server.Controllers
             }
         }
 
+        [HttpDelete]
+        public async Task<IActionResult> DeleteStand(int Id)
+        {
+            try
+            {
+                var stand = await _standRepository.GetByIdAsync(Id);
+                await _standRepository.DeleteAsync(stand);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = $"Cannot delete stand with id {Id}";
+                _logger.LogError(errorMessage);
+                return BadRequest(errorMessage);
+            }
+        }
+
         [ApiExplorerSettings(IgnoreApi = true)]
         private async Task UpdateRegionsCollection(Stand origStand, StandUpdateDto updateStand)
         {

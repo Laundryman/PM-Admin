@@ -175,6 +175,40 @@ async function onSelectCluster(event: any) {
 function openNew() {
   router.push({ name: 'createCluster' })
 }
+
+function deleteCluster(cluster: searchClusterInfo) {
+  console.log('Delete cluster', cluster)
+  // Implement the logic to delete a cluster here
+  // You can show a confirmation dialog before deleting
+  // For example:
+  if (confirm(`Are you sure you want to delete the cluster "${cluster.name}"?`)) {
+    clusterService
+      .deleteCluster(cluster.id)
+      .then((response) => {
+        toast.add({
+          severity: 'success',
+          summary: 'Cluster Deleted',
+          detail: 'Cluster deleted successfully.',
+          life: 3000,
+        })
+        // Refresh the cluster list after deletion
+        let filter = new ClusterFilter()
+        filter.brandId = brandStore.activeBrand?.id ?? 0
+        clusterService.searchClusters(filter).then((response) => {
+          clusters.value = response
+          console.log('Clusters loaded', clusters.value)
+        })
+      })
+      .catch((error) => {
+        toast.add({
+          severity: 'error',
+          summary: 'Error Deleting Cluster',
+          detail: 'An error occurred while deleting the cluster.',
+          life: 3000,
+        })
+      })
+  }
+}
 async function saveLayout({ valid }: any) {
   if (!valid) {
     return
@@ -330,16 +364,27 @@ async function saveLayout({ valid }: any) {
             {{ new Date(slotProps.data.dateUpdated).toLocaleDateString() }}
           </template>
         </Column>
-        <Column :exportable="false" style="min-width: 4rem">
+        <Column :exportable="false" style="min-width: 8rem" header="Actions">
           <template #body="slotProps">
-            <Button
-              v-tooltip="'Edit Cluster'"
-              variant="outlined"
-              rounded
-              class="mr-2"
-              @click="editCluster(slotProps.data)"
-              ><Grip />
-            </Button>
+            <div class="flex gap-2 justify-center">
+              <Button
+                v-tooltip="'Edit Cluster'"
+                variant="outlined"
+                rounded
+                class="mr-2 flex"
+                @click="editCluster(slotProps.data)"
+                ><Grip />
+              </Button>
+              <Button
+                v-tooltip="'Delete Cluster'"
+                variant="outlined"
+                rounded
+                severity="danger"
+                class="mr-2"
+                @click="deleteCluster(slotProps.data)"
+                ><Trash />
+              </Button>
+            </div>
           </template>
         </Column>
       </DataTable>

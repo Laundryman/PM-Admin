@@ -145,6 +145,15 @@ function editStand(stand: searchStandInfo) {
   router.push({ name: 'editStand', params: { id: stand.id } })
 }
 
+function deleteStand(stand: searchStandInfo) {
+  console.log('Delete stand', stand)
+  // Call the service to delete the stand
+  standService.deleteStand(stand.id).then(() => {
+    // Remove the deleted stand from the list
+    stands.value = stands.value.filter((s) => s.id !== stand.id)
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Stand deleted successfully' })
+  })
+}
 function openNew() {
   router.push({ name: 'newStand' })
 }
@@ -290,22 +299,25 @@ function copyStand(stand: searchStandInfo) {
 
         <Column :exportable="false" style="min-width: 4rem">
           <template #body="slotProps">
-            <Button
-              v-tooltip="'Edit Stand'"
-              icon="pi pi-pencil"
-              variant="outlined"
-              rounded
-              class="mr-2"
-              @click="editStand(slotProps.data)"
-            />
-            <!-- <Button
-              v-tooltip="'Copy Stand'"
-              icon="pi pi-copy"
-              variant="outlined"
-              rounded
-              class="mr-2"
-              @click="copyStand(slotProps.data)"
-            /> -->
+            <div class="flex gap-2 justify-center">
+              <Button
+                v-tooltip="'Edit Stand'"
+                icon="pi pi-pencil"
+                variant="outlined"
+                rounded
+                class="mr-2"
+                @click="editStand(slotProps.data)"
+              />
+              <Button
+                v-tooltip="'Delete Stand'"
+                icon="pi pi-trash"
+                severity="danger"
+                variant="outlined"
+                rounded
+                class="mr-2"
+                @click="deleteStand(slotProps.data)"
+              />
+            </div>
           </template>
         </Column>
       </DataTable>

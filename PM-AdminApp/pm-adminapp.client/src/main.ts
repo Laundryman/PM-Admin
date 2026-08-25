@@ -6,6 +6,7 @@ import './assets/main.css'
 import '@/assets/styles.scss'
 import ExclamationTriangle from '@primeicons/vue/exclamation-triangle'
 import Grip from '@primeicons/vue/grip'
+import Trash from '@primeicons/vue/trash'
 import 'primeicons/primeicons.css'
 import { AnimateOnScroll, FocusTrap, Ripple, StyleClass } from 'primevue'
 import BlockUI from 'primevue/blockui'
@@ -86,6 +87,7 @@ app.component('Dialog', Dialog)
 app.component('FileUpload', FileUpload)
 app.component('FloatLabel', FloatLabel)
 app.component('Grip', Grip)
+app.component('Trash', Trash)
 app.component('Image', Image)
 app.component('InputIcon', InputIcon)
 app.component('IconField', IconField)

@@ -1038,7 +1038,7 @@ async function initializeStand() {
             const column = new planmatr.Column({
               attrs: {
                 label: {
-                  text: col.columnId.toString(),
+                  text: col.id.toString(),
                   fill: 'yellow',
                 },
                 body: {
@@ -1113,7 +1113,7 @@ async function initializeStand() {
               const standRow = new planmatr.Row({
                 attrs: {
                   label: {
-                    text: row.rowId.toString(),
+                    text: row.id.toString(),
                     fill: 'yellow',
                   },
                   body: {
@@ -2809,7 +2809,7 @@ function showToast(event: any) {
         v-if="paperReady"
         :paperScroller="paperScroller as joint.ui.PaperScroller"
         :selection="selection as joint.ui.Selection"
-        :planogramId="planogramStore.planogram.id"
+        :planogramId="planogramStore.planogram.id ?? 0"
         :isCluster="isCluster"
         :clusterId="clusterStore.cluster.id"
         :searchGraph="searchGraph as joint.dia.Graph"

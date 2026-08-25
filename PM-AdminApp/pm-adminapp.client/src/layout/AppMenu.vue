@@ -48,11 +48,11 @@ const model = ref([
         icon: 'pi pi-fw pi-briefcase',
         to: '/clusters',
       },
-      {
-        label: 'Create Cluster',
-        icon: 'pi pi-fw pi-check-square',
-        to: '/clusters/create',
-      },
+      // {
+      //   label: 'Create Cluster',
+      //   icon: 'pi pi-fw pi-check-square',
+      //   to: '/clusters/create',
+      // },
     ],
   },
   {

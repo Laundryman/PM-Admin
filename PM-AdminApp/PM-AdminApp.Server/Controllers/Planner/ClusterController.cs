@@ -657,6 +657,23 @@ namespace PM_AdminApp.Server.Controllers.Planner
             }
         }
 
+        [HttpDelete]
+        public async Task<IActionResult> DeleteCluster(long Id)
+        {
+            try
+            {
+                var cluster = await _clusterRepository.GetByIdAsync(Id);
+                await _clusterRepository.DeleteAsync(cluster);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = $"Cannot delete cluster with id {Id}";
+                _logger.LogError(errorMessage);
+                return BadRequest(errorMessage);
+            }
+        }
+
         private async Task SaveCassettes(long clusterId, List<PlanmPartInfo> cassettes, ScratchPad? scratchPad = null)
         {
             //////////////////////////////////////////////////////////////////////////////////////////////
@@ -776,7 +793,6 @@ namespace PM_AdminApp.Server.Controllers.Planner
             }
 
         }
-
 
 
 

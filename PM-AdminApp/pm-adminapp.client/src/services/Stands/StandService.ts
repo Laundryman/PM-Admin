@@ -119,6 +119,28 @@ export default {
     return response.data
   },
 
+  async deleteStand(standId: number): Promise<any> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+      apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
+    }
+    let response = await apiClient
+      .delete('/deleteStand', {
+        params: {
+          id: standId,
+        },
+      })
+      .then((response) => {
+        return response.data
+      })
+      .catch((err) => {
+        console.log('Error deleting stand:', err)
+        throw err
+      })
+
+    return response
+  },
+
   async initialise() {
     const authStore = useAuthStore()
     if (!authStore.initialized) {

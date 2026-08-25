@@ -103,6 +103,28 @@ export default {
     return response
   },
 
+  async deleteCluster(clusterId: number): Promise<any> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+      apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
+    }
+    let response = await apiClient
+      .delete('/deleteCluster', {
+        params: {
+          id: clusterId,
+        },
+      })
+      .then((response) => {
+        return response.data
+      })
+      .catch((err) => {
+        console.log('Error deleting cluster:', err)
+        throw err
+      })
+
+    return response
+  },
+
   async initialise() {
     const authStore = useAuthStore()
     if (!authStore.initialized) {
