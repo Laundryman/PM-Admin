@@ -111,9 +111,9 @@ namespace PM_AdminApp.Server.Controllers.Planner
                     if (cat.ParentCategoryId != currentCatId)
                     {
                         currentCatId = cat.ParentCategoryId;
-                        if (!menuCats.Any(c => c.ParentCategoryId == cat.CategoryId))
+                        if (!menuCats.Any(c => c.Id == cat.ParentCategoryId))
                         {
-                            var pcat = await _categoryService.GetCategory(cat.CategoryId);
+                            var pcat = await _categoryService.GetCategory(cat.ParentCategoryId);
                             menuCats.Add(pcat);
                         }
                     }

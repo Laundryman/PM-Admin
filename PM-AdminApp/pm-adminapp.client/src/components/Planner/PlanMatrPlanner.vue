@@ -157,6 +157,7 @@ const planogramImageFile = ref<File | null>(null)
 onUnmounted(() => {
   document.getElementsByClassName('layout-main')[0]?.classList.remove('planner-container')
 })
+
 onMounted(async () => {
   document.getElementsByClassName('layout-main')[0]?.classList.add('planner-container')
 
@@ -891,8 +892,8 @@ async function initializeStand() {
             headerGraphic: {},
             body: {
               fill: '#fff',
-              height: stand.value?.merchHeight ?? 0,
-              width: stand.value?.merchWidth ?? 0,
+              height: stand.value?.height ?? 0,
+              width: stand.value?.width ?? 0,
             },
           },
         })
@@ -932,9 +933,13 @@ async function initializeStand() {
           width: stand.value?.width ?? 0,
           height: stand.value?.height ?? 0,
         }
+        carcass.value.attributes.disableMove = true
+        carcass.value.resize(stand.value?.width ?? 0, stand.value?.height ?? 0, {
+          ignoreMove: true,
+        })
         // carcass.attributes.width = stand.value?.width ?? 0, height: stand.value?.height ?? 0 };
         //carcass..attributes.disableMove = false;
-        // carcass.resize(stand.value?.width ?? 0, stand.value?.height ?? 0, { ignoreMove: true });
+        // carcass.resize(stand.value?.width ?? 0, stand.value?.s ?? 0, { ignoreMove: true });
         carcass.value.attr({
           text: {
             text: 'Stand',
@@ -1209,7 +1214,7 @@ async function displayPlanogram(planogramId: number, clusterId: number) {
   } else {
     result = await Promise.resolve(menuService.loadClusterShelves(clusterStore.cluster.id))
   }
-  paperScroller.value?.zoomToFit({})
+  // paperScroller.value?.zoomToFit({useModelGeometry: true, padding: 20})
 
   planogramShelves.value = result as PartInfo[]
   planogramService.value.populatePlanogram(
@@ -1268,7 +1273,6 @@ async function displayPlanogram(planogramId: number, clusterId: number) {
     stencil.value.stencil.closeGroups()
   }
 
-  paperScroller.value?.zoomToFit({})
   showSpinner.value = false
 }
 
@@ -2089,6 +2093,7 @@ function initializeTooltips() {
       delay: '250ms',
     },
   })
+  paperScroller.value?.zoomToFit({ useModelGeometry: true, padding: 20 })
 }
 
 async function showCommentsDialog() {

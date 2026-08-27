@@ -8,7 +8,7 @@
     font-weight: 600;
     font-size: 11px;
     line-height: 15px;
-
+    z-index: 1000;
     // Mask general
     --arrow-mask-size: 4px;
     --arrow-mask-margin: calc(var(--arrow-mask-size) * -1);

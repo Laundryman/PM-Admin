@@ -153,13 +153,13 @@ namespace PM_AdminApp.Server.Controllers
             {
                 if (updateStand == null)
                 {
-                    _logger.LogError("Part object sent from client is null.");
-                    return BadRequest("Part object is null");
+                    _logger.LogError("Stand object sent from client is null.");
+                    return BadRequest("Stand object is null");
                 }
 
                 if (!ModelState.IsValid)
                 {
-                    _logger.LogError("Invalid part object sent from client.");
+                    _logger.LogError("Invalid stand object sent from client.");
                     return BadRequest("Invalid model object");
                 }
                 //var stand = _mapper.Map<Stand>(updateStand);
@@ -432,10 +432,13 @@ namespace PM_AdminApp.Server.Controllers
         {
             var existingRows = origStand.RowList;
             var newRows = updateStand.RowList;
-
+            if (newRows == null)
+            {
+                return ;
+            }
             foreach (var row in updateStand.RowList)
             {
-                var origRow = origStand.RowList.FirstOrDefault(r => r.Position == row.Position);
+                var origRow = origStand.RowList.FirstOrDefault(r => r.Id == row.Id);
                 if (origRow == null)
                 {
                     StandRow newRow = new StandRow()

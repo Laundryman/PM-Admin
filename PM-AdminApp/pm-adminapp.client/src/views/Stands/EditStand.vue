@@ -423,7 +423,7 @@ async function onFormSubmit({ valid }: any) {
     standModel.value.footerHeight = standModel.value.footerHeight ?? 0
     standModel.value.footerWidth = standModel.value.footerWidth ?? 0
     await AddColumnsAndRowsToModel()
-    if (newStand) {
+    if (newStand.value == true) {
       await standStore.createStand(standModel.value).then((response) => {
         if (response) {
           toast.add({
