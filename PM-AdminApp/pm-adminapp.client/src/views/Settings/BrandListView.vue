@@ -132,11 +132,9 @@ const findIndexById = (id: number) => {
   <div>
     <div class="card">
       <Toolbar class="mb-6">
-        <template #start>
+        <template #end>
           <Button label="New" icon="pi pi-plus" class="mr-2" @click="openNew" />
         </template>
-
-        <template #end> </template>
       </Toolbar>
 
       <DataTable
@@ -162,7 +160,6 @@ const findIndexById = (id: number) => {
           </div>
         </template>
 
-        <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
         <Column header="Image" style="min-width: 16rem">
           <template #body="slotProps">
             <img

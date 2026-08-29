@@ -56,6 +56,7 @@ const initialValues = ref(new User())
 const userModel = ref<User>(new User())
 const brandTabIndex = ref('0')
 const brandTabs = ref([] as { title: string; content: string; value: string }[])
+const hasMFA = ref(false)
 const currentBrandTabProperties = ref({
   brandId: 0,
   regions: [] as Region[] | null,
@@ -93,6 +94,18 @@ onMounted(async () => {
       .catch((error) => {
         console.log(error)
       })
+  }
+
+  //get user's authentication method - check if they have been setup with mfa
+  const authMethods = await UserService.getAuthenticationMethods(userId.value)
+  if (authMethods && authMethods.length > 0) {
+    if (
+      authMethods.some((m) => m['@odata.type'] === '#microsoft.graph.emailAuthenticationMethod')
+    ) {
+      hasMFA.value = true
+    } else {
+      hasMFA.value = false
+    }
   }
   //setup brand tabs
   for (const brand of brandStore.brands) {
@@ -590,6 +603,52 @@ const resolver = ({ values }: any) => {
   }
 }
 
+async function onMFAChange(event: any) {
+  if (hasMFA.value === true) {
+    //enable MFA
+    await UserService.addAuthenticationMethod(userId.value, userModel.value.userEmailAddress)
+      .then(() => {
+        hasMFA.value = true
+        toast.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'MFA enabled for user',
+          life: 3000,
+        })
+      })
+      .catch((error) => {
+        console.log(error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to enable MFA for user',
+          life: 3000,
+        })
+      })
+    // } else {
+    //   //disable MFA
+    //   await UserService.disableMFA(userId.value)
+    //     .then(() => {
+    //       hasMFA.value = false
+    //       toast.add({
+    //         severity: 'success',
+    //         summary: 'Success',
+    //         detail: 'MFA disabled for user',
+    //         life: 3000,
+    //       })
+    //     })
+    //     .catch((error) => {
+    //       console.log(error)
+    //       toast.add({
+    //         severity: 'error',
+    //         summary: 'Error',
+    //         detail: 'Failed to disable MFA for user',
+    //         life: 3000,
+    //       })
+    //     })
+  }
+}
+
 async function onFormSubmit({ valid }: any) {
   if (valid) {
     await UserService.saveUser(user.value)
@@ -622,11 +681,36 @@ async function onFormSubmit({ valid }: any) {
         @click="router.back()"
       />
     </div>
-    <div class="w-full sticky bg-white top-16 block p-10 z-10">
+    <div class="w-full sticky bg-white top-16 block p-10 pb-0 z-10">
       <h2>Edit User</h2>
-      <div class="card flex flex-col gap-2">
-        <span class="font-bold text-xl">{{ user.givenName }} {{ user.surname }}</span>
-        <!-- <span class="text-gray-600">{{ user.surname }}</span> -->
+      <div class="card flex gap-2">
+        <div class="flex-1">
+          <div class="flex font-bold text-xl">
+            {{ userModel.givenName }} {{ userModel.surname }}
+          </div>
+          <div class="text-gray-500 text-sm">{{ userModel.userEmailAddress }}</div>
+        </div>
+        <div class="flex-2">
+          <div class="flex justify-center" v-if="!hasMFA">
+            <div class="flex flex-col gap-1">
+              <label for="hasMFA" class="font-semibold w-24 mb-3">Enable MFA?</label>
+            </div>
+            <div class="flex flex-col gap-1">
+              <ToggleButton
+                v-model="hasMFA"
+                onLabel="Yes"
+                offLabel="No"
+                class="w-24"
+                @change="onMFAChange($event)"
+              />
+            </div>
+          </div>
+          <div v-else class="flex justify-center">
+            <div class="flex flex-col gap-1">
+              <p class="text-red-500 font-semibold w-24 mb-3">MFA Enabled</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="card grid grid-cols-1 gap-4 justify-center">
@@ -762,7 +846,7 @@ async function onFormSubmit({ valid }: any) {
                   optionValue="id"
                   placeholder="Select Brands"
                   :maxSelectedLabels="3"
-                  @change="onBrandChange"
+                  @change="onBrandChange($event)"
                 >
                 </MultiSelect>
               </div>
@@ -778,15 +862,6 @@ async function onFormSubmit({ valid }: any) {
                   placeholder="Select Role"
                 />
               </div>
-              <!-- <div class="flex flex-col gap-1">
-                <label for="Shopper" class="font-semibold w-24 mb-3">Shopper</label>
-                <Checkbox id="Shopper" v-model="userModel.shopper" binary />
-              </div>
-              <div class="flex flex-col gap-1">
-                <label for="OrderManager" class="font-semibold mb-3">Order Manager</label>
-                <Checkbox id="OrderManager" v-model="userModel.orderManager" binary />
-              </div>-->
-
               <div class="bg-gray-50 col-span-2 pt-10">
                 <legend class="text-lg font-bold">Permissions</legend>
               </div>

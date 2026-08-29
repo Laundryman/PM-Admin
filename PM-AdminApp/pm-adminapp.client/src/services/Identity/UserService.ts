@@ -19,6 +19,15 @@ const apiClient = axios.create({
   },
 })
 
+const betaApiClient = axios.create({
+  // baseURL: import.meta.env.VITE_APP_SERVER_URL + '/api/graph',
+  baseURL: 'https://graph.microsoft.com/beta',
+  headers: {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  },
+})
+
 export default {
   get isInitialised() {
     return initialized.value
@@ -229,6 +238,57 @@ export default {
   },
   changePassword(user: User) {
     return apiClient.put('/change-password', user)
+  },
+
+  async getAuthenticationMethods(userId: string) {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    return await apiClient
+      .get(`/users/${userId}/authentication/methods`)
+      .then((response) => {
+        console.log('Graph authentication methods response:', response.data)
+        return response.data.value
+      })
+      .catch((error) => {
+        throw error
+      })
+  },
+
+  async addAuthenticationMethod(userId: string, emailAddress: string) {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    const emailAuthenticationMethod = {
+      emailAddress: emailAddress,
+    }
+    return await apiClient
+      .post(`/users/${userId}/authentication/emailMethods`, emailAuthenticationMethod)
+      .then((response) => {
+        console.log('Graph add authentication method response:', response.data)
+        return response.data
+      })
+      .catch((error) => {
+        throw error
+      })
+  },
+
+  async setPeferredAuthenticationMethod(userId: string, methodId: string) {
+    if (token.value) {
+      betaApiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    const preferredMethod = {
+      userPreferredMethodForSecondaryAuthentication: methodId,
+    }
+    return await betaApiClient
+      .patch(`/users/${userId}/authentication/signInPreferences`, preferredMethod)
+      .then((response) => {
+        console.log('Graph set preferred authentication method response:', response.data)
+        return response.data
+      })
+      .catch((error) => {
+        throw error
+      })
   },
 
   async initialise() {

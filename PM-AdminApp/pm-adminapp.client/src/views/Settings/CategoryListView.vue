@@ -25,28 +25,24 @@ function onRowGroupExpand(event: any) {
   })
 }
 function onRowGroupCollapse(event: any) {
-  toast.add({
-    severity: 'success',
-    summary: 'Row Group Collapsed',
-    detail: 'Value: ' + event.data,
-    life: 3000,
-  })
+  // toast.add({
+  //   severity: 'success',
+  //   summary: 'Row Group Collapsed',
+  //   detail: 'Value: ' + event.data,
+  //   life: 3000,
+  // })
 }
 
 async function onRowExpand(event: any) {
-  // await categoryService.getChildCategories(event.data.id).then((data) => {
-  //   childCategories.value = data.data
-  //   // event.data.children = childCategories.value
-  // })
-  toast.add({ severity: 'info', summary: 'Category Expanded', detail: event.data.name, life: 3000 })
+  // toast.add({ severity: 'info', summary: 'Category Expanded', detail: event.data.name, life: 3000 })
 }
 const onRowCollapse = (event: any) => {
-  toast.add({
-    severity: 'success',
-    summary: 'Category Collapsed',
-    detail: event.data.name,
-    life: 3000,
-  })
+  // toast.add({
+  //   severity: 'success',
+  //   summary: 'Category Collapsed',
+  //   detail: event.data.name,
+  //   life: 3000,
+  // })
 }
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -254,7 +250,7 @@ const confirm1 = (event) => {
   <div>
     <div class="card">
       <Toolbar class="mb-6">
-        <template #start>
+        <template #end>
           <Button
             label="New"
             icon="pi pi-plus"
@@ -263,12 +259,12 @@ const confirm1 = (event) => {
             v-tooltip="'Add Parent Category'"
           />
         </template>
-
-        <template #end> </template>
       </Toolbar>
 
       <DataTable
         v-model:expandedRows="expandedRows"
+        v-model:selection="selectedCategory"
+        selectionMode="single"
         ref="dt"
         :value="categories"
         dataKey="id"
@@ -280,6 +276,7 @@ const confirm1 = (event) => {
         sortMode="single"
         sortField="parentCategoryName"
         :sortOrder="1"
+        tableClass="hide-row-border"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
@@ -325,7 +322,11 @@ const confirm1 = (event) => {
         <template #expansion="slotProps">
           <div class="p-4">
             <!-- <h5>{{ slotProps.data.name }}</h5> -->
-            <DataTable :value="slotProps.data.subCategories" tableStyle="min-width: 50rem">
+            <DataTable
+              :value="slotProps.data.subCategories"
+              tableStyle="min-width: 50rem"
+              table-class="category-expanded bg-emerald-50"
+            >
               <Column
                 field="parentCategory.name"
                 header="Parent Category"

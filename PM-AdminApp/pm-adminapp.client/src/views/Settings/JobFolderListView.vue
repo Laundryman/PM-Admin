@@ -22,7 +22,7 @@ import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const jobFolderFilter = ref(new JobFolderFilter())
-
+const selectedJobFolder = ref<JobFolder | null>(null)
 const jobFolders = ref<JobFolder[] | null>(null)
 const selectedJobFolders = ref()
 const expandedRows = ref()
@@ -384,6 +384,8 @@ function addJob(folder: JobFolder) {
         ref="dt"
         v-model:filters="filters"
         v-model:expanded-rows="expandedRows"
+        v-model:selection="selectedJobFolder"
+        selectionMode="single"
         :globalFilterFields="[
           //'categoryName',
           'name',
@@ -399,6 +401,7 @@ function addJob(folder: JobFolder) {
         :rowsPerPageOptions="[5, 10, 25]"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} job folders"
         @row-expand="onRowExpand"
+        tableClass="hide-row-border"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
@@ -457,7 +460,10 @@ function addJob(folder: JobFolder) {
         <template #expansion="slotProps">
           <div class="p-4">
             <h5>Jobs for {{ slotProps.data.name }}</h5>
-            <DataTable :value="slotProps.data.jobs">
+            <DataTable
+              :value="slotProps.data.jobs"
+              table-class="archive-jobs-expanded bg-emerald-50"
+            >
               <Column field="jobCode" header="Job Code" sortable></Column>
               <Column field="description" header="Description" sortable></Column>
               <Column field="dateFrom" header="Date From" sortable></Column>

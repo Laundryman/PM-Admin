@@ -246,6 +246,12 @@ const getHideIcon = (hide: boolean) => {
         <Column expander style="width: 5rem" />
 
         <Column field="name" header="Name" sortable style="min-width: 16rem"></Column>
+        <Column
+          field="childStandTypes.length"
+          header="No. Child StandTypes"
+          sortable
+          style="min-width: 16rem"
+        ></Column>
 
         <!-- <Column :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
