@@ -97,16 +97,19 @@ onMounted(async () => {
   }
 
   //get user's authentication method - check if they have been setup with mfa
-  const authMethods = await UserService.getAuthenticationMethods(userId.value)
-  if (authMethods && authMethods.length > 0) {
-    if (
-      authMethods.some((m) => m['@odata.type'] === '#microsoft.graph.emailAuthenticationMethod')
-    ) {
-      hasMFA.value = true
-    } else {
-      hasMFA.value = false
+  if (userId.value && userId.value !== '') {
+    const authMethods = await UserService.getAuthenticationMethods(userId.value)
+    if (authMethods && authMethods.length > 0) {
+      if (
+        authMethods.some((m) => m['@odata.type'] === '#microsoft.graph.emailAuthenticationMethod')
+      ) {
+        hasMFA.value = true
+      } else {
+        hasMFA.value = false
+      }
     }
   }
+
   //setup brand tabs
   for (const brand of brandStore.brands) {
     if (userModel.value.brandIds?.includes(brand.id)) {

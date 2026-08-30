@@ -135,6 +135,18 @@ export default {
       Surname: user.surname,
       // MailNickname: user.mailNickName,
       AccountEnabled: true,
+      identities: [
+        {
+          signInType: 'emailAddress',
+          issuer: 'planmatr.onmicrosoft.com',
+          issuerAssignedId: user.userEmailAddress,
+        },
+        {
+          signInType: 'userName',
+          issuer: 'planmatr.onmicrosoft.com',
+          issuerAssignedId: user.userName,
+        },
+      ],
     }
     if (user.brandIds != null && user.brandIds.length > 0) {
       updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands'] = user.brandIds.join(',')
@@ -178,6 +190,7 @@ export default {
       givenName: user.givenName,
       surname: user.surname,
       userPrincipalName: mailNickname + '@' + import.meta.env.VITE_APP_TENANT_NAME,
+      // userPrincipalName: user.userEmailAddress,
       identities: [
         {
           signInType: 'emailAddress',
