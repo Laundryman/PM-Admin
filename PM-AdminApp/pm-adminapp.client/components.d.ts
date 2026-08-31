@@ -52,6 +52,7 @@ declare module 'vue' {
     MultiSelect: typeof import('primevue/multiselect')['default']
     NotificationsWidget: typeof import('./src/components/dashboard/NotificationsWidget.vue')['default']
     OverlayBadge: typeof import('primevue/overlaybadge')['default']
+    Panel: typeof import('primevue/panel')['default']
     Password: typeof import('primevue/password')['default']
     PlanMatrPlanner: typeof import('./src/components/planner/PlanMatrPlanner.vue')['default']
     PricingWidget: typeof import('./src/components/landing/PricingWidget.vue')['default']

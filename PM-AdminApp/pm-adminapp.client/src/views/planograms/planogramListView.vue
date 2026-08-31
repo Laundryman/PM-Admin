@@ -3,8 +3,10 @@ import { useLocationFilters } from '@/components/composables/locationFilters'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
 import { PlanogramFilter } from '@/models/Planograms/planogramFilter.model'
 import type { searchPlanogramInfo } from '@/models/Planograms/searchPlanogramnfo.model'
+import { PlanogramStatusEnum } from '@/planner/models/Enumerations'
 import { default as countryService } from '@/services/Countries/CountryService'
 import { default as planogramService } from '@/services/Planograms/PlanogramService'
+
 import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api/'
@@ -125,27 +127,6 @@ async function onCountryChange() {
   }
 }
 
-// function getStatusText(statusId: number): string {
-//   switch (statusId) {
-//     case 1:
-//       return 'In Progress'
-//     case 2:
-//       return 'Submitted'
-//     case 3:
-//       return 'Ordered'
-//     case 4:
-//       return 'Deleted'
-//     case 5:
-//       return 'Approved'
-//     case 6:
-//       return 'Validated'
-//     case 7:
-//       return 'Archived'
-//     default:
-//       return 'Unknown'
-//   }
-// }
-
 function getStatusSeverity(status: string): string {
   switch (status.toLowerCase()) {
     case 'editing':
@@ -223,6 +204,25 @@ function lock(planogram: searchPlanogramInfo) {
   // Navigate to edit page
 }
 
+function restore(planogram: searchPlanogramInfo) {
+  planogramService
+    .restorePlanogram(planogram.id, PlanogramStatusEnum.Editing)
+    .then(() => {
+      console.log('Planogram restored', planogram)
+      // Refresh the planogram list after restoring
+      planograms.value = planograms.value.map((p) =>
+        p.id === planogram.id ? { ...p, statusId: 1, statusName: 'Editing' } : p,
+      )
+      // clearFilters()
+    })
+    .catch((error) => {
+      console.error('Error restoring planogram', error)
+    })
+  // console.log('Restore planogram', planogram)
+  // layout.setActivePart(part)
+  // Navigate to edit page
+}
+
 function editPlanogram(planogram: searchPlanogramInfo) {
   console.log('Edit planogram', planogram)
   // layout.setActivePlanogram(planogram)
@@ -233,7 +233,18 @@ function editPlanogram(planogram: searchPlanogramInfo) {
 
 <template>
   <div class="planogram-list-view">
-    <h1>Planogram List View</h1>
+    <div class="flex">
+      <h1
+        class="mb-0 flex-none"
+        v-tooltip.bottom="{
+          value: 'Unlock Planograms or Restore Deleted Planograms to Editing to make changes.',
+        }"
+      >
+        Planogram List View
+      </h1>
+    </div>
+    <div class="flex flex-wrap gap-4 mb-0"></div>
+
     <!-- Add your planogram list view content here -->
     <Toolbar class="mb-6">
       <template #start>
@@ -357,13 +368,20 @@ function editPlanogram(planogram: searchPlanogramInfo) {
         </Column>
         <Column field="locked" header="Locked" datatype="boolean" sortable style="min-width: 6rem">
           <template #body="{ data }">
-            <i
+            <!-- <i
               class="pi"
               :class="{
                 'pi-check-circle text-green-500': !data.locked,
                 'pi-times-circle text-red-400': data.locked,
               }"
-            ></i>
+            ></i> -->
+            <CheckCircle
+              v-if="!data.locked"
+              class="text-green-500"
+              size="20"
+              v-tooltip="'Unlocked'"
+            />
+            <TimesCircle v-else class="text-red-400" size="20" v-tooltip="'Locked'" />
           </template>
           <template #filter="{ filterModel }">
             <Checkbox
@@ -385,11 +403,12 @@ function editPlanogram(planogram: searchPlanogramInfo) {
             />
           </template>
         </Column>
-        <Column :exportable="false" style="min-width: 12rem" header="Locked">
+        <Column :exportable="false" style="min-width: 12rem" header="Actions">
           <template #body="slotProps">
             <Button
               v-if="slotProps.data.locked"
               v-tooltip="'Unlock Planogram'"
+              severity="danger"
               icon="pi pi-lock"
               variant="outlined"
               rounded
@@ -404,6 +423,15 @@ function editPlanogram(planogram: searchPlanogramInfo) {
               rounded
               class="mr-2"
               @click="lock(slotProps.data)"
+            />
+            <Button
+              v-if="slotProps.data.statusId === 4"
+              v-tooltip="'Restore Planogram to editing'"
+              icon="pi pi-undo"
+              variant="outlined"
+              rounded
+              class="mr-2"
+              @click="restore(slotProps.data)"
             />
           </template>
         </Column>

@@ -437,7 +437,7 @@ function addJob(folder: JobFolder) {
           </template>
         </Column>
 
-        <Column :exportable="false" style="min-width: 12rem">
+        <Column header="Actions" :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
               v-tooltip="'Edit Job Folder'"
@@ -470,7 +470,7 @@ function addJob(folder: JobFolder) {
               <Column field="dateTo" header="Date To" sortable></Column>
               <Column field="uploadedOn" header="Date Added" sortable></Column>
 
-              <Column headerStyle="width:4rem">
+              <Column header="Actions" headerStyle="width:4rem">
                 <template #body="slotProps">
                   <Button
                     v-tooltip="'Edit Job'"

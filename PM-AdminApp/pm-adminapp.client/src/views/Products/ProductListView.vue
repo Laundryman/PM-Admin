@@ -304,10 +304,10 @@ function copyProduct(product: searchProductInfo) {
             />
           </template>
         </column>
-        <Column :exportable="false" style="min-width: 12rem">
+        <Column header="Actions" :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
-              v-tooltip="'Edit Part'"
+              v-tooltip="'Edit Product'"
               icon="pi pi-pencil"
               variant="outlined"
               rounded
@@ -315,7 +315,7 @@ function copyProduct(product: searchProductInfo) {
               @click="editProduct(slotProps.data)"
             />
             <Button
-              v-tooltip="'Copy Part'"
+              v-tooltip="'Copy Product'"
               icon="pi pi-copy"
               variant="outlined"
               rounded

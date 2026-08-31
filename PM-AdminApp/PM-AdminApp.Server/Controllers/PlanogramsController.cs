@@ -516,7 +516,14 @@ namespace PM_AdminApp.Server.Controllers
 
                 if (regionsList == null || regionsList.Count == 0)
                 {
-                    regionsList = userProfile.RegionList.Split(",").Select(int.Parse).ToList();
+                    if (userProfile.RegionList != null)
+                    {
+                        regionsList = userProfile.RegionList.Split(",").Select(int.Parse).ToList();
+                    }
+                    else
+                    {
+                        regionsList = new List<int>();
+                    }
                 }
 
                 if (countriesList == null || countriesList.Count == 0)

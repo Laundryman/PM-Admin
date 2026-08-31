@@ -299,7 +299,7 @@ const confirm1 = (event) => {
 
         <Column field="name" header="Name" sortable style="min-width: 16rem"></Column>
 
-        <Column :exportable="false" style="min-width: 12rem">
+        <Column header="Actions" :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
               icon="pi pi-pencil"
@@ -334,7 +334,7 @@ const confirm1 = (event) => {
                 style="min-width: 16rem"
               ></Column>
               <Column field="name" header="Name" sortable></Column>
-              <Column :exportable="false" style="min-width: 12rem">
+              <Column header="Actions" :exportable="false" style="min-width: 12rem">
                 <template #body="childSlotProps">
                   <Button
                     icon="pi pi-trash"

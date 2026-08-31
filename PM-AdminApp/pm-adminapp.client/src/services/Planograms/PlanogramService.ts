@@ -132,6 +132,20 @@ export default {
     return response
   },
 
+  async restorePlanogram(id: number, statusId: number): Promise<void> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+      apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
+    }
+    return apiClient
+      .get('/restorePlanogram', { params: { planogramId: id, statusId: statusId } })
+      .then(() => {
+        return
+      })
+      .catch((error) => {
+        throw error
+      })
+  },
   async initialise() {
     const authStore = useAuthStore()
     if (!authStore.initialized) {

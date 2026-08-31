@@ -1180,7 +1180,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
             {
                 var newShelf = new PlanogramShelf();
                 long? shelfId = shelf.Id; //the planogramShelfId
-                var planogram = await _planogramService.GetPlanogram(shelf.PlanogramId);
+                var planogram = await _planogramService.GetPlanogram((long)shelf.PlanogramId);
 
                 if (shelfId.Value != 0)
                 {
@@ -1205,7 +1205,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
 
 
 
-                newShelf.PlanogramId = shelf.PlanogramId;
+                newShelf.PlanogramId = (long)shelf.PlanogramId;
                 if (scratchPad != null)
                 {
                     //then we are dealing with the scratchpad
@@ -1222,7 +1222,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 newShelf.PositionX = shelf.Position.x;
                 newShelf.PositionY = shelf.Position.y;
 
-                newShelf.PartId = shelf.PartId;
+                newShelf.PartId = (long)shelf.PartId;
                 newShelf.PartStatusId = shelf.StatusId ?? 0;
                 var label = shelf.Label;
                 if (label != null)

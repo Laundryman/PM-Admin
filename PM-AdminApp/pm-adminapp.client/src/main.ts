@@ -4,8 +4,11 @@ import { createApp } from 'vue'
 import './assets/main.css'
 //import '@/assets/styles.scss'
 import '@/assets/styles.scss'
+import CheckCircle from '@primeicons/vue/check-circle'
 import ExclamationTriangle from '@primeicons/vue/exclamation-triangle'
 import Grip from '@primeicons/vue/grip'
+import Search from '@primeicons/vue/search'
+import TimesCircle from '@primeicons/vue/times-circle'
 import Trash from '@primeicons/vue/trash'
 import 'primeicons/primeicons.css'
 import { AnimateOnScroll, FocusTrap, Ripple, StyleClass } from 'primevue'
@@ -77,6 +80,7 @@ app.component('Button', Button)
 app.component('Chart', Chart)
 app.component('Checkbox', Checkbox)
 app.component('CheckboxGroup', CheckboxGroup)
+app.component('CheckCircle', CheckCircle)
 app.component('Chip', Chip)
 app.component('Column', Column)
 app.component('ConfirmPopup', ConfirmPopup)
@@ -99,6 +103,7 @@ app.component('MultiSelect', MultiSelect)
 app.component('OverlayBadge', OverlayBadge)
 app.component('Paginator', Paginator)
 app.component('Password', Password)
+app.component('Search', Search)
 app.component('Select', Select)
 app.component('SelectButton', SelectButton)
 app.component('Skeleton', Skeleton)
@@ -110,6 +115,7 @@ app.component('Tab', Tab)
 app.component('TabPanels', TabPanels)
 app.component('Tag', Tag)
 app.component('Textarea', Textarea)
+app.component('TimesCircle', TimesCircle)
 app.component('Toast', Toast)
 app.component('ToggleSwitch', ToggleSwitch)
 app.component('ToggleButton', ToggleButton)

@@ -286,7 +286,7 @@ function copyPart(part: SearchPartInfo) {
 
         <Column field="facings" header="Facing" sortable style="min-width: 4rem"></Column>
         <Column field="stock" header="Stock" sortable style="min-width: 4rem"></Column>
-        <Column :exportable="false" style="min-width: 12rem">
+        <Column header="Actions" :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
               v-tooltip="'Edit Part'"

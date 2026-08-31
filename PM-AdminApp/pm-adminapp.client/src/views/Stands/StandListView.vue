@@ -297,7 +297,7 @@ function copyStand(stand: searchStandInfo) {
           </template>
         </Column>
 
-        <Column :exportable="false" style="min-width: 4rem">
+        <Column header="Actions" :exportable="false" style="min-width: 4rem">
           <template #body="slotProps">
             <div class="flex gap-2 justify-center">
               <Button

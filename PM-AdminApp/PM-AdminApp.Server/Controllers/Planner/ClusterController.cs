@@ -851,14 +851,14 @@ namespace PM_AdminApp.Server.Controllers.Planner
                     shelfId = 0;
                 }
 
-                newShelf.ClusterId = shelf.PlanogramId;
+                newShelf.ClusterId = (long)shelf.PlanogramId;
                 newShelf.ShelfTypeId = shelf.ShelfTypeId;
                 newShelf.Height = (short)shelf.Height;
                 newShelf.Width = (short)shelf.Width;
                 newShelf.PositionX = shelf.Position.x;
                 newShelf.PositionY = shelf.Position.y;
 
-                newShelf.PartId = shelf.PartId;
+                newShelf.PartId = (long)shelf.PartId;
                 newShelf.PartStatusId = shelf.StatusId ?? 0;
                 newShelf.Label = shelf.Label;
 
