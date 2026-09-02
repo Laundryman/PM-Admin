@@ -139,13 +139,13 @@ onMounted(async () => {
       </div>
     </div>
     <div class="layout-topbar-actions">
-      <div class="layout-config-menu">
+      <!-- <div class="layout-config-menu">
         <button type="button" class="layout-topbar-action" @click="toggleDarkMode">
           <i :class="['pi', { 'pi-moon': isDarkTheme, 'pi-sun': !isDarkTheme }]"></i>
         </button>
-      </div>
+      </div> -->
 
-      <button
+      <!-- <button
         class="layout-topbar-menu-button layout-topbar-action"
         v-styleclass="{
           selector: '@next',
@@ -157,18 +157,24 @@ onMounted(async () => {
         }"
       >
         <i class="pi pi-ellipsis-v"></i>
-      </button>
+      </button> -->
 
       <div class="layout-topbar-menu hidden lg:block">
         <div class="layout-topbar-menu-content">
-          <button type="button" class="layout-topbar-action">
+          <!-- <button type="button" class="layout-topbar-action">
             <i class="pi pi-calendar"></i>
             <span>Calendar</span>
           </button>
           <button type="button" class="layout-topbar-action">
             <i class="pi pi-inbox"></i>
             <span>Messages</span>
-          </button>
+          </button> -->
+          <router-link to="/reporting/useractions">
+            <button v-tooltip.bottom="'Reporting'" type="button" class="layout-topbar-action">
+              <ChartLine :size="24" />
+              <span>Reporting</span>
+            </button>
+          </router-link>
           <div class="relative">
             <button
               v-styleclass="{

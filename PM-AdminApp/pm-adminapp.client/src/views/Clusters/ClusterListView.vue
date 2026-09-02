@@ -314,7 +314,7 @@ async function saveLayout({ valid }: any) {
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         :rowsPerPageOptions="[5, 10, 25]"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} Clusters"
-        v-tooltip.top="{ value: 'Click on a row to manage the cluster' }"
+        v-tooltip.top="'Click on a row to manage the cluster'"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">

@@ -131,11 +131,11 @@ function smoothScroll(id: string) {
       class="list-none p-0 m-0 flex lg:items-center select-none flex-col lg:flex-row cursor-pointer gap-8"
     >
       <li>
-        <RouterLink
+        <!-- <RouterLink
           to="/home"
           class="px-0 py-4 text-surface-900 dark:text-surface-0 font-medium text-xl"
           ><span>Home</span></RouterLink
-        >
+        > -->
         <!-- <a
           @click="smoothScroll('hero')"
           class="px-0 py-4 text-surface-900 dark:text-surface-0 font-medium text-xl"
@@ -143,7 +143,7 @@ function smoothScroll(id: string) {
           <span>Home</span>
         </a> -->
       </li>
-      <li>
+      <!-- <li>
         <a
           @click="smoothScroll('features')"
           class="px-0 py-4 text-surface-900 dark:text-surface-0 font-medium text-xl"
@@ -166,7 +166,7 @@ function smoothScroll(id: string) {
         >
           <span>Pricing</span>
         </a>
-      </li>
+      </li> -->
     </ul>
     <div
       v-if="!auth.account"

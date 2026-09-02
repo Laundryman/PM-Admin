@@ -128,12 +128,15 @@ export default {
       apiClient.defaults.headers['prefer'] = 'return=representation'
     }
     let updatedUser = new Object() as any
+    let mailNickname = user.userEmailAddress.substring(0, user.userEmailAddress.indexOf('@'))
+
     updatedUser = {
       Id: user.id,
       DisplayName: user.userName,
       GivenName: user.givenName,
       Surname: user.surname,
-      // MailNickname: user.mailNickName,
+      mail: user.userEmailAddress,
+      mailNickname: mailNickname,
       AccountEnabled: true,
       identities: [
         {

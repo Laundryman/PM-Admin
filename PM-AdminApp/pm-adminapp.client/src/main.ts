@@ -4,6 +4,7 @@ import { createApp } from 'vue'
 import './assets/main.css'
 //import '@/assets/styles.scss'
 import '@/assets/styles.scss'
+import ChartLine from '@primeicons/vue/chart-line'
 import CheckCircle from '@primeicons/vue/check-circle'
 import ExclamationTriangle from '@primeicons/vue/exclamation-triangle'
 import Grip from '@primeicons/vue/grip'
@@ -78,6 +79,7 @@ app.use(PrimeVue, {
 
 app.component('Button', Button)
 app.component('Chart', Chart)
+app.component('ChartLine', ChartLine)
 app.component('Checkbox', Checkbox)
 app.component('CheckboxGroup', CheckboxGroup)
 app.component('CheckCircle', CheckCircle)
