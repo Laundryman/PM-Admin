@@ -7,6 +7,7 @@ import '@/assets/styles.scss'
 import ChartLine from '@primeicons/vue/chart-line'
 import CheckCircle from '@primeicons/vue/check-circle'
 import ExclamationTriangle from '@primeicons/vue/exclamation-triangle'
+import FileExport from '@primeicons/vue/file-export'
 import Grip from '@primeicons/vue/grip'
 import Search from '@primeicons/vue/search'
 import TimesCircle from '@primeicons/vue/times-circle'
@@ -90,6 +91,7 @@ app.component('Divider', Divider)
 app.component('DataTable', DataTable)
 app.component('DatePicker', DatePicker)
 app.component('Dialog', Dialog)
+app.component('FileExport', FileExport)
 app.component('FileUpload', FileUpload)
 app.component('FloatLabel', FloatLabel)
 app.component('Grip', Grip)

@@ -1,12 +1,11 @@
 ﻿using AutoMapper;
-using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PMApplication.Dtos.Filters;
 using PMApplication.Entities;
 using PMApplication.Interfaces;
-using System.Net;
 using PMApplication.Specifications;
+using System.Net;
 
 namespace PM_AdminApp.Server.Controllers
 {
@@ -30,11 +29,20 @@ namespace PM_AdminApp.Server.Controllers
             }
 
             [HttpPost]
-            public IActionResult GetUserActionsReport([FromBody] ReportingFilterDto filterDto)
+            public async Task<IActionResult> GetUserActionsReport([FromBody] ReportingFilterDto filterDto)
             {
-                var specification = new UsageReportSpecification(filterDto);
-                var result = _auditLogRepository.ListAsync(specification).Result;
+                try
+                {
+                    var specification = new UsageReportSpecification(filterDto);
+                var result = await _auditLogRepository.ListAsync(specification);
+                //var result = await _auditLogRepository.ListAllAsync();
                 return Ok(result);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "An error occurred while generating the user actions report.");
+                    return StatusCode((int)HttpStatusCode.InternalServerError, "An error occurred while generating the report.");
+                }
             }
     }
 }

@@ -1,3 +1,4 @@
+import type { AuditLog } from '@/models/Reporting/AuditLog.model'
 import { ReportingFilter } from '@/models/Reporting/reportingFilter.model'
 import { Auth, msal } from '@/services/Identity/auth'
 import { useAuthStore } from '@/stores/auth'
@@ -21,12 +22,12 @@ const apiClient = axios.create({
 })
 
 export default {
-  getUserActionsReport(filter: ReportingFilter): Promise<any> {
+  async getUserActionsReport(filter: ReportingFilter): Promise<AuditLog[]> {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
       apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
     }
-    return apiClient
+    const response = await apiClient
       .post('/getUserActionsReport', filter)
       .then((response) => {
         return response.data
@@ -34,6 +35,7 @@ export default {
       .catch((error) => {
         throw error
       })
+    return response
   },
 
   async initialise() {

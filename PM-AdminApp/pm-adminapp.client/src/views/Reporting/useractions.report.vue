@@ -3,13 +3,14 @@ import { onMounted, ref, watch } from 'vue'
 // import UserService from '@/services/UserService.js'
 import { useLocationFilters } from '@/components/composables/locationFilters'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
-import { searchProductInfo } from '@/models/Products/searchProductInfo.model'
 import { ActionTypeEnum } from '@/models/Reporting/actions.model'
+import { AuditLog } from '@/models/Reporting/AuditLog.model'
 import { ReportingFilter } from '@/models/Reporting/reportingFilter.model'
 import { default as countryService } from '@/services/Countries/CountryService'
 import { default as auditService } from '@/services/Reporting/AuditService'
 import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
+import { FilterMatchMode } from '@primevue/core/api/'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
@@ -21,9 +22,9 @@ const router = useRouter()
 const { regions, countries } = useLocationFilters()
 const selectedRegion = ref()
 const selectedCountry = ref()
-const selectedStatus = ref()
-
-const statuses = ref([
+const selectedAction = ref()
+const dt = ref()
+const actions = ref([
   { label: 'Create Planogram', value: ActionTypeEnum.CreatePlano },
   { label: 'Submit Planogram', value: ActionTypeEnum.SubmitPlano },
   { label: 'Approve Planogram', value: ActionTypeEnum.ApprovePlano },
@@ -38,8 +39,6 @@ const statuses = ref([
   // { label: 'Edit Order', value: ActionTypeEnum.EditOrder },
 ])
 
-const products = ref<searchProductInfo[]>([])
-const selectedProducts = ref<searchProductInfo[]>([])
 const toast = useToast()
 const loading = ref(true)
 const layout = useSystemStore()
@@ -49,7 +48,14 @@ const showPublishedOnly = ref(false)
 const searchText = ref('')
 const startDate = ref(null)
 const endDate = ref(null)
-const reportData = ref(null)
+// const reportData = ref(null)
+const reportData = ref<AuditLog[]>([])
+const filters = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  userName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  actionName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  message: { value: null, matchMode: FilterMatchMode.EQUALS },
+})
 
 const resolver = ref(
   zodResolver(
@@ -109,6 +115,11 @@ async function clearFilters() {
   selectedCountry.value = null
   countries.value = []
 
+  selectedAction.value = 0
+  startDate.value = null
+  endDate.value = null
+  filters.value.global.value = null
+
   let rFilter = new regionFilter()
   rFilter.brandId = brandStore.activeBrand?.id ?? 0
   await countryService.getRegions(rFilter).then((response) => {
@@ -117,11 +128,11 @@ async function clearFilters() {
   })
 }
 
-function onStatusChange() {
-  if (selectedStatus.value) {
-    // let statusName = statuses.value.find((s) => s.value === selectedStatus.value)?.label;
-    // filters.value.statusName.value = statusName ?? null;
-    // filters.value.statusName.value = selectedStatus.value;
+function onActionChange() {
+  if (selectedAction.value) {
+    // let actionName = statuses.value.find((s) => s.value === selectedAction.value)?.label;
+    // filters.value.actionName.value = actionName ?? null;
+    // filters.value.actionName.value = selectedAction.value;
   }
 }
 
@@ -132,44 +143,31 @@ async function getUserActionsReport() {
   filter.countryId = selectedCountry.value ?? null
   filter.startDate = startDate.value ?? null
   filter.endDate = endDate.value ?? null
+  filter.actionId = selectedAction.value ?? null
+  filter.actionType = 2
   await auditService.initialise()
-  reportData.value = await auditService.getUserActionsReport(filter).then((response) => {
-    if (response) {
-      console.log('User Actions Report', response)
-      toast.add({
-        severity: 'success',
-        summary: 'Report Generated',
-        detail: 'User Actions Report generated successfully.',
-        life: 3000,
-      })
-    } else {
-      toast.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to generate User Actions Report.',
-        life: 3000,
-      })
-    }
-  })
+  const response = await auditService.getUserActionsReport(filter)
+  reportData.value = response
+  if (response) {
+    console.log('User Actions Report', response)
+    toast.add({
+      severity: 'success',
+      summary: 'Report Generated',
+      detail: 'User Actions Report generated successfully.',
+      life: 3000,
+    })
+  } else {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Failed to generate User Actions Report.',
+      life: 3000,
+    })
+  }
+}
 
-  await auditService.getUserActionsReport(filter).then((response) => {
-    if (response) {
-      console.log('User Actions Report', response)
-      toast.add({
-        severity: 'success',
-        summary: 'Report Generated',
-        detail: 'User Actions Report generated successfully.',
-        life: 3000,
-      })
-    } else {
-      toast.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to generate User Actions Report.',
-        life: 3000,
-      })
-    }
-  })
+const exportCSV = () => {
+  dt.value.exportCSV()
 }
 </script>
 
@@ -181,7 +179,7 @@ async function getUserActionsReport() {
       v-slot="$form"
       :resolver="resolver"
       @submit="getUserActionsReport"
-      class="grid grid-cols-4 gap-4"
+      class="grid grid-cols-4 gap-4 mb-10"
     >
       <div class="flex-1 flex-wrap gap-4">
         <Select
@@ -209,13 +207,13 @@ async function getUserActionsReport() {
       </div>
       <div class="flex flex-wrap gap-4">
         <Select
-          v-model="selectedStatus"
-          name="status"
-          :options="statuses ?? []"
-          @change="onStatusChange"
+          v-model="selectedAction"
+          name="action"
+          :options="actions ?? []"
+          @change="onActionChange"
           option-label="label"
-          option-value="label"
-          placeholder="Select a status"
+          option-value="value"
+          placeholder="Select an action"
           class="mr-2"
         />
       </div>
@@ -274,7 +272,45 @@ async function getUserActionsReport() {
         />
       </div>
     </Form>
-    <div class="card"></div>
+    <div class="card">
+      <div class="flex items-center justify-between gap-3 mb-3">
+        <span class="text-sm text-surface-500 dark:text-surface-400"
+          >Export visible rows to CSV with custom column headers.</span
+        >
+        <Button type="button" size="small" @click="exportCSV()">
+          <FileExport />
+          Export CSV
+        </Button>
+      </div>
+      <DataTable
+        ref="dt"
+        :value="reportData"
+        exportFilename="usageReport"
+        tableStyle="min-width: 50rem"
+      >
+        <template #header>
+          <div class="flex flex-wrap gap-2 items-center justify-between">
+            <h4 class="m-0">User Actions Report</h4>
+            <IconField>
+              <InputIcon>
+                <i class="pi pi-search" />
+              </InputIcon>
+              <InputText v-model="filters['global'].value" placeholder="Search..." />
+            </IconField>
+          </div>
+        </template>
+        <Column field="userName" header="User Name" sortable style="min-width: 12rem"></Column>
+        <Column field="actionName" header="Action Name" sortable style="min-width: 12rem"></Column>
+        <Column field="date" header="Timestamp" sortable style="min-width: 12rem">
+          <template #body="slotProps">
+            {{ new Date(slotProps.data.date).toLocaleDateString() }}
+          </template>
+        </Column>
+        <Column field="planoName" header="Plano Name" sortable style="min-width: 12rem"></Column>
+
+        <!-- <Column field="orderName" header="orderName" sortable style="min-width: 12rem"></Column> -->
+      </DataTable>
+    </div>
   </div>
 </template>
 47474/777

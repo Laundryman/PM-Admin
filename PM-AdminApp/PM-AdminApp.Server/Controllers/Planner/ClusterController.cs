@@ -21,6 +21,8 @@ using PMApplication.Interfaces.RepositoryInterfaces;
 using PMApplication.Interfaces.ServiceInterfaces;
 using PMApplication.Services;
 using PMApplication.Specifications.Filters;
+using System.Data;
+using System.Diagnostics.Metrics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Web;
@@ -394,6 +396,8 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 //get the clusterID
                 var clusterId = layoutData.Id;
                 var layout = await _clusterService.GetCluster((long)clusterId);
+                var brandId = layout.BrandId;
+                var brand = await _brandService.GetBrand((int)brandId);
 
                 if (layout == null)
                 {
@@ -404,20 +408,32 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 layout.Published = layoutData.Published;
                 layout.DateUpdated = DateTime.Now;
                 await _clusterService.SaveCluster(layout);
+                var role = (RoleEnum)int.Parse(userProfile?.RoleId ?? "0");
 
                 var audit = new AuditLog
                 {
+                    Message = userProfile.DisplayName + " updated layout details for layout with Id " + layout.Id,
+                    Action = (int)LogActionEnum.EditLayout,
+
+
+                    ActionName = nameof(LogActionEnum.EditLayout),
+                    ActionType = 1,
+
+                    UserName = userProfile?.DisplayName,
                     UserId = userProfile.Id,
                     Date = DateTime.Now,
                     BrandId = layout.BrandId,
-                    Roles = userProfile.RoleIds,
-                    UserName = userProfile.DisplayName,
-                    Action = (int)LogActionEnum.EditlLayout,
-                    Message = userProfile.DisplayName + " updated layout details for layout with Id " + layout.Id,
-                    PlanoId = layout.Id
+                    BrandName = brand.Name,
+                    RoleId = int.Parse(userProfile?.RoleId ?? "0"),
+                    RoleName = nameof(role),
+                    PlanoId = layout.Id,
+                    PlanoName = layout.Name,
+                    //CountryId = cluster.CountriesList,
+                    //RegionId = cluster.RegionsList
+                    //CountryName = country?.Name,
+                    //RegionName = region?.Name,                };
                 };
-
-                var auditEvent = await _auditService.AuditEvent(audit);
+                    var auditEvent = await _auditService.AuditEvent(audit);
 
                 return Ok();
             }
@@ -444,7 +460,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 var brandId = clusterData.BrandId;
                 var userProfile = await this.MappedUser();
 
-                var brand = _brandService.GetBrand((int)brandId);
+                var brand = await _brandService.GetBrand((int)brandId);
 
                 //////////////////////////////////////////////////////////////////
                 //Finish user checks
@@ -522,17 +538,32 @@ namespace PM_AdminApp.Server.Controllers.Planner
                         }
                     }
                 }
+                //var brand = await _brandService.GetBrand(cluster.BrandId ?? 0);
+                //var country = await _countryService.GetCountry(cluster.CountryId ?? 0);
+                //var region = await _regionService.GetRegion(cluster.RegionId ?? 0);
+                var role = (RoleEnum)int.Parse(userProfile?.RoleId ?? "0");
 
                 var audit = new AuditLog
                 {
+                    Message = userProfile.DisplayName + " updated layout details for layout with Id " + cluster.Id,
+                    Action = (int)LogActionEnum.EditLayout,
+
+                    ActionName = nameof(LogActionEnum.EditLayout),
+                    ActionType = 1,
+
+                    UserName = userProfile?.DisplayName,
                     UserId = userProfile.Id,
                     Date = DateTime.Now,
                     BrandId = cluster.BrandId,
-                    Roles = userProfile.RoleIds,
-                    UserName = userProfile.DisplayName,
-                    Action = (int)LogActionEnum.EditlLayout,
-                    Message = userProfile.DisplayName + " updated layout details for layout with Id " + cluster.Id,
-                    PlanoId = cluster.Id
+                    BrandName = brand.Name,
+                    RoleId = int.Parse(userProfile?.RoleId ?? "0"),
+                    RoleName = nameof(role),
+                    PlanoId = cluster.Id,
+                    PlanoName = cluster.Name,
+                    //CountryId = cluster.CountriesList,
+                    //RegionId = cluster.RegionsList
+                    //CountryName = country?.Name,
+                    //RegionName = region?.Name,
                 };
 
                 var auditEvent = await _auditService.AuditEvent(audit);
@@ -575,6 +606,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
             {
                 Planogram planogram = await _planogramService.GetPlanogram((int)planoJpeg.PlanogramId);
                 PlanogramPreview? preview = await _planogramService.GetPlanogramPreview((int)planoJpeg.PlanogramId);
+                var brand = await _brandService.GetBrand((int)planogram.BrandId);
 
                 if (preview != null)
                 {
@@ -591,16 +623,30 @@ namespace PM_AdminApp.Server.Controllers.Planner
                     //_planogramService.SavePlanogram(planogram);
                 var userProfile = await this.MappedUser();
                 HttpResponseMessage message = new HttpResponseMessage(HttpStatusCode.OK);
+                var role = (RoleEnum)int.Parse(userProfile?.RoleId ?? "0");
+
                 var audit = new AuditLog
                 {
+                    Message = userProfile.DisplayName + " edited planogram with Id " + planogram.Id,
+                    Action = (int)LogActionEnum.EditPlano,
+
+                    ActionName = nameof(LogActionEnum.EditLayout),
+                    ActionType = 1,
+
+                    UserName = userProfile?.DisplayName,
                     UserId = userProfile.Id,
                     Date = DateTime.Now,
                     BrandId = planogram.BrandId,
-                    Roles = userProfile.RoleIds,
-                    UserName = userProfile.DisplayName,
-                    Action = (int)LogActionEnum.EditPlano,
-                    Message = userProfile.DisplayName + " edited planogram with Id " + planogram.Id,
-                    PlanoId = planogram.Id
+                    BrandName = brand.Name,
+                    RoleId = int.Parse(userProfile?.RoleId ?? "0"),
+                    RoleName = nameof(role),
+                    PlanoId = planogram.Id,
+                    PlanoName = planogram.Name,
+                    //CountryId = cluster.CountriesList,
+                    //RegionId = cluster.RegionsList
+                    //CountryName = country?.Name,
+                    //RegionName = region?.Name,                };
+
                 };
 
                 var auditEvent = await _auditService.AuditEvent(audit);
