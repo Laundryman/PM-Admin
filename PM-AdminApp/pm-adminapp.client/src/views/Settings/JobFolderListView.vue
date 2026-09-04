@@ -634,7 +634,12 @@ function addJob(folder: JobFolder) {
         </div>
         <div>
           <label for="description" class="block font-bold mb-3">Date Range</label>
-          <DatePicker v-model="jobDateRange" selectionMode="range" :manualInput="false" />
+          <DatePicker
+            v-model="jobDateRange"
+            selectionMode="range"
+            :manualInput="false"
+            dateFormat="dd/mm/yyyy"
+          />
           <small v-if="submitted && !jobDateRange" class="text-red-500"
             >Date Range is required.</small
           >

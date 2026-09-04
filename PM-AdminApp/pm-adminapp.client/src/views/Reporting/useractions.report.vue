@@ -233,6 +233,7 @@ const exportCSV = () => {
           name="startDate"
           showIcon
           fluid
+          dateFormat="dd/mm/yyyy"
           iconDisplay="input"
           inputId="icondisplay"
           placeholder="Start Date"
@@ -249,9 +250,10 @@ const exportCSV = () => {
       <div class="flex flex-wrap gap-4 col-span-2">
         <DatePicker
           v-model="endDate"
-          na7me="endDate"
+          name="endDate"
           showIcon
           fluid
+          dateFormat="dd/mm/yyyy"
           iconDisplay="input"
           inputId="icondisplay"
           placeholder="End Date"

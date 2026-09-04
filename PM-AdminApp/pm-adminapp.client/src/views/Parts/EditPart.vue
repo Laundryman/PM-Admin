@@ -1141,6 +1141,7 @@ async function onFormSubmit({ valid }: any) {
                 <label for="dateCreated">Created Date:</label>
                 <DatePicker
                   name="createdDate"
+                  dateFormat="dd/mm/yyyy"
                   placeholder="Created Date"
                   fluid
                   v-model="partModel.dateCreated"
