@@ -71,7 +71,7 @@ onMounted(async () => {
   filter.brandId = brandid
   await productService.searchProducts(filter).then((response) => {
     products.value = response
-    console.log('Products loaded', products.value)
+    loading.value = false
   })
 
   //   FilterService.register(part_FILTER.value, (value: any, filter: any) => {
@@ -220,6 +220,7 @@ function copyProduct(product: searchProductInfo) {
         ref="dt"
         v-model:selection="selectedProducts"
         v-model:filters="filters"
+        :loading="loading"
         :globalFilterFields="[
           //'categoryName',
           'name',

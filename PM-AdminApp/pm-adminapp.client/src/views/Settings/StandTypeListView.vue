@@ -10,6 +10,7 @@ import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, watch } from 'vue'
 
+const loading = ref(true)
 const confirm = useConfirm()
 const standImageUrl = import.meta.env.VITE_APP_STANDIMAGE_URL
 
@@ -66,7 +67,7 @@ onMounted(async () => {
   await standTypeService.getParentStandTypes(filter).then((data) => {
     // create categoryOptions array for select dropdown
     standTypes.value = data.data
-    console.log('StandTypes loaded:', standTypes.value)
+    loading.value = false
   })
 })
 
@@ -215,6 +216,7 @@ const getHideIcon = (hide: boolean) => {
       <DataTable
         v-model:expandedRows="expandedRows"
         ref="dt"
+        :loading="loading"
         :value="standTypes"
         dataKey="id"
         rowHover

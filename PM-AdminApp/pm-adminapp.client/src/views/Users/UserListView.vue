@@ -407,19 +407,9 @@ const getCountryName = (countryId: string) => {
         header="First Name"
         sortable
         :filterMatchModeOptions="matchModeOptions"
-        style="max-width: 10rem"
       >
         <template #body="{ data }">
           {{ data.givenName }}
-        </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            @input="filterCallback()"
-            class="p-column-filter"
-            placeholder="Search by first name"
-          />
         </template>
       </Column>
       <Column
@@ -428,19 +418,9 @@ const getCountryName = (countryId: string) => {
         header="Surname"
         sortable
         :filterMatchModeOptions="matchModeOptions"
-        style="max-width: 10rem"
       >
         <template #body="{ data }">
           {{ data.surname }}
-        </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            @input="filterCallback()"
-            class="p-column-filter"
-            placeholder="Search by Surname"
-          />
         </template>
       </Column>
       <Column
@@ -449,20 +429,9 @@ const getCountryName = (countryId: string) => {
         header="User Name"
         sortable
         :filterMatchModeOptions="matchModeOptions"
-        style="max-width: 10rem"
       >
         <template #body="{ data }">
           {{ data.userName }}
-        </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            @input="filterCallback()"
-            class="p-column-filter"
-            autocomplete="one-time-code"
-            placeholder="Filter columns"
-          />
         </template>
       </Column>
       <Column
@@ -471,20 +440,9 @@ const getCountryName = (countryId: string) => {
         header="User Email Address"
         sortable
         :filterMatchModeOptions="matchModeOptions"
-        style="max-width: 10rem"
       >
         <template #body="{ data }">
           {{ data.userEmailAddress }}
-        </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            @input="filterCallback()"
-            class="p-column-filter"
-            autocomplete="one-time-code"
-            placeholder="Filter columns"
-          />
         </template>
       </Column>
       <Column
@@ -493,7 +451,6 @@ const getCountryName = (countryId: string) => {
         sortField="country.name"
         header="Country"
         :filterMatchModeOptions="matchModeOptions"
-        style="max-width: 10rem"
         sortable
       >
         <template #body="{ data }">
@@ -501,57 +458,24 @@ const getCountryName = (countryId: string) => {
             {{ data.country.name }}
           </span>
         </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            @input="filterCallback()"
-            class="p-column-filter"
-            placeholder="Search by Country"
-          />
-        </template>
       </Column>
-      <Column
-        header="Brands"
-        style="max-width: 10rem"
-        filterField="brandNameList"
-        sortField="brandNameList"
-      >
+      <Column header="Brands" filterField="brandNameList" sortField="brandNameList">
         <template #body="{ data }">
           <span v-if="data.brandNameList">
             {{ data.brandNameList.join(', ') }}
           </span>
         </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            @input="filterCallback()"
-            class="p-column-filter"
-            placeholder="Search by Brand"
-          />
-        </template>
       </Column>
 
-      <Column header="Roles" style="max-width: 10rem" filterField="role.name" sortField="role.name">
+      <Column header="Roles" filterField="role.name" sortField="role.name">
         <template #body="{ data }">
           <span v-if="data.role">
             {{ data.role.name }}
           </span>
         </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            autocomplete="one-time-code"
-            @input="filterCallback()"
-            class="p-column-filter"
-            placeholder="Search by Role"
-          />
-        </template>
       </Column>
 
-      <Column :exportable="false" style="min-width: 8rem">
+      <Column :exportable="false" style="min-width: 12rem">
         <template #body="slotProps">
           <span>&nbsp;</span>
           <!-- <Button

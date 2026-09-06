@@ -6,6 +6,7 @@ import { FilterMatchMode } from '@primevue/core/api'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref } from 'vue'
 
+const loading = ref(true)
 const brandImageUrl = import.meta.env.VITE_APP_BRANDIMAGE_URL
 const brands = ref()
 const brandDialog = ref(false)
@@ -24,7 +25,7 @@ onMounted(async () => {
   await brandService.getBrands().then((data) => {
     // create brandOptions array for select dropdown
     brands.value = data.data
-    console.log('Brands loaded:', brands.value)
+    loading.value = false
   })
 })
 
@@ -144,6 +145,7 @@ const findIndexById = (id: number) => {
         :paginator="true"
         :rows="10"
         :filters="filters"
+        :loading="loading"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         :rowsPerPageOptions="[5, 10, 25]"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"

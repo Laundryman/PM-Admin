@@ -8,6 +8,7 @@ import ConfirmPopup from 'primevue/confirmpopup'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref } from 'vue'
+const loading = ref(true)
 const categories = ref()
 const selectedCategory = ref()
 const categoryDialog = ref(false)
@@ -56,7 +57,7 @@ onMounted(async () => {
   await categoryService.getParentCategories().then((data) => {
     // create categoryOptions array for select dropdown
     categories.value = data.data
-    console.log('Categories loaded:', categories.value)
+    loading.value = false
   })
 })
 
@@ -265,6 +266,7 @@ const confirm1 = (event) => {
         v-model:expandedRows="expandedRows"
         v-model:selection="selectedCategory"
         selectionMode="single"
+        :loading="loading"
         ref="dt"
         :value="categories"
         dataKey="id"
@@ -326,6 +328,7 @@ const confirm1 = (event) => {
               :value="slotProps.data.subCategories"
               tableStyle="min-width: 50rem"
               table-class="category-expanded bg-emerald-50"
+              :loading="loading"
             >
               <Column
                 field="parentCategory.name"

@@ -69,7 +69,7 @@ onMounted(async () => {
   filter.brandId = brandid
   await partService.searchParts(filter).then((response) => {
     parts.value = response
-    console.log('Parts loaded', parts.value)
+    loading.value = false
   })
 
   //   FilterService.register(part_FILTER.value, (value: any, filter: any) => {
@@ -230,6 +230,7 @@ function copyPart(part: SearchPartInfo) {
         dataKey="id"
         v-model:selection="selectedPart"
         v-model:filters="filters"
+        :loading="loading"
         :globalFilterFields="[
           //'categoryName',
           'name',

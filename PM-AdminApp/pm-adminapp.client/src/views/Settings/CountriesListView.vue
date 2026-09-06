@@ -8,6 +8,7 @@ import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref } from 'vue'
 
+const loading = ref(true)
 const flagImageUrl = import.meta.env.VITE_APP_FLAGIMAGE_URL
 const countries = ref()
 const country = ref(new Country())
@@ -39,7 +40,7 @@ onMounted(async () => {
   let brandid = brandStore.activeBrand?.id ?? 0
   await countryService.getCountries().then((response) => {
     countries.value = response
-    console.log('Countries loaded', response)
+    loading.value = false
   })
 })
 
@@ -143,6 +144,7 @@ const findIndexById = (id: number) => {
         ref="dt"
         :value="countries"
         dataKey="id"
+        :loading="loading"
         :paginator="true"
         :rows="10"
         :filters="filters"

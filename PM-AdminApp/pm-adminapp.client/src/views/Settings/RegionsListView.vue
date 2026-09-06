@@ -11,7 +11,7 @@ import { FilterMatchMode } from '@primevue/core/api'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, watch } from 'vue'
-
+const loading = ref(true)
 const regions = ref()
 const region = ref(new Region())
 const regionDialog = ref(false)
@@ -38,7 +38,7 @@ watch(brand, async (newBrand) => {
     filter.loadChildren = true
     await countryService.getRegions(filter).then((response) => {
       regions.value = response
-      console.log('Regions loaded for brand change', response)
+      loading.value = false
     })
   }
 })
@@ -56,7 +56,7 @@ onMounted(async () => {
   filter.loadChildren = true
   await countryService.getRegions(filter).then((response) => {
     regions.value = response
-    console.log('Regions loaded', response)
+    loading.value = false
   })
 })
 
@@ -181,6 +181,7 @@ function clearCountrySelection() {
       <DataTable
         ref="dt"
         :value="regions"
+        :loading="loading"
         dataKey="id"
         :paginator="true"
         :rows="10"

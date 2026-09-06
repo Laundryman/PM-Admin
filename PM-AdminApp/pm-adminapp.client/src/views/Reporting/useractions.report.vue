@@ -15,7 +15,7 @@ import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
 import { useRouter } from 'vue-router'
-
+import { utils, writeFileXLSX } from 'xlsx'
 import { z } from 'zod'
 
 const router = useRouter()
@@ -167,7 +167,13 @@ async function getUserActionsReport() {
 }
 
 const exportCSV = () => {
-  dt.value.exportCSV()
+  // dt.value.exportCSV()
+
+  var rows = reportData.value
+  const worksheet = utils.json_to_sheet(rows)
+  const workbook = utils.book_new()
+  utils.book_append_sheet(workbook, worksheet, 'UserActionsReport')
+  writeFileXLSX(workbook, `UserActionsReport.xlsx`)
 }
 </script>
 
@@ -233,7 +239,7 @@ const exportCSV = () => {
           name="startDate"
           showIcon
           fluid
-          dateFormat="dd/mm/yyyy"
+          dateFormat="dd/mm/yy"
           iconDisplay="input"
           inputId="icondisplay"
           placeholder="Start Date"
@@ -253,7 +259,7 @@ const exportCSV = () => {
           name="endDate"
           showIcon
           fluid
-          dateFormat="dd/mm/yyyy"
+          dateFormat="dd/mm/yy"
           iconDisplay="input"
           inputId="icondisplay"
           placeholder="End Date"
@@ -289,6 +295,11 @@ const exportCSV = () => {
         :value="reportData"
         exportFilename="usageReport"
         tableStyle="min-width: 50rem"
+        :paginator="true"
+        :rows="10"
+        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+        :rowsPerPageOptions="[5, 10, 25]"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} actions"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
