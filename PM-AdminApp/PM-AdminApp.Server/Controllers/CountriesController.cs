@@ -50,7 +50,7 @@ namespace PM_AdminApp.Server.Controllers
                 //countFilter.IsPagingEnabled = false;
                 //var countSpec = new CountrySpecification(_mapper.Map<CountryFilter>(countFilter));
                 //int totalItems = await _countryRepository.CountAsync(countSpec);
-                _logger.LogInformation($"Returned all parts from database.");
+                _logger.LogInformation($"Returned all countries from database.");
 
                 //var response = new PagedCountriesListDto();
                 //response.Data = _mapper.Map<List<CountryDto>>(countries);

@@ -249,12 +249,12 @@ router.beforeEach(async (to, from, next) => {
   // initialized
   if (!auth.initialized) {
     await msal.initialize()
+    await auth.initialize(client)
   }
   if (guarded) {
-    await auth.initialize(client)
-    await brands.initialise()
     // authorised
     if (auth.account) {
+      await brands.initialise()
       return next()
     }
 
@@ -263,7 +263,7 @@ router.beforeEach(async (to, from, next) => {
       await auth.login()
       return next()
     } catch (err) {
-      return next(false)
+      return '/'
     }
   }
 
