@@ -1,14 +1,9 @@
 ﻿using AutoMapper;
-using PlanMatr_API.Mappings.Resolvers;
 using PM_AdminApp.Server.Mappings.Resolvers;
-using PMApplication.Dtos;
 using PMApplication.Dtos.PlanModels;
-using PMApplication.Entities;
-using PMApplication.Entities.PartAggregate;
-using PMApplication.Entities.PlanogramAggregate;
 using PMApplication.Entities.StandAggregate;
 
-namespace PlanMatr_API.Mappings
+namespace PM_AdminApp.Server.Mappings
 {
     public class PlanmStandDtoProfile : Profile
     {

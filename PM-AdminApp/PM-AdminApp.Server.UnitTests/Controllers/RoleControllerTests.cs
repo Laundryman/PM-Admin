@@ -29,6 +29,7 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             // Arrange
             var mockMapper = new Mock<IMapper>();
             var mockRoleRepository = new Mock<IAsyncRepository<Role>>();
+            var mockPermissionRepository = new Mock<IAsyncRepository<Permission>>();
             var mockLogger = new Mock<ILogger<RoleController>>();
             var mockConfiguration = new Mock<IConfiguration>();
 
@@ -36,6 +37,7 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var controller = new RoleController(
                 mockMapper.Object,
                 mockRoleRepository.Object,
+                mockPermissionRepository.Object,
                 mockLogger.Object,
                 mockConfiguration.Object);
 
@@ -56,10 +58,12 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockRoleRepository = new Mock<IAsyncRepository<Role>>();
             var mockLogger = new Mock<ILogger<RoleController>>();
             var mockConfiguration = new Mock<IConfiguration>();
+            var mockPermissionRepository = new Mock<IAsyncRepository<Permission>>();
 
             var controller = new RoleController(
                 mockMapper.Object,
                 mockRoleRepository.Object,
+                mockPermissionRepository.Object,
                 mockLogger.Object,
                 mockConfiguration.Object);
 
@@ -96,12 +100,14 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             // Arrange
             var mockMapper = new Mock<IMapper>();
             var mockRoleRepository = new Mock<IAsyncRepository<Role>>();
+            var mockPermissionRepository = new Mock<IAsyncRepository<Permission>>();
             var mockLogger = new Mock<ILogger<RoleController>>();
             var mockConfiguration = new Mock<IConfiguration>();
 
             var controller = new RoleController(
                 mockMapper.Object,
                 mockRoleRepository.Object,
+                mockPermissionRepository.Object,
                 mockLogger.Object,
                 mockConfiguration.Object);
 
@@ -134,12 +140,14 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             // Arrange
             var mockMapper = new Mock<IMapper>();
             var mockRoleRepository = new Mock<IAsyncRepository<Role>>();
+            var mockPermissionRepository = new Mock<IAsyncRepository<Permission>>();
             var mockLogger = new Mock<ILogger<RoleController>>();
             var mockConfiguration = new Mock<IConfiguration>();
 
             var controller = new RoleController(
                 mockMapper.Object,
                 mockRoleRepository.Object,
+                mockPermissionRepository.Object,
                 mockLogger.Object,
                 mockConfiguration.Object);
 

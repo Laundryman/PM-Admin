@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Graph;
+using Microsoft.Graph.Models;
 using PM_AdminApp.Server.GraphApi.Interfaces;
 using PM_AdminApp.Server.Settings;
 
@@ -71,7 +72,8 @@ namespace PM_AdminApp.Server.Controllers.Graph
             public async Task<IActionResult> GetUsersList(string token)
             {
                 var graphClient = await GetGraphClientAsync(token);
-                var users = await _graphService.GetUserListAsync(graphClient);
+                List<User> users;
+                users = await _graphService.GetUserListAsync(graphClient);
                 return Ok(new { users });
             }
 
@@ -100,7 +102,8 @@ namespace PM_AdminApp.Server.Controllers.Graph
                 var result = Request.Headers.TryGetValue("Authorization", out authHeaders);
                 if (result)
                 {
-                var token = authHeaders.FirstOrDefault()?.Replace("Bearer", string.Empty).Trim();
+                var tokenWithBearer = authHeaders.FirstOrDefault();
+                var token = tokenWithBearer?.Replace("Bearer ", string.Empty).Trim();
                 //var token = authHeaders.FirstOrDefault();
                     if (token != null)
                     {

@@ -12,9 +12,9 @@ namespace PM_AdminApp.Server.GraphApi.Interfaces
             Task<GraphServiceClient> GetGraphServiceClient(string clientId, string tenantId, string clientSecret, string token);
             Task<User?> GetUserIfExists(GraphServiceClient graphClient, string userEmail);
             Task<User?> CreateUserAsync(GraphServiceClient graphClient, string? displayName, string userPrincipalName, string password);
-            Task<List<User>>? GetUserListAsync(GraphServiceClient graphClient);
-            Task<PageIterator<User, UserCollectionResponse>>? GetPageIterator(GraphServiceClient graphClient);
-            Task<List<User>>? GetUsersWithBatchRequest(GraphServiceClient graphClient);
+            Task<List<User>> GetUserListAsync(GraphServiceClient graphClient);
+            Task<PageIterator<User, UserCollectionResponse>> GetPageIterator(GraphServiceClient graphClient);
+            Task<List<User>> GetUsersWithBatchRequest(GraphServiceClient graphClient);
             Task<User> GetCurrentlyLoggedInUserInfo(GraphServiceClient graphClient);
             Task<int?> GetUsersCount(GraphServiceClient graphClient);
             Task<UserCollectionResponse> GetUsersInGroup(GraphServiceClient graphClient, string groupId);

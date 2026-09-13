@@ -99,7 +99,10 @@ namespace PM_AdminApp.Server.Controllers
                 {
                     return NotFound();
                 }
-                category.Name = categoryUpdateDto.Name;
+                if (categoryUpdateDto.Name != null)
+                {
+                    category.Name = categoryUpdateDto.Name;
+                }
                 category.DisplayOrder = categoryUpdateDto.DisplayOrder;
                 category.ParentCategoryId = categoryUpdateDto.ParentCategoryId;
 
@@ -122,8 +125,11 @@ namespace PM_AdminApp.Server.Controllers
             {
                 var category = _mapper.Map<Category>(categoryCreateDto);
                 var newCategory = await _categoryRepository.AddAsync(category);
-                var parentCategory = await _categoryRepository.GetByIdAsync((int)newCategory.ParentCategoryId);
-                newCategory.ParentCategory = parentCategory;
+                if (newCategory.ParentCategoryId != null)
+                {
+                    var parentCategory = await _categoryRepository.GetByIdAsync((int)newCategory.ParentCategoryId);
+                    newCategory.ParentCategory = parentCategory;
+                }
                 var createdCategory = _mapper.Map<CategoryDto>(newCategory);
                 return Ok(createdCategory);
             }

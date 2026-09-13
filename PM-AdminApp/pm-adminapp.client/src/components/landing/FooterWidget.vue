@@ -85,7 +85,7 @@
               class="leading-normal text-xl block cursor-pointer mb-2 text-surface-700 dark:text-surface-100"
               >About Us</a
             >
-            <a
+            <!-- <a
               class="leading-normal text-xl block cursor-pointer mb-2 text-surface-700 dark:text-surface-100"
               >News</a
             >
@@ -100,7 +100,7 @@
             <a
               class="leading-normal text-xl block cursor-pointer text-surface-700 dark:text-surface-100"
               >Media Kit</a
-            >
+            > -->
           </div>
 
           <div class="col-span-12 md:col-span-3">
@@ -113,17 +113,17 @@
               class="leading-normal text-xl block cursor-pointer mb-2 text-surface-700 dark:text-surface-100"
               >Get Started</a
             >
-            <a
+            <!--<a
               class="leading-normal text-xl block cursor-pointer mb-2 text-surface-700 dark:text-surface-100"
               >Learn</a
             >
             <a
               class="leading-normal text-xl block cursor-pointer text-surface-700 dark:text-surface-100"
               >Case Studies</a
-            >
+            > -->
           </div>
 
-          <div class="col-span-12 md:col-span-3">
+          <!-- <div class="col-span-12 md:col-span-3">
             <h4
               class="font-medium text-2xl leading-normal mb-4 text-surface-900 dark:text-surface-0"
             >
@@ -145,9 +145,9 @@
               class="leading-normal text-xl block cursor-pointer text-surface-700 dark:text-surface-100"
               >Blog</a
             >
-          </div>
+          </div> -->
 
-          <div class="col-span-12 md:col-span-3">
+          <!-- <div class="col-span-12 md:col-span-3">
             <h4
               class="font-medium text-2xl leading-normal mb-4 text-surface-900 dark:text-surface-0"
             >
@@ -165,7 +165,7 @@
               class="leading-normal text-xl block cursor-pointer text-surface-700 dark:text-surface-100"
               >Terms of Service</a
             >
-          </div>
+          </div> -->
         </div>
       </div>
     </div>

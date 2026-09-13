@@ -19,7 +19,19 @@ const apiClient = axios.create({
   },
 })
 
+const betaApiClient = axios.create({
+  // baseURL: import.meta.env.VITE_APP_SERVER_URL + '/api/graph',
+  baseURL: 'https://graph.microsoft.com/beta',
+  headers: {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  },
+})
+
 export default {
+  get isInitialised() {
+    return initialized.value
+  },
   async getCurrentUserInfo() {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
@@ -43,14 +55,18 @@ export default {
       .get('/users/' + id, {
         params: {
           $select:
-            'identities,id,displayname,userName, givenName,surname,mail,mailNickname,userPrincipalName, ' +
-            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles, extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands, extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress',
+            'identities,id,displayname,userName, givenName,surname,mail,mailNickname,userPrincipalName,country,' +
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands,' +
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress,extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList,extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList,' +
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId, extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper, extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager, extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions',
         },
       })
       .then((response) => {
         let user = response.data
-        this.updateExtensionFields(user)
-        return user
+
+        //this.updateExtensionFields(user)
+        let mappedUser = this.mapUser(user)
+        return mappedUser
       })
       .catch((error) => {
         throw error
@@ -66,7 +82,9 @@ export default {
         params: {
           $select:
             'identities,id,displayname,userName, givenName,surname,mail,mailNickname,userPrincipalName, ' +
-            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles, extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands, extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress',
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands, ' +
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress,extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList, extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList,' +
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId, extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper, extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager, extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions',
           // $filter: "creationType eq 'LocalAccount'",
           $top: '100',
           // $orderBy: 'displayName',
@@ -95,27 +113,6 @@ export default {
               user.userName = user.mailNickname || user.mail || user.userPrincipalName || 'Unknown'
             }
           }
-          // if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']) {
-          //   user.roleIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
-          //     .split(',')
-          //     .map((id: any) => parseInt(id))
-          // } else {
-          //   user.roleIds = []
-          // }
-          // if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']) {
-          //   user.brandIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']
-          //     .split(',')
-          //     .map((id: any) => parseInt(id))
-          // } else {
-          //   user.brandIds = []
-          // }
-          // if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']) {
-          //   user.diamCountryId = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
-          // }
-          // if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']) {
-          //   user.userEmailAddress =
-          //     user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']
-          // }
         })
         return users
       })
@@ -131,13 +128,28 @@ export default {
       apiClient.defaults.headers['prefer'] = 'return=representation'
     }
     let updatedUser = new Object() as any
+    let mailNickname = user.userEmailAddress.substring(0, user.userEmailAddress.indexOf('@'))
+
     updatedUser = {
       Id: user.id,
       DisplayName: user.userName,
       GivenName: user.givenName,
       Surname: user.surname,
-      // MailNickname: user.mailNickName,
+      mail: user.userEmailAddress,
+      mailNickname: mailNickname,
       AccountEnabled: true,
+      identities: [
+        {
+          signInType: 'emailAddress',
+          issuer: 'planmatr.onmicrosoft.com',
+          issuerAssignedId: user.userEmailAddress,
+        },
+        {
+          signInType: 'userName',
+          issuer: 'planmatr.onmicrosoft.com',
+          issuerAssignedId: user.userName,
+        },
+      ],
     }
     if (user.brandIds != null && user.brandIds.length > 0) {
       updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands'] = user.brandIds.join(',')
@@ -145,13 +157,19 @@ export default {
       updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands'] = user.brandIds
     }
 
-    updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId'] = user.diamCountryId
-
-    if (user.roleIds != null && user.roleIds.length > 0) {
-      updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles'] = user.roleIds.join(',')
-    } else if (user.roleIds != null && user.roleIds.length == 1) {
-      updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles'] = user.roleIds
+    updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId'] = user.countryId
+    updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList'] = user.countryList
+    updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList'] = user.regionList
+    updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper'] = user.shopper
+    updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager'] = user.orderManager
+    if (user.roleId != null) {
+      updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId'] = user.roleId
     }
+    if (user.permissions != null) {
+      updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions'] =
+        user.permissionIds.join(',')
+    }
+
     updatedUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress'] =
       user.userEmailAddress
 
@@ -167,13 +185,15 @@ export default {
 
   async createUser(user: User) {
     let newUser = new Object() as any
+    let mailNickname = user.userEmailAddress.substring(0, user.userEmailAddress.indexOf('@'))
     newUser = {
       accountEnabled: true,
       displayName: user.userName,
-      mailNickname: user.userEmailAddress.substring(0, user.userEmailAddress.indexOf('@')),
+      mailNickname: mailNickname,
       givenName: user.givenName,
       surname: user.surname,
-      userPrincipalName: user.mailNickName + '@' + import.meta.env.VITE_APP_TENANT_NAME,
+      userPrincipalName: mailNickname + '@' + import.meta.env.VITE_APP_TENANT_NAME,
+      // userPrincipalName: user.userEmailAddress,
       identities: [
         {
           signInType: 'emailAddress',
@@ -199,13 +219,19 @@ export default {
       newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands'] = user.brandIds
     }
 
-    newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId'] = user.diamCountryId
+    newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId'] = user.countryId
+    newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList'] = user.countryList
+    newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList'] = user.regionList
 
-    if (user.roleIds != null && user.roleIds.length > 0) {
-      newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles'] = user.roleIds.join(',')
-    } else if (user.roleIds != null && user.roleIds.length == 1) {
-      newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles'] = user.roleIds
+    if (user.roleId != null) {
+      newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId'] = user.roleId
     }
+    if (user.permissions != null) {
+      newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions'] = user.permissions
+        .map((p) => p.id)
+        .join(',')
+    }
+
     newUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress'] = user.userEmailAddress
 
     var resp = await apiClient
@@ -230,6 +256,57 @@ export default {
     return apiClient.put('/change-password', user)
   },
 
+  async getAuthenticationMethods(userId: string) {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    return await apiClient
+      .get(`/users/${userId}/authentication/methods`)
+      .then((response) => {
+        console.log('Graph authentication methods response:', response.data)
+        return response.data.value
+      })
+      .catch((error) => {
+        throw error
+      })
+  },
+
+  async addAuthenticationMethod(userId: string, emailAddress: string) {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    const emailAuthenticationMethod = {
+      emailAddress: emailAddress,
+    }
+    return await apiClient
+      .post(`/users/${userId}/authentication/emailMethods`, emailAuthenticationMethod)
+      .then((response) => {
+        console.log('Graph add authentication method response:', response.data)
+        return response.data
+      })
+      .catch((error) => {
+        throw error
+      })
+  },
+
+  async setPeferredAuthenticationMethod(userId: string, methodId: string) {
+    if (token.value) {
+      betaApiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+    const preferredMethod = {
+      userPreferredMethodForSecondaryAuthentication: methodId,
+    }
+    return await betaApiClient
+      .patch(`/users/${userId}/authentication/signInPreferences`, preferredMethod)
+      .then((response) => {
+        console.log('Graph set preferred authentication method response:', response.data)
+        return response.data
+      })
+      .catch((error) => {
+        throw error
+      })
+  },
+
   async initialise() {
     authStore.value = useAuthStore()
     if (!authStore.value.initialized) {
@@ -248,13 +325,24 @@ export default {
         user.userName = usernameId.issuerAssignedId
       }
     }
-    if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']) {
-      user.roleIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
-        .split(',')
-        .map((id: any) => parseInt(id))
+    // if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']) {
+    //   user.roleIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
+    //     .split(',')
+    //     .map((id: any) => parseInt(id))
+    // } else {
+    //   user.roleIds = []
+    // }
+    if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId']) {
+      user.roleId = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId']
     } else {
-      user.roleIds = []
+      user.roleId = 0
     }
+    if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions']) {
+      user.permissionIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions'].split(',')
+    } else {
+      user.permissions = []
+    }
+
     if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']) {
       user.brandIds = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']
         .split(',')
@@ -268,5 +356,128 @@ export default {
     if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']) {
       user.userEmailAddress = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']
     }
+    if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList']) {
+      user.countryList = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList']
+    } else {
+      user.countryList = ''
+    }
+    if (user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList']) {
+      user.regionList = user['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList']
+    } else {
+      user.regionList = ''
+    }
+  },
+
+  mapUser(graphUser: any): User {
+    var user = new User()
+    user.country = graphUser.country
+    user.displayName = graphUser.displayName
+    user.givenName = graphUser.givenName
+    user.surname = graphUser.surname
+    user.mail = graphUser.mail
+    user.mailNickName = graphUser.mailNickname
+    user.userName = graphUser.userPrincipalName
+    user.id = graphUser.id
+    user.countries = []
+    user.regions = []
+    user.permissions = []
+    user.password = graphUser.password || ''
+    user.roles = []
+    user.brandIds = []
+
+    if (graphUser.identities) {
+      let usernameId = graphUser.identities.find(
+        (identity: any) => identity.signInType === 'userName',
+      )
+      if (usernameId) {
+        user.userName = usernameId.issuerAssignedId
+      }
+    }
+
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId']
+      user.roleId = parseInt(graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId'])
+    } else {
+      user.roleId = 0
+    }
+
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions']
+      user.permissionIds = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions']
+        .split(',')
+        .map((id: any) => parseInt(id))
+    } else {
+      user.permissionIds = []
+    }
+
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']
+      user.brandIds = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands']
+        .split(',')
+        .map((id: any) => parseInt(id))
+    } else {
+      user.brandIds = []
+    }
+
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']
+      user.userEmailAddress =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress']
+    } else {
+      user.userEmailAddress = ''
+    }
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList']
+      user.countryList = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList']
+    } else {
+      user.countryList = ''
+    }
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList']
+      user.regionList = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList']
+    } else {
+      user.regionList = ''
+    }
+
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper'] !== undefined) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper']
+      user.shopper = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper']
+    } else {
+      user.shopper = false
+    }
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager'] !== undefined) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager']
+      user.orderManager = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager']
+    } else {
+      user.orderManager = false
+    }
+
+    //Deprecated fields mapping
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
+      user.roleIds = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamRoles']
+        .split(',')
+        .map((id: any) => parseInt(id))
+    } else {
+      user.roleIds = []
+    }
+    if (graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']) {
+      user.extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId =
+        graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
+      user.countryId = graphUser['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
+    } else {
+      user.countryId = 0
+    }
+
+    return user
   },
 }

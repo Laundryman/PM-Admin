@@ -3,14 +3,18 @@ import { useLocationFilters } from '@/components/composables/locationFilters'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
 import { PlanogramFilter } from '@/models/Planograms/planogramFilter.model'
 import type { searchPlanogramInfo } from '@/models/Planograms/searchPlanogramnfo.model'
+import { PlanogramStatusEnum } from '@/planner/models/Enumerations'
 import { default as countryService } from '@/services/Countries/CountryService'
 import { default as planogramService } from '@/services/Planograms/PlanogramService'
+
 import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api/'
 import { storeToRefs } from 'pinia'
 import { onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const layout = useSystemStore()
 const brandStore = useBrandStore()
 const loading = ref(false)
@@ -32,7 +36,7 @@ const filters = ref({
   locked: { value: null, matchMode: FilterMatchMode.EQUALS },
 })
 const statuses = ref([
-  'Edit',
+  'Editing',
   'Submitted',
   'Ordered',
   'Deleted',
@@ -75,6 +79,9 @@ onMounted(async () => {
 
   var filter = new PlanogramFilter()
   filter.brandId = brandid
+  filter.regionsList = regions.value?.map((r) => r.id).join(',') ?? ''
+  filter.countriesList = countries.value?.map((c) => c.id).join(',') ?? ''
+  filter.archived = false // Only fetch non-archived planograms initially
   await planogramService
     .searchPlanograms(filter)
     .then((response) => {
@@ -94,6 +101,7 @@ async function onRegionChange() {
     filter.brandId = brandStore.activeBrand?.id ?? 0
 
     filter.regionId = selectedRegion.value
+    filter.regionsList = selectedRegion.value ? selectedRegion.value.toString() : ''
     await planogramService.searchPlanograms(filter).then((response) => {
       planograms.value = response
       console.log('Planograms loaded', planograms.value)
@@ -108,6 +116,8 @@ async function onCountryChange() {
     let filter = new PlanogramFilter()
     filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.countryId = selectedCountry.value
+    filter.countriesList = selectedCountry.value ? selectedCountry.value.toString() : ''
+    filter.regionsList = selectedRegion.value ? selectedRegion.value.toString() : ''
     await planogramService.searchPlanograms(filter).then((response) => {
       planograms.value = response
       console.log('Planograms loaded', planograms.value)
@@ -117,30 +127,9 @@ async function onCountryChange() {
   }
 }
 
-// function getStatusText(statusId: number): string {
-//   switch (statusId) {
-//     case 1:
-//       return 'In Progress'
-//     case 2:
-//       return 'Submitted'
-//     case 3:
-//       return 'Ordered'
-//     case 4:
-//       return 'Deleted'
-//     case 5:
-//       return 'Approved'
-//     case 6:
-//       return 'Validated'
-//     case 7:
-//       return 'Archived'
-//     default:
-//       return 'Unknown'
-//   }
-// }
-
 function getStatusSeverity(status: string): string {
   switch (status.toLowerCase()) {
-    case 'edit':
+    case 'editing':
       return 'info'
     case 'submitted':
       return 'warn'
@@ -191,15 +180,71 @@ function unlock(planogram: searchPlanogramInfo) {
     .catch((error) => {
       console.error('Error unlocking planogram', error)
     })
-  console.log('Unlock planogram', planogram)
+  // console.log('Unlock planogram', planogram)
   // layout.setActivePart(part)
   // Navigate to edit page
+}
+
+function lock(planogram: searchPlanogramInfo) {
+  planogramService
+    .lockPlanogram(planogram.id)
+    .then(() => {
+      console.log('Planogram locked', planogram)
+      // Refresh the planogram list after locking
+      planograms.value = planograms.value.map((p) =>
+        p.id === planogram.id ? { ...p, locked: true } : p,
+      )
+      // clearFilters()
+    })
+    .catch((error) => {
+      console.error('Error locking planogram', error)
+    })
+  // console.log('Lock planogram', planogram)
+  // layout.setActivePart(part)
+  // Navigate to edit page
+}
+
+function restore(planogram: searchPlanogramInfo) {
+  planogramService
+    .restorePlanogram(planogram.id, PlanogramStatusEnum.Editing)
+    .then(() => {
+      console.log('Planogram restored', planogram)
+      // Refresh the planogram list after restoring
+      planograms.value = planograms.value.map((p) =>
+        p.id === planogram.id ? { ...p, statusId: 1, statusName: 'Editing' } : p,
+      )
+      // clearFilters()
+    })
+    .catch((error) => {
+      console.error('Error restoring planogram', error)
+    })
+  // console.log('Restore planogram', planogram)
+  // layout.setActivePart(part)
+  // Navigate to edit page
+}
+
+function editPlanogram(planogram: searchPlanogramInfo) {
+  console.log('Edit planogram', planogram)
+  // layout.setActivePlanogram(planogram)
+  // Navigate to edit page
+  router.push({ name: 'editPlanogram', params: { id: planogram.id } })
 }
 </script>
 
 <template>
   <div class="planogram-list-view">
-    <h1>Planogram List View</h1>
+    <div class="flex">
+      <h1
+        class="mb-0 flex-none"
+        v-tooltip.bottom="{
+          value: 'Unlock Planograms or Restore Deleted Planograms to Editing to make changes.',
+        }"
+      >
+        Planogram List View
+      </h1>
+    </div>
+    <div class="flex flex-wrap gap-4 mb-0"></div>
+
     <!-- Add your planogram list view content here -->
     <Toolbar class="mb-6">
       <template #start>
@@ -239,6 +284,7 @@ function unlock(planogram: searchPlanogramInfo) {
         ref="dt"
         v-model:filters="filters"
         :value="planograms"
+        :loading="loading"
         :globalFilterFields="[
           'name',
           'standTypeName',
@@ -322,13 +368,20 @@ function unlock(planogram: searchPlanogramInfo) {
         </Column>
         <Column field="locked" header="Locked" datatype="boolean" sortable style="min-width: 6rem">
           <template #body="{ data }">
-            <i
+            <!-- <i
               class="pi"
               :class="{
                 'pi-check-circle text-green-500': !data.locked,
                 'pi-times-circle text-red-400': data.locked,
               }"
-            ></i>
+            ></i> -->
+            <CheckCircle
+              v-if="!data.locked"
+              class="text-green-500"
+              size="20"
+              v-tooltip="'Unlocked'"
+            />
+            <TimesCircle v-else class="text-red-400" size="20" v-tooltip="'Locked'" />
           </template>
           <template #filter="{ filterModel }">
             <Checkbox
@@ -350,27 +403,50 @@ function unlock(planogram: searchPlanogramInfo) {
             />
           </template>
         </Column>
-        <Column :exportable="false" style="min-width: 12rem">
+        <Column :exportable="false" style="min-width: 12rem" header="Actions">
           <template #body="slotProps">
             <Button
               v-if="slotProps.data.locked"
               v-tooltip="'Unlock Planogram'"
-              icon="pi pi-lock-open"
+              severity="danger"
+              icon="pi pi-lock"
               variant="outlined"
               rounded
               class="mr-2"
               @click="unlock(slotProps.data)"
             />
-            <!-- <Button
-              v-tooltip="'Copy Planogram'"
-              icon="pi pi-copy"
+            <Button
+              v-if="!slotProps.data.locked"
+              v-tooltip="'Lock Planogram'"
+              icon="pi pi-lock-open"
               variant="outlined"
               rounded
               class="mr-2"
-              @click="copyPart(slotProps.data)"
-            /> -->
+              @click="lock(slotProps.data)"
+            />
+            <Button
+              v-if="slotProps.data.statusId === 4"
+              v-tooltip="'Restore Planogram to editing'"
+              icon="pi pi-undo"
+              variant="outlined"
+              rounded
+              class="mr-2"
+              @click="restore(slotProps.data)"
+            />
           </template>
         </Column>
+        <!-- <Column :exportable="false" style="min-width: 12rem">
+          <template #body="slotProps">
+            <Button
+              v-tooltip="'Edit Planogram'"
+              icon="pi pi-pencil"
+              variant="outlined"
+              rounded
+              class="mr-2"
+              @click="editPlanogram(slotProps.data)"
+            />
+          </template>
+        </Column> -->
       </DataTable>
     </div>
   </div>

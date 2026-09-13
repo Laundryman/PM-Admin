@@ -18,6 +18,7 @@ namespace PlanMatr_API.Mappings.Resolvers
         }
     }
 
+
     public class PartStatusEnumResolver : IValueResolver<PlanogramPart, PlanmPartInfo, String>
     {
         public string Resolve(PlanogramPart source, PlanmPartInfo destination, string destMember, ResolutionContext context)

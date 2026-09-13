@@ -5,18 +5,22 @@ import { Role } from '@/models/Identity/role.model'
 import { User } from '@/models/Identity/user.model'
 import CountryService from '@/services/Countries/CountryService'
 import RoleService from '@/services/Identity/RoleService'
-import UserService from '@/services/Identity/UserService.js'
+import UserService from '@/services/Identity/UserService'
 import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
+import { useUserStore } from '@/stores/userStore'
 import { FilterMatchMode, FilterService } from '@primevue/core/api'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 // import InputHTMLAttributes from "vue";
 // import { RefSymbol } from '@vue/reactivity'
 //import { User } from '@/models/user.model'
 const systemStore = useSystemStore()
 const brandStore = useBrandStore()
+const userStore = useUserStore()
 const toast = useToast()
+const router = useRouter()
 const users = ref<User[]>([])
 const brands = ref<Brand[]>([])
 const countries = ref<Country[]>([])
@@ -44,7 +48,7 @@ onMounted(async () => {
       users.value = response
       loading.value = false
     })
-    .catch((error) => {
+    .catch((error: any) => {
       console.log(error)
     })
 
@@ -86,17 +90,9 @@ function convertUserFKeys(userList: User[]) {
     usr.brandNameList = []
     usr.roleNameList = []
     // usr.brandNameList = ''
-    if (usr.roleIds) {
-      for (const rid of usr.roleIds) {
-        let foundRole = roles.value.find((r) => r.id === rid)
-        if (foundRole !== undefined && foundRole !== null) {
-          let role = new Role()
-          role.id = foundRole.id
-          role.name = foundRole.name
-          usr.roles.push(role)
-          usr.roleNameList.push(role.name)
-        }
-      }
+    if (usr.roleId) {
+      let foundRole = roles.value.find((r) => r.id === usr.roleId)
+      usr.role = foundRole || null
     }
     if (usr.brandIds) {
       for (const bid of usr.brandIds) {
@@ -111,8 +107,8 @@ function convertUserFKeys(userList: User[]) {
       }
     }
     if (usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']) {
-      usr.diamCountryId = usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
-      let country = countries.value.find((c) => c.id === usr.diamCountryId)
+      usr.countryId = usr['extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId']
+      let country = countries.value.find((c) => c.id === usr.countryId)
       if (country) {
         usr.country = country
       }
@@ -130,7 +126,7 @@ const filters = ref({
   userEmailAddress: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   'country.name': { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   brandNameList: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  roleNameList: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  'role.name': { value: null, matchMode: FilterMatchMode.CONTAINS },
 })
 
 const matchModeOptions = ref([
@@ -152,13 +148,21 @@ function editUser(usr: User) {
   userDialog.value = true
 }
 
+function manageUser(usr: User) {
+  // Navigate to edit page
+  userStore.loadUser(usr.id)
+  router.push({ name: 'manageUser' })
+}
+
 const createUser = () => {
   currentUser.value = {}
   selectedBrands.value = []
   selectedRoles.value = []
   selectedCountry.value = null
   newPassword.value = null
-  userDialog.value = true
+  userStore.setActiveUser(currentUser.value)
+  router.push({ name: 'manageUser' })
+  // /userDialog.value = true
 }
 
 const changePassword = (usr: any) => {
@@ -363,7 +367,7 @@ const getCountryName = (countryId: string) => {
         'userEmailAddress',
         'country.name',
         'brandNameList',
-        'roleNameList',
+        'role.name',
       ]"
       ref="dt"
       :value="users"
@@ -403,19 +407,9 @@ const getCountryName = (countryId: string) => {
         header="First Name"
         sortable
         :filterMatchModeOptions="matchModeOptions"
-        style="max-width: 10rem"
       >
         <template #body="{ data }">
           {{ data.givenName }}
-        </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            @input="filterCallback()"
-            class="p-column-filter"
-            placeholder="Search by first name"
-          />
         </template>
       </Column>
       <Column
@@ -424,19 +418,9 @@ const getCountryName = (countryId: string) => {
         header="Surname"
         sortable
         :filterMatchModeOptions="matchModeOptions"
-        style="max-width: 10rem"
       >
         <template #body="{ data }">
           {{ data.surname }}
-        </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            @input="filterCallback()"
-            class="p-column-filter"
-            placeholder="Search by Surname"
-          />
         </template>
       </Column>
       <Column
@@ -445,20 +429,9 @@ const getCountryName = (countryId: string) => {
         header="User Name"
         sortable
         :filterMatchModeOptions="matchModeOptions"
-        style="max-width: 10rem"
       >
         <template #body="{ data }">
           {{ data.userName }}
-        </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            @input="filterCallback()"
-            class="p-column-filter"
-            autocomplete="one-time-code"
-            placeholder="Filter columns"
-          />
         </template>
       </Column>
       <Column
@@ -467,20 +440,9 @@ const getCountryName = (countryId: string) => {
         header="User Email Address"
         sortable
         :filterMatchModeOptions="matchModeOptions"
-        style="max-width: 10rem"
       >
         <template #body="{ data }">
           {{ data.userEmailAddress }}
-        </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            @input="filterCallback()"
-            class="p-column-filter"
-            autocomplete="one-time-code"
-            placeholder="Filter columns"
-          />
         </template>
       </Column>
       <Column
@@ -489,7 +451,6 @@ const getCountryName = (countryId: string) => {
         sortField="country.name"
         header="Country"
         :filterMatchModeOptions="matchModeOptions"
-        style="max-width: 10rem"
         sortable
       >
         <template #body="{ data }">
@@ -497,71 +458,41 @@ const getCountryName = (countryId: string) => {
             {{ data.country.name }}
           </span>
         </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            @input="filterCallback()"
-            class="p-column-filter"
-            placeholder="Search by Country"
-          />
-        </template>
       </Column>
-      <Column
-        header="Brands"
-        style="max-width: 10rem"
-        filterField="brandNameList"
-        sortField="brandNameList"
-      >
+      <Column header="Brands" filterField="brandNameList" sortField="brandNameList">
         <template #body="{ data }">
           <span v-if="data.brandNameList">
             {{ data.brandNameList.join(', ') }}
           </span>
         </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            @input="filterCallback()"
-            class="p-column-filter"
-            placeholder="Search by Brand"
-          />
-        </template>
       </Column>
 
-      <Column
-        header="Roles"
-        style="max-width: 10rem"
-        filterField="roleNameList"
-        sortField="roleNameList"
-      >
+      <Column header="Roles" filterField="role.name" sortField="role.name">
         <template #body="{ data }">
-          <span v-if="data.roleNameList">
-            {{ data.roleNameList.join(', ') }}
+          <span v-if="data.role">
+            {{ data.role.name }}
           </span>
         </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText
-            v-model="filterModel.value"
-            type="text"
-            autocomplete="one-time-code"
-            @input="filterCallback()"
-            class="p-column-filter"
-            placeholder="Search by Role"
-          />
-        </template>
       </Column>
 
-      <Column :exportable="false" style="min-width: 8rem">
+      <Column :exportable="false" style="min-width: 12rem">
         <template #body="slotProps">
           <span>&nbsp;</span>
-          <Button
+          <!-- <Button
             v-tooltip="'edit user'"
             icon="pi pi-pencil"
             outlined
             rounded
             class="mr-2"
             @click="editUser(slotProps.data)"
+          /> -->
+          <Button
+            v-tooltip="'edit user'"
+            icon="pi pi-pencil"
+            outlined
+            rounded
+            class="mr-2"
+            @click="manageUser(slotProps.data)"
           />
           <Button
             v-tooltip="'change password'"

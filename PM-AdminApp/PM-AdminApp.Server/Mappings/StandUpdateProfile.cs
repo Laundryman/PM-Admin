@@ -17,7 +17,7 @@ namespace PlanMatr_API.Mappings
         public StandUpdateDtoProfile()
         {
             CreateMap<StandUpdateDto, Stand>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(x => x.Id))
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.StandTypeId, opt => opt.MapFrom(x => x.StandTypeId))
                 .ForMember(dest => dest.ParentStandTypeId, opt => opt.MapFrom(x => x.ParentStandTypeId))
                 .ForMember(dest => dest.StandTypeName, opt => opt.MapFrom(x => x.StandTypeName))

@@ -2,11 +2,13 @@
 import { Category } from '@/models/Categories/category.model'
 import { default as categoryService } from '@/services/Categories/CategoryService'
 import { useSystemStore } from '@/stores/systemStore'
+import ExclamationTriangle from '@primeicons/vue/exclamation-triangle'
 import { FilterMatchMode } from '@primevue/core/api'
+import ConfirmPopup from 'primevue/confirmpopup'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref } from 'vue'
-
+const loading = ref(true)
 const categories = ref()
 const selectedCategory = ref()
 const categoryDialog = ref(false)
@@ -24,28 +26,24 @@ function onRowGroupExpand(event: any) {
   })
 }
 function onRowGroupCollapse(event: any) {
-  toast.add({
-    severity: 'success',
-    summary: 'Row Group Collapsed',
-    detail: 'Value: ' + event.data,
-    life: 3000,
-  })
+  // toast.add({
+  //   severity: 'success',
+  //   summary: 'Row Group Collapsed',
+  //   detail: 'Value: ' + event.data,
+  //   life: 3000,
+  // })
 }
 
 async function onRowExpand(event: any) {
-  // await categoryService.getChildCategories(event.data.id).then((data) => {
-  //   childCategories.value = data.data
-  //   // event.data.children = childCategories.value
-  // })
-  toast.add({ severity: 'info', summary: 'Category Expanded', detail: event.data.name, life: 3000 })
+  // toast.add({ severity: 'info', summary: 'Category Expanded', detail: event.data.name, life: 3000 })
 }
 const onRowCollapse = (event: any) => {
-  toast.add({
-    severity: 'success',
-    summary: 'Category Collapsed',
-    detail: event.data.name,
-    life: 3000,
-  })
+  // toast.add({
+  //   severity: 'success',
+  //   summary: 'Category Collapsed',
+  //   detail: event.data.name,
+  //   life: 3000,
+  // })
 }
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -59,7 +57,7 @@ onMounted(async () => {
   await categoryService.getParentCategories().then((data) => {
     // create categoryOptions array for select dropdown
     categories.value = data.data
-    console.log('Categories loaded:', categories.value)
+    loading.value = false
   })
 })
 
@@ -204,7 +202,7 @@ function confirmDelete(event: Event, cat: Category) {
   confirm.require({
     target: event.currentTarget as HTMLElement,
     message: 'Are you sure you want to delete this category?',
-    icon: 'pi pi-exclamation-triangle',
+    icon: ExclamationTriangle,
     rejectProps: {
       label: 'Cancel',
       severity: 'secondary',
@@ -223,13 +221,37 @@ function confirmDelete(event: Event, cat: Category) {
     },
   })
 }
+
+const confirm1 = (event) => {
+  confirm.require({
+    target: event.currentTarget,
+    message: 'Are you sure you want to proceed?',
+    icon: ExclamationTriangle,
+    rejectProps: {
+      label: 'Cancel',
+      severity: 'secondary',
+      outlined: true,
+    },
+    acceptProps: {
+      label: 'Save',
+    },
+    accept: () => {
+      toast.add({ severity: 'info', summary: 'Confirmed', detail: 'You have accepted', life: 3000 })
+    },
+    reject: () => {
+      toast.add({ severity: 'error', summary: 'Rejected', detail: 'You have rejected', life: 3000 })
+    },
+  })
+}
 </script>
 
 <template>
+  <Toast />
+  <ConfirmPopup></ConfirmPopup>
   <div>
     <div class="card">
       <Toolbar class="mb-6">
-        <template #start>
+        <template #end>
           <Button
             label="New"
             icon="pi pi-plus"
@@ -238,12 +260,13 @@ function confirmDelete(event: Event, cat: Category) {
             v-tooltip="'Add Parent Category'"
           />
         </template>
-
-        <template #end> </template>
       </Toolbar>
 
       <DataTable
         v-model:expandedRows="expandedRows"
+        v-model:selection="selectedCategory"
+        selectionMode="single"
+        :loading="loading"
         ref="dt"
         :value="categories"
         dataKey="id"
@@ -255,6 +278,7 @@ function confirmDelete(event: Event, cat: Category) {
         sortMode="single"
         sortField="parentCategoryName"
         :sortOrder="1"
+        tableClass="hide-row-border"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
@@ -277,7 +301,7 @@ function confirmDelete(event: Event, cat: Category) {
 
         <Column field="name" header="Name" sortable style="min-width: 16rem"></Column>
 
-        <Column :exportable="false" style="min-width: 12rem">
+        <Column header="Actions" :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
               icon="pi pi-pencil"
@@ -300,7 +324,12 @@ function confirmDelete(event: Event, cat: Category) {
         <template #expansion="slotProps">
           <div class="p-4">
             <!-- <h5>{{ slotProps.data.name }}</h5> -->
-            <DataTable :value="slotProps.data.subCategories" tableStyle="min-width: 50rem">
+            <DataTable
+              :value="slotProps.data.subCategories"
+              tableStyle="min-width: 50rem"
+              table-class="category-expanded bg-emerald-50"
+              :loading="loading"
+            >
               <Column
                 field="parentCategory.name"
                 header="Parent Category"
@@ -308,7 +337,7 @@ function confirmDelete(event: Event, cat: Category) {
                 style="min-width: 16rem"
               ></Column>
               <Column field="name" header="Name" sortable></Column>
-              <Column :exportable="false" style="min-width: 12rem">
+              <Column header="Actions" :exportable="false" style="min-width: 12rem">
                 <template #body="childSlotProps">
                   <Button
                     icon="pi pi-trash"
@@ -319,6 +348,17 @@ function confirmDelete(event: Event, cat: Category) {
                     @click="confirmDelete($event, childSlotProps.data)"
                   />
                 </template>
+
+                <!-- <template #body="childSlotProps">
+                  <Button
+                    icon="pi pi-trash"
+                    variant="outlined"
+                    rounded
+                    class="mr-2"
+                    v-tooltip="'Delete Test'"
+                    @click="confirm1($event)"
+                  />
+                </template> -->
               </Column>
             </DataTable>
           </div>
@@ -351,6 +391,4 @@ function confirmDelete(event: Event, cat: Category) {
       </template>
     </Dialog>
   </div>
-  <Toast></Toast>
-  <ConfirmPopup></ConfirmPopup>
 </template>

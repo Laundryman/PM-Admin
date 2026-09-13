@@ -4,4 +4,6 @@ export class JobFolderFilter {
   countryId!: number
   regionId!: number
   hasJobs!: boolean
+  includeChildren!: boolean
+  regionList!: number[]
 }

@@ -44,6 +44,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockLogger = new Mock<ILogger<StandsController>>();
             var mockStandRepository = new Mock<IStandRepository>();
             var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockStandColumnRepository = new Mock<IStandColumnRepository>();
+            var mockStandColumnUprightRepository = new Mock<IStandColumnUprightRepository>();
 
             var controller = new StandsController(
                 mockMapper.Object,
@@ -52,7 +55,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCategoryRepository.Object,
                 mockLogger.Object,
                 mockStandRepository.Object,
-                mockRegionRepository.Object);
+                mockRegionRepository.Object,
+                mockStandTypeRepository.Object,
+                mockStandColumnRepository.Object,
+                mockStandColumnUprightRepository.Object);
 
             // Act
             var result = await controller.SaveStand(null!);
@@ -88,6 +94,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockLogger = new Mock<ILogger<StandsController>>();
             var mockStandRepository = new Mock<IStandRepository>();
             var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockStandColumnRepository = new Mock<IStandColumnRepository>();
+            var mockStandColumnUprightRepository = new Mock<IStandColumnUprightRepository>();
 
             var controller = new StandsController(
                 mockMapper.Object,
@@ -96,7 +105,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCategoryRepository.Object,
                 mockLogger.Object,
                 mockStandRepository.Object,
-                mockRegionRepository.Object);
+                mockRegionRepository.Object,
+                mockStandTypeRepository.Object,
+                mockStandColumnRepository.Object,
+                mockStandColumnUprightRepository.Object);
 
             controller.ModelState.AddModelError("Name", "Name is required");
 
@@ -144,6 +156,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockLogger = new Mock<ILogger<StandsController>>();
             var mockStandRepository = new Mock<IStandRepository>();
             var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockStandColumnRepository = new Mock<IStandColumnRepository>();
+            var mockStandColumnUprightRepository = new Mock<IStandColumnUprightRepository>();
 
             var controller = new StandsController(
                 mockMapper.Object,
@@ -152,7 +167,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCategoryRepository.Object,
                 mockLogger.Object,
                 mockStandRepository.Object,
-                mockRegionRepository.Object);
+                mockRegionRepository.Object,
+                mockStandTypeRepository.Object,
+                mockStandColumnRepository.Object,
+                mockStandColumnUprightRepository.Object);
 
             var updateStand = new StandUpdateDto
             {
@@ -197,6 +215,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockLogger = new Mock<ILogger<StandsController>>();
             var mockStandRepository = new Mock<IStandRepository>();
             var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockStandColumnRepository = new Mock<IStandColumnRepository>();
+            var mockStandColumnUprightRepository = new Mock<IStandColumnUprightRepository>();
 
             var controller = new StandsController(
                 mockMapper.Object,
@@ -205,7 +226,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCategoryRepository.Object,
                 mockLogger.Object,
                 mockStandRepository.Object,
-                mockRegionRepository.Object);
+                mockRegionRepository.Object,
+                mockStandTypeRepository.Object,
+                mockStandColumnRepository.Object,
+                mockStandColumnUprightRepository.Object);
 
             var updateStand = new StandUpdateDto
             {
@@ -255,6 +279,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockLogger = new Mock<ILogger<StandsController>>();
             var mockStandRepository = new Mock<IStandRepository>();
             var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockStandColumnRepository = new Mock<IStandColumnRepository>();
+            var mockStandColumnUprightRepository = new Mock<IStandColumnUprightRepository>();
 
             var controller = new StandsController(
                 mockMapper.Object,
@@ -263,7 +290,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCategoryRepository.Object,
                 mockLogger.Object,
                 mockStandRepository.Object,
-                mockRegionRepository.Object);
+                mockRegionRepository.Object,
+                mockStandTypeRepository.Object,
+                mockStandColumnRepository.Object,
+                mockStandColumnUprightRepository.Object);
 
             var updateStand = new StandUpdateDto
             {
@@ -300,6 +330,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockLogger = new Mock<ILogger<StandsController>>();
             var mockStandRepository = new Mock<IStandRepository>();
             var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockStandColumnRepository = new Mock<IStandColumnRepository>();
+            var mockStandColumnUprightRepository = new Mock<IStandColumnUprightRepository>();
 
             // Act
             var controller = new StandsController(
@@ -309,7 +342,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCategoryRepository.Object,
                 mockLogger.Object,
                 mockStandRepository.Object,
-                mockRegionRepository.Object);
+                mockRegionRepository.Object,
+                mockStandTypeRepository.Object,
+                mockStandColumnRepository.Object,
+                mockStandColumnUprightRepository.Object);
 
             // Assert
             Assert.IsNotNull(controller);
@@ -331,6 +367,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockLogger = new Mock<ILogger<StandsController>>();
             var mockStandRepository = new Mock<IStandRepository>();
             var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockStandColumnRepository = new Mock<IStandColumnRepository>();
+            var mockStandColumnUprightRepository = new Mock<IStandColumnUprightRepository>();
 
             var controller = new StandsController(
                 mockMapper.Object,
@@ -339,9 +378,12 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCategoryRepository.Object,
                 mockLogger.Object,
                 mockStandRepository.Object,
-                mockRegionRepository.Object);
+                mockRegionRepository.Object,
+                mockStandTypeRepository.Object,
+                mockStandColumnRepository.Object,
+                mockStandColumnUprightRepository.Object);
 
-            var createDto = new StandDto { Id = 1 };
+            var createDto = new StandUpdateDto { Id = 1 };
             var exceptionMessage = "Mapping from DTO to entity failed";
 
             mockMapper.Setup(m => m.Map<Stand>(createDto)).Throws(new Exception(exceptionMessage));
@@ -381,6 +423,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockLogger = new Mock<ILogger<StandsController>>();
             var mockStandRepository = new Mock<PMApplication.Interfaces.RepositoryInterfaces.IStandRepository>();
             var mockRegionRepository = new Mock<IAsyncRepository<PMApplication.Entities.CountriesAggregate.Region>>();
+            var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockStandColumnRepository = new Mock<IStandColumnRepository>();
+            var mockStandColumnUprightRepository = new Mock<IStandColumnUprightRepository>();
 
             var controller = new StandsController(
                 mockMapper.Object,
@@ -389,7 +434,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCategoryRepository.Object,
                 mockLogger.Object,
                 mockStandRepository.Object,
-                mockRegionRepository.Object);
+                mockRegionRepository.Object,
+                mockStandTypeRepository.Object,
+                mockStandColumnRepository.Object,
+                mockStandColumnUprightRepository.Object);
 
             int standId = 999;
 
@@ -433,6 +481,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockLogger = new Mock<ILogger<StandsController>>();
             var mockStandRepository = new Mock<PMApplication.Interfaces.RepositoryInterfaces.IStandRepository>();
             var mockRegionRepository = new Mock<IAsyncRepository<PMApplication.Entities.CountriesAggregate.Region>>();
+            var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockStandColumnRepository = new Mock<IStandColumnRepository>();
+            var mockStandColumnUprightRepository = new Mock<IStandColumnUprightRepository>();
 
             var controller = new StandsController(
                 mockMapper.Object,
@@ -441,7 +492,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCategoryRepository.Object,
                 mockLogger.Object,
                 mockStandRepository.Object,
-                mockRegionRepository.Object);
+                mockRegionRepository.Object,
+                mockStandTypeRepository.Object,
+                mockStandColumnRepository.Object,
+                mockStandColumnUprightRepository.Object);
 
             mockAsyncStandRepository.Setup(r => r.FirstOrDefaultAsync(It.IsAny<StandByIdSpecification>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((Stand)null!);
@@ -478,6 +532,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockLogger = new Mock<ILogger<StandsController>>();
             var mockStandRepository = new Mock<PMApplication.Interfaces.RepositoryInterfaces.IStandRepository>();
             var mockRegionRepository = new Mock<IAsyncRepository<PMApplication.Entities.CountriesAggregate.Region>>();
+            var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockStandColumnRepository = new Mock<IStandColumnRepository>();
+            var mockStandColumnUprightRepository = new Mock<IStandColumnUprightRepository>();
 
             var controller = new StandsController(
                 mockMapper.Object,
@@ -486,7 +543,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCategoryRepository.Object,
                 mockLogger.Object,
                 mockStandRepository.Object,
-                mockRegionRepository.Object);
+                mockRegionRepository.Object,
+                mockStandTypeRepository.Object,
+                mockStandColumnRepository.Object,
+                mockStandColumnUprightRepository.Object);
 
             int standId = 1;
             var exceptionMessage = "Database connection failed";
@@ -529,6 +589,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockLogger = new Mock<ILogger<StandsController>>();
             var mockStandRepository = new Mock<IStandRepository>();
             var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockStandColumnRepository = new Mock<IStandColumnRepository>();
+            var mockStandColumnUprightRepository = new Mock<IStandColumnUprightRepository>();
 
             var controller = new StandsController(
                 mockMapper.Object,
@@ -537,7 +600,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCategoryRepository.Object,
                 mockLogger.Object,
                 mockStandRepository.Object,
-                mockRegionRepository.Object);
+                mockRegionRepository.Object,
+                mockStandTypeRepository.Object,
+                mockStandColumnRepository.Object,
+                mockStandColumnUprightRepository.Object);
 
             var filterDto = new StandFilterDto { BrandId = 1, RegionId = 5, CountryId = 10 };
             var expectedStands = new List<SearchStandInfo>
@@ -578,6 +644,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockLogger = new Mock<ILogger<StandsController>>();
             var mockStandRepository = new Mock<IStandRepository>();
             var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockStandColumnRepository = new Mock<IStandColumnRepository>();
+            var mockStandColumnUprightRepository = new Mock<IStandColumnUprightRepository>();
 
             var controller = new StandsController(
                 mockMapper.Object,
@@ -586,7 +655,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCategoryRepository.Object,
                 mockLogger.Object,
                 mockStandRepository.Object,
-                mockRegionRepository.Object);
+                mockRegionRepository.Object,
+                mockStandTypeRepository.Object,
+                mockStandColumnRepository.Object,
+                mockStandColumnUprightRepository.Object);
 
             var filterDto = new StandFilterDto { BrandId = 999, RegionId = null, CountryId = null };
             var emptyStands = new List<SearchStandInfo>();
@@ -623,6 +695,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockLogger = new Mock<ILogger<StandsController>>();
             var mockStandRepository = new Mock<IStandRepository>();
             var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockStandColumnRepository = new Mock<IStandColumnRepository>();
+            var mockStandColumnUprightRepository = new Mock<IStandColumnUprightRepository>();
 
             var controller = new StandsController(
                 mockMapper.Object,
@@ -631,7 +706,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCategoryRepository.Object,
                 mockLogger.Object,
                 mockStandRepository.Object,
-                mockRegionRepository.Object);
+                mockRegionRepository.Object,
+                mockStandTypeRepository.Object,
+                mockStandColumnRepository.Object,
+                mockStandColumnUprightRepository.Object);
 
             var filterDto = new StandFilterDto { BrandId = 1 };
             var exceptionMessage = "Database connection failed";
@@ -674,6 +752,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockLogger = new Mock<ILogger<StandsController>>();
             var mockStandRepository = new Mock<IStandRepository>();
             var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockStandColumnRepository = new Mock<IStandColumnRepository>();
+            var mockStandColumnUprightRepository = new Mock<IStandColumnUprightRepository>();
 
             var controller = new StandsController(
                 mockMapper.Object,
@@ -682,7 +763,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCategoryRepository.Object,
                 mockLogger.Object,
                 mockStandRepository.Object,
-                mockRegionRepository.Object);
+                mockRegionRepository.Object,
+                mockStandTypeRepository.Object,
+                mockStandColumnRepository.Object,
+                mockStandColumnUprightRepository.Object);
 
             var filterDto = new StandFilterDto { BrandId = 0, RegionId = -1 };
             var exceptionMessage = "Invalid operation on repository";
@@ -728,6 +812,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockLogger = new Mock<ILogger<StandsController>>();
             var mockStandRepository = new Mock<IStandRepository>();
             var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockStandColumnRepository = new Mock<IStandColumnRepository>();
+            var mockStandColumnUprightRepository = new Mock<IStandColumnUprightRepository>();
 
             var controller = new StandsController(
                 mockMapper.Object,
@@ -736,7 +823,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCategoryRepository.Object,
                 mockLogger.Object,
                 mockStandRepository.Object,
-                mockRegionRepository.Object);
+                mockRegionRepository.Object,
+                mockStandTypeRepository.Object,
+                mockStandColumnRepository.Object,
+                mockStandColumnUprightRepository.Object);
 
             var filterDto = new StandFilterDto { BrandId = brandId };
             var emptyStands = new List<SearchStandInfo>();
@@ -768,6 +858,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockLogger = new Mock<ILogger<StandsController>>();
             var mockStandRepository = new Mock<IStandRepository>();
             var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockStandTypeRepository = new Mock<IStandTypeRepository>();
+            var mockStandColumnRepository = new Mock<IStandColumnRepository>();
+            var mockStandColumnUprightRepository = new Mock<IStandColumnUprightRepository>();
 
             var controller = new StandsController(
                 mockMapper.Object,
@@ -776,7 +869,10 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockCategoryRepository.Object,
                 mockLogger.Object,
                 mockStandRepository.Object,
-                mockRegionRepository.Object);
+                mockRegionRepository.Object,
+                mockStandTypeRepository.Object,
+                mockStandColumnRepository.Object,
+                mockStandColumnUprightRepository.Object);
 
             var filterDto = new StandFilterDto { BrandId = 1, RegionId = null, CountryId = null };
             var expectedStands = new List<SearchStandInfo> { new SearchStandInfo() };

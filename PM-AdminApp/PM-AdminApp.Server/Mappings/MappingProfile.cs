@@ -2,6 +2,7 @@
 using PMApplication.Dtos;
 using PMApplication.Dtos.Categories;
 using PMApplication.Dtos.Filters;
+using PMApplication.Dtos.Notes;
 using PMApplication.Dtos.PlanModels;
 using PMApplication.Dtos.StandTypes;
 using PMApplication.Entities;
@@ -52,6 +53,8 @@ namespace PM_AdminApp.Server.Mappings
             CreateMap<PartUploadDto, Part>();
             CreateMap<PartDto, Part>();
 
+            CreateMap<PlanogramNote, PlanogramNoteDto>();
+
             CreateMap<Planogram, PlanmPlanogramDto>();
             CreateMap<PlanmPlanogramDto, Planogram>();
             CreateMap<PlanmPartFacing, PlanogramPartFacing>();
@@ -75,6 +78,7 @@ namespace PM_AdminApp.Server.Mappings
             CreateMap<PlanmShadeDto, Shade>();
             CreateMap<Shade, PlanmShadeDto>();
 
+            CreateMap<StandFilterDto, StandFilter>();
             CreateMap<PlanmStandDto, Stand>();
             //CreateMap<Stand, PlanmStandDto>();
             CreateMap<StandDto, Stand>();

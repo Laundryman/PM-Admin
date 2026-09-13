@@ -94,7 +94,7 @@ namespace PM_AdminApp.Server.Controllers
                 newShade.DateAvailable = DateTime.Now;
                 var createdShade = await _shadeRepository.AddAsync(newShade);
 
-                UpdateCountryCollection(createdShade, shadeDto);
+                await UpdateCountryCollection(createdShade, shadeDto);
                 await _shadeRepository.UpdateAsync(createdShade);
                 return Ok(_mapper.Map<ShadeDto>(createdShade));
             }
@@ -125,7 +125,7 @@ namespace PM_AdminApp.Server.Controllers
                 shade.ShadeDescription = shadeDto.ShadeDescription;
                 shade.Published = shadeDto.Published;
                 shade.DateUpdated = DateTime.UtcNow;
-                UpdateCountryCollection(shade, shadeDto);
+                await UpdateCountryCollection(shade, shadeDto);
 
                 await _shadeRepository.UpdateAsync(shade);
                 return Ok(_mapper.Map<ShadeDto>(shade));

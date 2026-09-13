@@ -34,10 +34,11 @@ namespace PlanMatr_API.Mappings.Resolvers
         }
     }
 
-    public class ClusterShelfPositionResolver : IValueResolver<ClusterShelf, PlanmPartInfo, PlanmPosition>
+    public class ClusterShelfPositionResolver : IValueResolver<ClusterShelf, PlanmPartInfo, PlanmPosition?>
     {
-        public PlanmPosition Resolve(ClusterShelf source, PlanmPartInfo destination, PlanmPosition destMember, ResolutionContext context)
+        public PlanmPosition? Resolve(ClusterShelf source, PlanmPartInfo destination, PlanmPosition? destMember, ResolutionContext context)
         {
+
             return new PlanmPosition
             {
                 x = source.PositionX,

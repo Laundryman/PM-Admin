@@ -105,6 +105,18 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true },
       },
       {
+        path: '/planograms/edit/:id',
+        name: 'editPlanogram',
+        component: () => import('@/views/planograms/editPlanogram.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/planograms/create',
+        name: 'createPlanogram',
+        component: () => import('@/views/planograms/createPlanogram.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
         path: '/clusters',
         name: 'clusters',
         component: () => import('@/views/Clusters/ClusterListView.vue'),
@@ -113,7 +125,14 @@ const routes: RouteRecordRaw[] = [
       {
         path: '/clusters/edit/:id',
         name: 'editCluster',
-        component: () => import('@/views/Clusters/EditClusterView.vue'),
+        component: () => import('@/views/Clusters/editCluster.vue'),
+        meta: { requiresAuth: true },
+      },
+
+      {
+        path: '/clusters/create',
+        name: 'createCluster',
+        component: () => import('@/views/Clusters/createCluster.vue'),
         meta: { requiresAuth: true },
       },
       {
@@ -153,6 +172,18 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true },
       },
       {
+        path: '/categories',
+        name: 'categories',
+        component: () => import('@/views/Settings/CategoryListView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/standtypes',
+        name: 'standtypes',
+        component: () => import('@/views/Settings/StandTypeListView.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
         path: '/user',
         name: 'user',
         component: () => import('@/views/UserView.vue'),
@@ -164,31 +195,19 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/Users/UserListView.vue'),
         meta: { requiresAuth: true },
       },
-      // { path: '/uikit/formlayout', name: 'formlayout', component: () => import('@/views/uikit/FormLayout.vue') },
-      // { path: '/uikit/input', name: 'input', component: () => import('@/views/uikit/InputDoc.vue') },
-      // { path: '/uikit/button', name: 'button', component: () => import('@/views/uikit/ButtonDoc.vue') },
-      // { path: '/uikit/table', name: 'table', component: () => import('@/views/uikit/TableDoc.vue') },
-      // { path: '/uikit/list', name: 'list', component: () => import('@/views/uikit/ListDoc.vue') },
-      // { path: '/uikit/tree', name: 'tree', component: () => import('@/views/uikit/TreeDoc.vue') },
-      // { path: '/uikit/panel', name: 'panel', component: () => import('@/views/uikit/PanelsDoc.vue') },
-      // { path: '/uikit/overlay', name: 'overlay', component: () => import('@/views/uikit/OverlayDoc.vue') },
-      // { path: '/uikit/media', name: 'media', component: () => import('@/views/uikit/MediaDoc.vue') },
-      // { path: '/uikit/message', name: 'message', component: () => import('@/views/uikit/MessagesDoc.vue') },
-      // { path: '/uikit/file', name: 'file', component: () => import('@/views/uikit/FileDoc.vue') },
-      // { path: '/uikit/menu', name: 'menu', component: () => import('@/views/uikit/MenuDoc.vue') },
-      // { path: '/uikit/charts', name: 'charts', component: () => import('@/views/uikit/ChartDoc.vue') },
-      // { path: '/uikit/misc', name: 'misc', component: () => import('@/views/uikit/MiscDoc.vue') },
-      // { path: '/uikit/timeline', name: 'timeline', component: () => import('@/views/uikit/TimelineDoc.vue') },
-      // { path: '/pages/empty', name: 'empty', component: () => import('@/views/pages/Empty.vue') },
-      // { path: '/pages/crud', name: 'crud', component: () => import('@/views/pages/Crud.vue') },
-      // { path: '/documentation', name: 'documentation', component: () => import('@/views/pages/Documentation.vue') }
+      {
+        path: '/users/manage',
+        name: 'manageUser',
+        component: () => import('@/views/Users/ManageUser.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/reporting/useractions',
+        name: 'userActions',
+        component: () => import('@/views/Reporting/useractions.report.vue'),
+        meta: { requiresAuth: true },
+      },
     ],
-  },
-  {
-    path: '/testCluster/:id',
-    name: 'testEditCluster',
-    component: () => import('@/views/Clusters/EditClusterView.vue'),
-    meta: { requiresAuth: true },
   },
   // {
   //   path: '/pages/notfound',
@@ -230,12 +249,12 @@ router.beforeEach(async (to, from, next) => {
   // initialized
   if (!auth.initialized) {
     await msal.initialize()
+    await auth.initialize(client)
   }
   if (guarded) {
-    await auth.initialize(client)
-    await brands.initialise()
     // authorised
     if (auth.account) {
+      await brands.initialise()
       return next()
     }
 
@@ -244,7 +263,7 @@ router.beforeEach(async (to, from, next) => {
       await auth.login()
       return next()
     } catch (err) {
-      return next(false)
+      return '/'
     }
   }
 

@@ -3,4 +3,5 @@ export class regionFilter {
   brandId!: number
   countryId!: boolean
   loadChildren!: boolean
+  idList!: string
 }

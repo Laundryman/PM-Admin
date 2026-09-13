@@ -1,5 +1,5 @@
 import type { searchStandInfo } from '@/models/Stands/searchStandInfo.model'
-import type { Stand } from '@/models/Stands/stand.model'
+import { Stand } from '@/models/Stands/stand.model'
 import StandService from '@/services/Stands/StandService'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -12,6 +12,11 @@ export const useStandStore = defineStore('standStore', () => {
   const initialized = ref(false)
 
   async function initialize(id: number) {
+    if (id === 0) {
+      stand.value = new Stand()
+      initialized.value = true
+      return stand.value
+    }
     if (initialized.value != true) await StandService.initialise()
     return await StandService.getStand(id)
       .then((data: Stand) => {
@@ -37,12 +42,25 @@ export const useStandStore = defineStore('standStore', () => {
       })
   }
 
+  async function createStand(standData: Stand) {
+    return await StandService.createStand(standData)
+      .then((response) => {
+        stand.value = response
+        return response
+      })
+      .catch((err) => {
+        error.value = err.message
+        return null
+      })
+  }
+
   return {
     initialized,
     stand,
     error,
     initialize,
     saveStand,
+    createStand,
     stands,
     standList,
   }

@@ -3,11 +3,8 @@ import { msal } from '@/config/auth'
 import { useAuthStore } from '@/stores/auth'
 import { onMounted } from 'vue'
 
-import FeaturesWidget from '@/components/landing/FeaturesWidget.vue'
 import FooterWidget from '@/components/landing/FooterWidget.vue'
 import HeroWidget from '@/components/landing/HeroWidget.vue'
-import HighlightsWidget from '@/components/landing/HighlightsWidget.vue'
-import PricingWidget from '@/components/landing/PricingWidget.vue'
 import TopbarWidget from '@/components/landing/TopbarWidget.vue'
 
 const authStore = useAuthStore()
@@ -35,8 +32,8 @@ onMounted(async () => {
       </div>
       <HeroWidget />
       <FeaturesWidget />
-      <HighlightsWidget />
-      <PricingWidget />
+      <!-- <HighlightsWidget />
+      <PricingWidget /> -->
       <FooterWidget />
     </div>
   </div>

@@ -5,10 +5,13 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using PM_AdminApp.Server.Controllers;
+using PM_AdminApp.Server.Controllers.Planner;
 using PMApplication.Dtos;
 using PMApplication.Dtos.Filters;
 using PMApplication.Entities;
@@ -17,6 +20,8 @@ using PMApplication.Entities.CountriesAggregate;
 using PMApplication.Entities.StandAggregate;
 using PMApplication.Interfaces;
 using PMApplication.Interfaces.RepositoryInterfaces;
+using PMApplication.Interfaces.ServiceInterfaces;
+using PMApplication.Interfaces.ServiceInterfaces;
 
 namespace PM_AdminApp.Server.Controllers.UnitTests
 {
@@ -32,20 +37,30 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
         public void Constructor_WithAllValidDependencies_CreatesInstanceSuccessfully()
         {
             // Arrange
+            var mockPartService = new Mock<IPartService>();
+            var mockStandService = new Mock<IStandService>();
+            var mockBrandService = new Mock<IBrandService>();
+            var mockPlanogramService = new Mock<IPlanogramService>();
             var mockMapper = new Mock<IMapper>();
-            var mockAsyncStandRepository = new Mock<IAsyncRepository<Stand>>();
-            var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
-            var mockCategoryRepository = new Mock<IAsyncRepository<Category>>();
-            var mockLogger = new Mock<ILogger<ClustersController>>();
+            var mockLogger = new Mock<ILogger<ClusterController>>();
+            var mockAuditService = new Mock<IAuditService>();
+            var mockConfiguration = new Mock<IConfiguration>();
+            var mockCategoryService = new Mock<ICategoryService>();
+            var mockClusterService = new Mock<IClusterService>();
             var mockClusterRepository = new Mock<IClusterRepository>();
 
             // Act
-            var controller = new ClustersController(
+            var controller = new ClusterController(
+                mockPartService.Object,
+                mockStandService.Object,
+                mockBrandService.Object,
+                mockPlanogramService.Object,
                 mockMapper.Object,
-                mockAsyncStandRepository.Object,
-                mockCountryRepository.Object,
-                mockCategoryRepository.Object,
                 mockLogger.Object,
+                mockAuditService.Object,
+                mockConfiguration.Object,
+                mockCategoryService.Object,
+                mockClusterService.Object,
                 mockClusterRepository.Object);
 
             // Assert
@@ -61,19 +76,29 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
         public async Task SearchClusters_WithValidFilter_ReturnsOkWithResults()
         {
             // Arrange
+            var mockPartService = new Mock<IPartService>();
+            var mockStandService = new Mock<IStandService>();
+            var mockBrandService = new Mock<IBrandService>();
+            var mockPlanogramService = new Mock<IPlanogramService>();
             var mockMapper = new Mock<IMapper>();
-            var mockAsyncStandRepository = new Mock<IAsyncRepository<Stand>>();
-            var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
-            var mockCategoryRepository = new Mock<IAsyncRepository<Category>>();
-            var mockLogger = new Mock<ILogger<ClustersController>>();
+            var mockLogger = new Mock<ILogger<ClusterController>>();
+            var mockAuditService = new Mock<IAuditService>();
+            var mockConfiguration = new Mock<IConfiguration>();
+            var mockCategoryService = new Mock<ICategoryService>();
+            var mockClusterService = new Mock<IClusterService>();
             var mockClusterRepository = new Mock<IClusterRepository>();
 
-            var controller = new ClustersController(
+            var controller = new ClusterController(
+                mockPartService.Object,
+                mockStandService.Object,
+                mockBrandService.Object,
+                mockPlanogramService.Object,
                 mockMapper.Object,
-                mockAsyncStandRepository.Object,
-                mockCountryRepository.Object,
-                mockCategoryRepository.Object,
                 mockLogger.Object,
+                mockAuditService.Object,
+                mockConfiguration.Object,
+                mockCategoryService.Object,
+                mockClusterService.Object,
                 mockClusterRepository.Object);
 
             var filterDto = new ClusterFilterDto { BrandId = 1, RegionId = 2, CountryId = 3 };
@@ -109,22 +134,32 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
         public async Task SearchClusters_WithNoResults_ReturnsOkWithEmptyList()
         {
             // Arrange
+            var mockPartService = new Mock<IPartService>();
+            var mockStandService = new Mock<IStandService>();
+            var mockBrandService = new Mock<IBrandService>();
+            var mockPlanogramService = new Mock<IPlanogramService>();
             var mockMapper = new Mock<IMapper>();
-            var mockAsyncStandRepository = new Mock<IAsyncRepository<Stand>>();
-            var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
-            var mockCategoryRepository = new Mock<IAsyncRepository<Category>>();
-            var mockLogger = new Mock<ILogger<ClustersController>>();
+            var mockLogger = new Mock<ILogger<ClusterController>>();
+            var mockAuditService = new Mock<IAuditService>();
+            var mockConfiguration = new Mock<IConfiguration>();
+            var mockCategoryService = new Mock<ICategoryService>();
+            var mockClusterService = new Mock<IClusterService>();
             var mockClusterRepository = new Mock<IClusterRepository>();
 
-            var controller = new ClustersController(
+            var controller = new ClusterController(
+                mockPartService.Object,
+                mockStandService.Object,
+                mockBrandService.Object,
+                mockPlanogramService.Object,
                 mockMapper.Object,
-                mockAsyncStandRepository.Object,
-                mockCountryRepository.Object,
-                mockCategoryRepository.Object,
                 mockLogger.Object,
+                mockAuditService.Object,
+                mockConfiguration.Object,
+                mockCategoryService.Object,
+                mockClusterService.Object,
                 mockClusterRepository.Object);
 
-            var filterDto = new ClusterFilterDto { BrandId = 999, RegionId = null, CountryId = null };
+            var filterDto = new ClusterFilterDto { BrandId = 999, RegionId = 0, CountryId = 0 };
             var emptyClusters = new List<SearchClusterInfo>();
 
             mockClusterRepository.Setup(r => r.SearchClusters(filterDto))
@@ -152,19 +187,29 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
         public async Task SearchClusters_WhenRepositoryThrowsException_ReturnsInternalServerError()
         {
             // Arrange
+            var mockPartService = new Mock<IPartService>();
+            var mockStandService = new Mock<IStandService>();
+            var mockBrandService = new Mock<IBrandService>();
+            var mockPlanogramService = new Mock<IPlanogramService>();
             var mockMapper = new Mock<IMapper>();
-            var mockAsyncStandRepository = new Mock<IAsyncRepository<Stand>>();
-            var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
-            var mockCategoryRepository = new Mock<IAsyncRepository<Category>>();
-            var mockLogger = new Mock<ILogger<ClustersController>>();
+            var mockLogger = new Mock<ILogger<ClusterController>>();
+            var mockAuditService = new Mock<IAuditService>();
+            var mockConfiguration = new Mock<IConfiguration>();
+            var mockCategoryService = new Mock<ICategoryService>();
+            var mockClusterService = new Mock<IClusterService>();
             var mockClusterRepository = new Mock<IClusterRepository>();
 
-            var controller = new ClustersController(
+            var controller = new ClusterController(
+                mockPartService.Object,
+                mockStandService.Object,
+                mockBrandService.Object,
+                mockPlanogramService.Object,
                 mockMapper.Object,
-                mockAsyncStandRepository.Object,
-                mockCountryRepository.Object,
-                mockCategoryRepository.Object,
                 mockLogger.Object,
+                mockAuditService.Object,
+                mockConfiguration.Object,
+                mockCategoryService.Object,
+                mockClusterService.Object,
                 mockClusterRepository.Object);
 
             var filterDto = new ClusterFilterDto { BrandId = 1 };
@@ -205,22 +250,32 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
         public async Task SearchClusters_WithEdgeCaseFilterValues_ReturnsOkWithResults(int brandId, int? regionId, int? countryId)
         {
             // Arrange
+            var mockPartService = new Mock<IPartService>();
+            var mockStandService = new Mock<IStandService>();
+            var mockBrandService = new Mock<IBrandService>();
+            var mockPlanogramService = new Mock<IPlanogramService>();
             var mockMapper = new Mock<IMapper>();
-            var mockAsyncStandRepository = new Mock<IAsyncRepository<Stand>>();
-            var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
-            var mockCategoryRepository = new Mock<IAsyncRepository<Category>>();
-            var mockLogger = new Mock<ILogger<ClustersController>>();
+            var mockLogger = new Mock<ILogger<ClusterController>>();
+            var mockAuditService = new Mock<IAuditService>();
+            var mockConfiguration = new Mock<IConfiguration>();
+            var mockCategoryService = new Mock<ICategoryService>();
+            var mockClusterService = new Mock<IClusterService>();
             var mockClusterRepository = new Mock<IClusterRepository>();
 
-            var controller = new ClustersController(
+            var controller = new ClusterController(
+                mockPartService.Object,
+                mockStandService.Object,
+                mockBrandService.Object,
+                mockPlanogramService.Object,
                 mockMapper.Object,
-                mockAsyncStandRepository.Object,
-                mockCountryRepository.Object,
-                mockCategoryRepository.Object,
                 mockLogger.Object,
+                mockAuditService.Object,
+                mockConfiguration.Object,
+                mockCategoryService.Object,
+                mockClusterService.Object,
                 mockClusterRepository.Object);
 
-            var filterDto = new ClusterFilterDto { BrandId = brandId, RegionId = regionId, CountryId = countryId };
+            var filterDto = new ClusterFilterDto { BrandId = brandId, RegionId = (int)regionId, CountryId = (int)countryId };
             var expectedClusters = new List<SearchClusterInfo> { new SearchClusterInfo() };
 
             mockClusterRepository.Setup(r => r.SearchClusters(It.IsAny<ClusterFilterDto>()))

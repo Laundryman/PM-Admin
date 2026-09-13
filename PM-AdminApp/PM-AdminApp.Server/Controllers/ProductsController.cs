@@ -2,7 +2,6 @@
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 using PMApplication.Dtos;
 using PMApplication.Dtos.Filters;
 using PMApplication.Entities;
@@ -16,6 +15,8 @@ using PMApplication.Services;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
 using PMInfrastructure.Repositories;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Page = PMApplication.Dtos.Page;
 
 namespace PM_AdminApp.Server.Controllers
@@ -284,8 +285,10 @@ namespace PM_AdminApp.Server.Controllers
 
         private async Task UpdateRegionsCollection(Product origProduct, ProductUpdateDto updateProduct)
         {
-            //var regionDtos = JsonConvert.DeserializeObject<List<RegionDto>>(updateProduct.Regions);
-            var regionDtos = JsonSerializer.Deserialize<List<RegionDto>>(updateProduct.Regions);
+            var options = new JsonSerializerOptions();
+            options.PropertyNameCaseInsensitive = true;
+            options.Converters.Add(new JsonStringEnumConverter());
+            var regionDtos = JsonSerializer.Deserialize<List<RegionDto>>(updateProduct.Regions, options);
             foreach (var region in regionDtos)
             {
                 var origRegion = origProduct.Regions.FirstOrDefault(r => r.Id == region.Id);
@@ -296,15 +299,22 @@ namespace PM_AdminApp.Server.Controllers
                     origProduct.Regions.Add(dbRegion);
                 }
             }
+
+            var regionsToDelete = new List<Region>();
             for (int i = origProduct.Regions.Count - 1; i >= 0; i--)
             {
                 var origRegion = origProduct.Regions[i];
                 var updatedRegion = regionDtos.FirstOrDefault(r => r.Id == origRegion.Id);
                 if (updatedRegion == null)
                 {
-                    var dbRegion = await _regionRepository.GetByIdAsync(origRegion.Id);
-                    origProduct.Regions.Remove(dbRegion);
+                    var dbRegion = origProduct.Regions.FirstOrDefault(r => r.Id == origRegion.Id);
+                    regionsToDelete.Add(dbRegion);
                 }
+            }
+
+            foreach (var region in regionsToDelete)
+            {
+                origProduct.Regions.Remove(region);
             }
 
             //update Part.RegionList string
@@ -314,7 +324,10 @@ namespace PM_AdminApp.Server.Controllers
         private async Task UpdateCountryCollection(Product origProduct, ProductUpdateDto updateProduct)
         {
             //add new countries
-            var productountries = JsonSerializer.Deserialize<List<CountryDto>>(updateProduct.Countries);
+            var options = new JsonSerializerOptions();
+            options.PropertyNameCaseInsensitive = true;
+            options.Converters.Add(new JsonStringEnumConverter());
+            var productountries = JsonSerializer.Deserialize<List<CountryDto>>(updateProduct.Countries, options);
             foreach (var country in productountries)
             {
                 var origCountry = origProduct.Countries.FirstOrDefault(c => c.Id == country.Id);
@@ -328,15 +341,20 @@ namespace PM_AdminApp.Server.Controllers
                 }
             }
             //remove deleted countries
+            var countriesToDelete = new List<Country>();
             for (int i = 0; i < origProduct.Countries.Count; i++)
             {
                 var origCountry = origProduct.Countries[i];
                 var updatedCountry = productountries.FirstOrDefault(c => c.Id == origCountry.Id);
                 if (updatedCountry == null)
                 {
-                    //var dbCountry = await _countryRepository.GetByIdAsync(origCountry.Id);
-                    origProduct.Countries.Remove(origCountry);
+                    countriesToDelete.Add(origCountry);
                 }
+            }
+
+            foreach (var country in countriesToDelete)
+            {
+                origProduct.Countries.Remove(country);
             }
 
             //update Part.CountryList string

@@ -5,9 +5,15 @@
         margin-left: auto !important;
         margin-right: auto !important;
     }
+    .layout-main.planner-container {
+        height: 100px;
+    }
 }
 
 @media (min-width: 992px) {
+        .layout-main.planner-container {
+        height: 100px;
+    }
     .layout-wrapper {
         &.layout-overlay {
             .layout-main-container {

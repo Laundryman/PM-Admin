@@ -50,7 +50,7 @@ namespace PM_AdminApp.Server.Controllers
                 //countFilter.IsPagingEnabled = false;
                 //var countSpec = new CountrySpecification(_mapper.Map<CountryFilter>(countFilter));
                 //int totalItems = await _countryRepository.CountAsync(countSpec);
-                _logger.LogInformation($"Returned all parts from database.");
+                _logger.LogInformation($"Returned all countries from database.");
 
                 //var response = new PagedCountriesListDto();
                 //response.Data = _mapper.Map<List<CountryDto>>(countries);
@@ -170,7 +170,7 @@ namespace PM_AdminApp.Server.Controllers
             {
                 var spec = new RegionSpecification(_mapper.Map<RegionFilter>(filterDto));
                 var regions = await _regionRepository.ListAsync(spec);
-
+                var regionsSorted = regions.OrderBy(r => r.Name.ToLower());
                 var response = _mapper.Map<List<RegionDto>>(regions);
                 return Ok(response);
             }
@@ -279,18 +279,30 @@ namespace PM_AdminApp.Server.Controllers
         {
             //add new countries
             //var standCountries = JsonConvert.DeserializeObject<List<CountryDto>>(updateStand.Countries);
-            foreach (var country in updateRegion.Countries)
+            if (updateRegion.Countries != null)
             {
-                var origCountry = origRegion.Countries.FirstOrDefault(c => c.Id == country.Id);
-                if (origCountry == null)
+                foreach (var country in updateRegion.Countries)
                 {
-                    var dbCountry = await _countryRepository.GetByIdAsync(country.Id);
-                    if (dbCountry != null)
+                    if (origRegion.Countries.All(c => c.Id != country.Id))
                     {
-                        origRegion.Countries.Add(dbCountry);
+                        var countryEntity = _mapper.Map<Country>(country);
+                        origRegion.Countries.Add(countryEntity);
                     }
                 }
-            }
+
+                foreach (var country in updateRegion.Countries)
+                {
+                    var origCountry = origRegion.Countries.FirstOrDefault(c => c.Id == country.Id);
+                    if (origCountry == null)
+                    {
+                        var dbCountry = await _countryRepository.GetByIdAsync(country.Id);
+                        if (dbCountry != null)
+                        {
+                            origRegion.Countries.Add(dbCountry);
+                        }
+                    }
+                }
+
             //remove deleted countries
             for (int i = origRegion.Countries.Count - 1; i >= 0; i--)
             {
@@ -305,6 +317,7 @@ namespace PM_AdminApp.Server.Controllers
 
             //update Part.CountryList string
             origRegion.CountryList = string.Join(",", origRegion.Countries.Select(c => c.Id));
+            }
         }
 
         #endregion

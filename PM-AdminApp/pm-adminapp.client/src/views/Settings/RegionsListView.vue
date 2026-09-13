@@ -11,7 +11,7 @@ import { FilterMatchMode } from '@primevue/core/api'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, watch } from 'vue'
-
+const loading = ref(true)
 const regions = ref()
 const region = ref(new Region())
 const regionDialog = ref(false)
@@ -38,7 +38,7 @@ watch(brand, async (newBrand) => {
     filter.loadChildren = true
     await countryService.getRegions(filter).then((response) => {
       regions.value = response
-      console.log('Regions loaded for brand change', response)
+      loading.value = false
     })
   }
 })
@@ -56,7 +56,7 @@ onMounted(async () => {
   filter.loadChildren = true
   await countryService.getRegions(filter).then((response) => {
     regions.value = response
-    console.log('Regions loaded', response)
+    loading.value = false
   })
 })
 
@@ -173,23 +173,22 @@ function clearCountrySelection() {
   <div>
     <div class="card">
       <Toolbar class="mb-6">
-        <template #start>
+        <template #end>
           <Button label="New" icon="pi pi-plus" class="mr-2" @click="openNew" />
         </template>
-
-        <template #end> </template>
       </Toolbar>
 
       <DataTable
         ref="dt"
         :value="regions"
+        :loading="loading"
         dataKey="id"
         :paginator="true"
         :rows="10"
         :filters="filters"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         :rowsPerPageOptions="[5, 10, 25]"
-        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} regions"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
@@ -203,7 +202,6 @@ function clearCountrySelection() {
           </div>
         </template>
 
-        <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
         <Column field="name" header="Name" sortable style="min-width: 16rem"></Column>
         <Column field="countries" header="Countries">
           <template #body="slotProps">
@@ -227,7 +225,7 @@ function clearCountrySelection() {
             />
           </template>
         </Column> -->
-        <Column :exportable="false" style="min-width: 12rem">
+        <Column header="Actions" :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
               icon="pi pi-pencil"

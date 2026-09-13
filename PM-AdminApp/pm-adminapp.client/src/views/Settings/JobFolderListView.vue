@@ -22,7 +22,7 @@ import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const jobFolderFilter = ref(new JobFolderFilter())
-
+const selectedJobFolder = ref<JobFolder | null>(null)
 const jobFolders = ref<JobFolder[] | null>(null)
 const selectedJobFolders = ref()
 const expandedRows = ref()
@@ -104,6 +104,7 @@ onMounted(async () => {
 
   var filter = new JobFolderFilter()
   filter.brandId = brandid
+  filter.includeChildren = true
   await jobsService.searchJobFolders(filter).then((response) => {
     jobFolders.value = response.data
     console.log('Job Folders loaded', jobFolders.value)
@@ -383,6 +384,8 @@ function addJob(folder: JobFolder) {
         ref="dt"
         v-model:filters="filters"
         v-model:expanded-rows="expandedRows"
+        v-model:selection="selectedJobFolder"
+        selectionMode="single"
         :globalFilterFields="[
           //'categoryName',
           'name',
@@ -398,6 +401,7 @@ function addJob(folder: JobFolder) {
         :rowsPerPageOptions="[5, 10, 25]"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} job folders"
         @row-expand="onRowExpand"
+        tableClass="hide-row-border"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
@@ -433,7 +437,7 @@ function addJob(folder: JobFolder) {
           </template>
         </Column>
 
-        <Column :exportable="false" style="min-width: 12rem">
+        <Column header="Actions" :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
               v-tooltip="'Edit Job Folder'"
@@ -456,14 +460,17 @@ function addJob(folder: JobFolder) {
         <template #expansion="slotProps">
           <div class="p-4">
             <h5>Jobs for {{ slotProps.data.name }}</h5>
-            <DataTable :value="slotProps.data.jobs">
+            <DataTable
+              :value="slotProps.data.jobs"
+              table-class="archive-jobs-expanded bg-emerald-50"
+            >
               <Column field="jobCode" header="Job Code" sortable></Column>
               <Column field="description" header="Description" sortable></Column>
               <Column field="dateFrom" header="Date From" sortable></Column>
               <Column field="dateTo" header="Date To" sortable></Column>
               <Column field="uploadedOn" header="Date Added" sortable></Column>
 
-              <Column headerStyle="width:4rem">
+              <Column header="Actions" headerStyle="width:4rem">
                 <template #body="slotProps">
                   <Button
                     v-tooltip="'Edit Job'"
@@ -627,7 +634,12 @@ function addJob(folder: JobFolder) {
         </div>
         <div>
           <label for="description" class="block font-bold mb-3">Date Range</label>
-          <DatePicker v-model="jobDateRange" selectionMode="range" :manualInput="false" />
+          <DatePicker
+            v-model="jobDateRange"
+            selectionMode="range"
+            :manualInput="false"
+            dateFormat="dd/mm/yyyy"
+          />
           <small v-if="submitted && !jobDateRange" class="text-red-500"
             >Date Range is required.</small
           >

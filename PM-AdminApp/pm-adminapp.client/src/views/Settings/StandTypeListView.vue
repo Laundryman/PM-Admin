@@ -6,9 +6,12 @@ import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api'
 import { storeToRefs } from 'pinia'
+import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, watch } from 'vue'
 
+const loading = ref(true)
+const confirm = useConfirm()
 const standImageUrl = import.meta.env.VITE_APP_STANDIMAGE_URL
 
 const standTypes = ref()
@@ -64,7 +67,7 @@ onMounted(async () => {
   await standTypeService.getParentStandTypes(filter).then((data) => {
     // create categoryOptions array for select dropdown
     standTypes.value = data.data
-    console.log('StandTypes loaded:', standTypes.value)
+    loading.value = false
   })
 })
 
@@ -213,6 +216,7 @@ const getHideIcon = (hide: boolean) => {
       <DataTable
         v-model:expandedRows="expandedRows"
         ref="dt"
+        :loading="loading"
         :value="standTypes"
         dataKey="id"
         rowHover
@@ -244,6 +248,12 @@ const getHideIcon = (hide: boolean) => {
         <Column expander style="width: 5rem" />
 
         <Column field="name" header="Name" sortable style="min-width: 16rem"></Column>
+        <Column
+          field="childStandTypes.length"
+          header="No. Child StandTypes"
+          sortable
+          style="min-width: 16rem"
+        ></Column>
 
         <!-- <Column :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
@@ -288,7 +298,7 @@ const getHideIcon = (hide: boolean) => {
                 </template>
               </Column>
               <Column field="standCount" header="No. Stands" sortable></Column>
-              <Column :exportable="false" style="min-width: 12rem">
+              <Column header="Actions" :exportable="false" style="min-width: 12rem">
                 <template #body="slotProps">
                   <Button
                     icon="pi pi-pencil"

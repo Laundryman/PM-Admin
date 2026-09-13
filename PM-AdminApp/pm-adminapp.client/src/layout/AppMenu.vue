@@ -26,6 +26,11 @@ const model = ref([
         icon: 'pi pi-fw pi-check-square',
         to: '/planograms',
       },
+      // {
+      //   label: 'Create Planogram',
+      //   icon: 'pi pi-fw pi-check-square',
+      //   to: '/planograms/create',
+      // },
     ],
   },
   {
@@ -43,6 +48,11 @@ const model = ref([
         icon: 'pi pi-fw pi-briefcase',
         to: '/clusters',
       },
+      // {
+      //   label: 'Create Cluster',
+      //   icon: 'pi pi-fw pi-check-square',
+      //   to: '/clusters/create',
+      // },
     ],
   },
   {

@@ -69,7 +69,7 @@ onMounted(async () => {
   filter.brandId = brandid
   await partService.searchParts(filter).then((response) => {
     parts.value = response
-    console.log('Parts loaded', parts.value)
+    loading.value = false
   })
 
   //   FilterService.register(part_FILTER.value, (value: any, filter: any) => {
@@ -209,11 +209,19 @@ function copyPart(part: SearchPartInfo) {
           label="Clear"
           variant="outlined"
           @click="clearFilters()"
+          v-tooltip="'Clear filters'"
         />
       </template>
 
       <template #end>
-        <Button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" @click="openNew" />
+        <Button
+          label="New"
+          icon="pi pi-plus"
+          severity="primary"
+          class="mr-2"
+          @click="openNew"
+          v-tooltip="'Create a part'"
+        />
       </template>
     </Toolbar>
     <div class="card">
@@ -222,6 +230,7 @@ function copyPart(part: SearchPartInfo) {
         dataKey="id"
         v-model:selection="selectedPart"
         v-model:filters="filters"
+        :loading="loading"
         :globalFilterFields="[
           //'categoryName',
           'name',
@@ -278,7 +287,7 @@ function copyPart(part: SearchPartInfo) {
 
         <Column field="facings" header="Facing" sortable style="min-width: 4rem"></Column>
         <Column field="stock" header="Stock" sortable style="min-width: 4rem"></Column>
-        <Column :exportable="false" style="min-width: 12rem">
+        <Column header="Actions" :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
               v-tooltip="'Edit Part'"

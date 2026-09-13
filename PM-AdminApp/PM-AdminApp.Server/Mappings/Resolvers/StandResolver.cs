@@ -26,9 +26,9 @@ namespace PM_AdminApp.Server.Mappings.Resolvers
         }
     }
 
-    public class StandLayoutResolver : IValueResolver<Stand, PlanmStandDto, byte>
+    public class StandLayoutResolver : IValueResolver<Stand, PlanmStandDto, byte?>
     {
-        public byte Resolve(Stand source, PlanmStandDto destination, byte destMember, ResolutionContext context)
+        public byte? Resolve(Stand source, PlanmStandDto destination, byte? destMember, ResolutionContext context)
         {
             if (source.LayoutStyle == 0)
             {
@@ -73,7 +73,7 @@ namespace PM_AdminApp.Server.Mappings.Resolvers
                     var newRow = new PlanmStandRowDto
                     {
                         Height = (int)source.DefaultRowHeight,
-                        RowId = i,
+                        Id = i,
                         Position = i,
                         StandId = source.Id
                     };
@@ -88,7 +88,7 @@ namespace PM_AdminApp.Server.Mappings.Resolvers
                     var newRow = new PlanmStandRowDto
                     {
                         Height = row.Height,
-                        RowId = row.RowId,
+                        Id = row.Id,
                         Position = row.Position,
                         StandId = row.StandId
                     };

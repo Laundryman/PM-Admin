@@ -132,7 +132,7 @@ app.MapFallbackToFile("/index.html");
 app.Run();
 
 
-string FlattenException(Exception exception)
+string FlattenException(Exception? exception)
 {
     var stringBuilder = new StringBuilder();
     while (exception != null)

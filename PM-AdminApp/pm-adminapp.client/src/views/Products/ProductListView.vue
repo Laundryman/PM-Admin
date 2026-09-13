@@ -71,7 +71,7 @@ onMounted(async () => {
   filter.brandId = brandid
   await productService.searchProducts(filter).then((response) => {
     products.value = response
-    console.log('Products loaded', products.value)
+    loading.value = false
   })
 
   //   FilterService.register(part_FILTER.value, (value: any, filter: any) => {
@@ -200,11 +200,19 @@ function copyProduct(product: searchProductInfo) {
           label="Clear"
           variant="outlined"
           @click="clearFilters()"
+          v-tooltip="'Clear filters'"
         />
       </template>
 
       <template #end>
-        <Button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" @click="openNew" />
+        <Button
+          label="New"
+          icon="pi pi-plus"
+          severity="primary"
+          class="mr-2"
+          @click="openNew"
+          v-tooltip="'Create a product'"
+        />
       </template>
     </Toolbar>
     <div class="card">
@@ -212,6 +220,7 @@ function copyProduct(product: searchProductInfo) {
         ref="dt"
         v-model:selection="selectedProducts"
         v-model:filters="filters"
+        :loading="loading"
         :globalFilterFields="[
           //'categoryName',
           'name',
@@ -222,14 +231,13 @@ function copyProduct(product: searchProductInfo) {
           'stock',
         ]"
         filterDisplay="menu"
-        showGridlines
         :value="products"
         dataKey="id"
         :paginator="true"
         :rows="10"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         :rowsPerPageOptions="[5, 10, 25]"
-        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} parts"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
@@ -242,7 +250,6 @@ function copyProduct(product: searchProductInfo) {
             </IconField>
           </div>
         </template>
-        <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
         <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
         <Column
           field="parentCategoryName"
@@ -298,10 +305,10 @@ function copyProduct(product: searchProductInfo) {
             />
           </template>
         </column>
-        <Column :exportable="false" style="min-width: 12rem">
+        <Column header="Actions" :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
-              v-tooltip="'Edit Part'"
+              v-tooltip="'Edit Product'"
               icon="pi pi-pencil"
               variant="outlined"
               rounded
@@ -309,7 +316,7 @@ function copyProduct(product: searchProductInfo) {
               @click="editProduct(slotProps.data)"
             />
             <Button
-              v-tooltip="'Copy Part'"
+              v-tooltip="'Copy Product'"
               icon="pi pi-copy"
               variant="outlined"
               rounded

@@ -8,6 +8,7 @@ import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref } from 'vue'
 
+const loading = ref(true)
 const flagImageUrl = import.meta.env.VITE_APP_FLAGIMAGE_URL
 const countries = ref()
 const country = ref(new Country())
@@ -39,7 +40,7 @@ onMounted(async () => {
   let brandid = brandStore.activeBrand?.id ?? 0
   await countryService.getCountries().then((response) => {
     countries.value = response
-    console.log('Countries loaded', response)
+    loading.value = false
   })
 })
 
@@ -134,23 +135,22 @@ const findIndexById = (id: number) => {
   <div>
     <div class="card">
       <Toolbar class="mb-6">
-        <template #start>
+        <template #end>
           <Button label="New" icon="pi pi-plus" class="mr-2" @click="openNew" />
         </template>
-
-        <template #end> </template>
       </Toolbar>
 
       <DataTable
         ref="dt"
         :value="countries"
         dataKey="id"
+        :loading="loading"
         :paginator="true"
         :rows="10"
         :filters="filters"
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         :rowsPerPageOptions="[5, 10, 25]"
-        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} countries"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
@@ -163,8 +163,6 @@ const findIndexById = (id: number) => {
             </IconField>
           </div>
         </template>
-
-        <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
         <Column header="Image" style="min-width: 16rem">
           <template #body="slotProps">
             <img
@@ -186,7 +184,7 @@ const findIndexById = (id: number) => {
             />
           </template>
         </Column> -->
-        <Column :exportable="false" style="min-width: 12rem">
+        <Column header="Actions" :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
               icon="pi pi-pencil"

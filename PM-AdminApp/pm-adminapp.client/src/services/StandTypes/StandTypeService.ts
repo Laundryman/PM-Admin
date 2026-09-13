@@ -8,6 +8,7 @@ import { ref } from 'vue'
 await msal.initialize()
 
 const token = ref()
+const idToken = ref()
 const initialized = ref(false)
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_APP_SERVER_URL + '/api/standTypes',
@@ -28,12 +29,22 @@ export default {
     if (initialized.value !== false) {
       if (token.value) {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+        apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
       }
       apiClient.defaults.headers['Content-Type'] = 'application/json'
 
       // let catFilter = new standTypeFilter()
       // catFilter.GetParents = true
-      return apiClient.post('/getStandTypes', filter)
+      let response = await apiClient
+        .post('/getStandTypes', filter)
+        .then((response) => {
+          return response.data
+        })
+        .catch((err) => {
+          console.error('Error fetching stand types:', err)
+          throw err
+        })
+      return response
     } else {
       throw new Error('StandTypeService not initialized')
     }
@@ -42,6 +53,7 @@ export default {
     if (initialized.value !== false) {
       if (token.value) {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+        apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
       }
       apiClient.defaults.headers['Content-Type'] = 'application/json'
 
@@ -56,6 +68,7 @@ export default {
     if (initialized.value !== false) {
       if (token.value) {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+        apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
       }
       let catFilter = new standTypeFilter()
       catFilter.parentStandTypeId = parentId
@@ -128,7 +141,8 @@ export default {
     }
     const t = await Auth.getToken()
     token.value = t
-    console.log('StandTypeService initialized with token:', token.value)
+    const idT = await Auth.getIdToken()
+    idToken.value = idT
     initialized.value = true
   },
 }

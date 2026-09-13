@@ -69,7 +69,7 @@ export default {
     }
     const t = await Auth.getToken()
     token.value = t
-    console.log('PartService initialized with token:', token.value)
+    console.log('CountryService initialized with token:', token.value)
     initialized.value = true
   },
 }

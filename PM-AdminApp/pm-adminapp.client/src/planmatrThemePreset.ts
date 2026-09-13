@@ -22,6 +22,9 @@ const PMAdmin = definePreset(Lara, {
       900: '{sky.900}',
       950: '{sky.950}',
     },
+    tooltip: {
+      maxWidth: '20rem',
+    },
   },
   components: {
     DataTable: {
@@ -33,6 +36,11 @@ const PMAdmin = definePreset(Lara, {
           transition-duration: ${dt('my.transition.fast')};
       }
     `,
+    },
+    tooltip: {
+      root: {
+        maxWidth: '20rem',
+      },
     },
   },
 })
