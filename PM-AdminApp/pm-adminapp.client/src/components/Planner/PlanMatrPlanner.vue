@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import * as appShapes from '@/planner/shapesDELETE/app-shapes'
+// import * as appShapes from '@/planner/shapesDELETE/app-shapes'
 import * as joint from '@joint/plus'
 
 import { onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
@@ -578,8 +578,8 @@ onMounted(async () => {
     drawGrid: true,
     model: graph.value as joint.dia.Graph,
     cellViewNamespace: shapenamespace,
-    defaultLink: <joint.dia.Link>new appShapes.app.Link(),
-    defaultConnectionPoint: appShapes.app.Link.connectionPoint,
+    // defaultLink: <joint.dia.Link>new appShapes.app.Link(),
+    // defaultConnectionPoint: appShapes.app.Link.connectionPoint,
     routerNamespace: {
       normal: joint.routers.normal,
       orthogonal: joint.routers.orthogonal,
@@ -2775,7 +2775,7 @@ function showToast(event: any) {
 </script>
 
 <template>
-  <Toast ref="toast" position="top-right" />
+  <Toast position="top-right" />
   <div id="app" ref="app" class="joint-app joint-theme-light">
     <div class="app-header">
       <!-- <img src="@/planner/assets/icons/joint-js.svg" alt="JointJS" /> -->

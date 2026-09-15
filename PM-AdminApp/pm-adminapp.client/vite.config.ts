@@ -46,6 +46,11 @@ const target = env.ASPNETCORE_HTTPS_PORT
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  optimizeDeps: {
+    include: [
+      'joint-plus.tgz', // Replace with your actual module name
+    ],
+  },
   plugins: [
     // plugin(),
     tailwindcss(),
