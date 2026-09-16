@@ -41,7 +41,6 @@ const pitchCount = ref<number>(0)
 const colsTable = ref<Column[] | null>(null)
 const rowsCount = ref<number>(0)
 const rowsTable = ref<Row[] | null>(null)
-
 const locationFilters = useLocationFilters()
 const selectedRegion = ref()
 const selectedCountry = ref()
@@ -501,7 +500,7 @@ async function onFormSubmit({ valid }: any) {
       :class="{ hidden: !loading }"
     ></div>
     <div>
-      <h1>Edit Stand</h1>
+      <h1><span v-if="!newStand">Edit Stand</span><span v-else>New Stand</span></h1>
       <div class="edit-stand-view">
         <Toast position="top-right" group="tr" />
         <Toast position="bottom-center" group="bc" />
@@ -514,7 +513,7 @@ async function onFormSubmit({ valid }: any) {
           />
         </div>
         <div :class="{ 'z-10': !loading }" class="w-full sticky bg-white top-16 block p-10">
-          <h2>Edit Stand</h2>
+          <h2><span v-if="!newStand">Edit Stand</span><span v-else>New Stand</span></h2>
           <div class="m-5 p-5 mb-0 pb-0 grid gap-2 grid-cols-3">
             <div class="flex flex-col gap-1">
               <span class="font-bold text-x inline">{{ standModel.name }}</span>

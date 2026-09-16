@@ -74,7 +74,7 @@ const tabId = ref('0')
 const productForm = useProductForm()
 const productFormTemplateRef = useTemplateRef<FormInstance>('product-form')
 const initialValues = ref(new Product())
-
+const newProduct = ref(true);
 
 // Shade Management
 const shademanagement = useShadeManagement()
@@ -90,6 +90,7 @@ onMounted(async () => {
   productFilter.id = Number(router.currentRoute.value.params.id) || 0
   await productStore.initialize(productFilter.id)
   if (productFilter.id != 0) {
+    newProduct.value = false;
     await productStore.getShadesForProduct(productFilter.id).then((response) => {
       shades.value = response
       console.log('Shades loaded', shades.value)
@@ -105,7 +106,9 @@ onMounted(async () => {
     productModel.value.brandId = brandStore.activeBrand?.id ?? 0
   }
 
-  if (router.currentRoute.value.name === 'editProduct') initialiseProductForm()
+  if (router.currentRoute.value.name === 'editProduct') {
+    initialiseProductForm()
+  }
 
 
   if (productModel.value.productImage != null && productModel.value.productImage.length > 0) {
@@ -403,7 +406,7 @@ async function saveShade(updateShade: Shade) {
       />
     </div>
     <div class="w-full sticky bg-white top-16 block p-10 z-10">
-      <h2>Edit Product</h2>
+      <h2><span v-if="!newProduct">Edit Product</span><span v-else>New Product</span></h2>
       <div class="grid gap-2 grid-cols-2 ml-10">
         <div class="flex flex-col gap-1">
           <span class="font-bold text-xl">{{ productModel.name }}</span>
@@ -482,14 +485,14 @@ async function saveShade(updateShade: Shade) {
             <legend class="text-lg font-bold mb-2">Details</legend>
             <div class="grid grid-cols-2 gap-10">
               <div class="flex flex-col gap-1">
-                <label for="name">Part Name:</label>
+                <label for="name">Product Name:</label>
                 <InputText
                   v-model="productModel.name"
                   name="name"
                   :value="productModel.name"
                   type="text"
                   length="255"
-                  placeholder="Part Name"
+                  placeholder="Product Name"
                   fluid
                 />
                 <Message

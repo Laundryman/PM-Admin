@@ -9,6 +9,8 @@ import { default as planogramService } from '@/services/Planograms/PlanogramServ
 
 import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
+import Lock from '@primeicons/vue/lock'
+import LockOpen from '@primeicons/vue/lock-open'
 import { FilterMatchMode } from '@primevue/core/api/'
 import { storeToRefs } from 'pinia'
 import { onMounted, ref, watch } from 'vue'
@@ -368,20 +370,8 @@ function editPlanogram(planogram: searchPlanogramInfo) {
         </Column>
         <Column field="locked" header="Locked" datatype="boolean" sortable style="min-width: 6rem">
           <template #body="{ data }">
-            <!-- <i
-              class="pi"
-              :class="{
-                'pi-check-circle text-green-500': !data.locked,
-                'pi-times-circle text-red-400': data.locked,
-              }"
-            ></i> -->
-            <CheckCircle
-              v-if="!data.locked"
-              class="text-green-500"
-              size="20"
-              v-tooltip="'Unlocked'"
-            />
-            <TimesCircle v-else class="text-red-400" size="20" v-tooltip="'Locked'" />
+            <Lock v-if="data.locked" class="text-red-400" />
+            <LockOpen v-else class="text-green-500" />
           </template>
           <template #filter="{ filterModel }">
             <Checkbox
