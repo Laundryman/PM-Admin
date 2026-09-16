@@ -21,6 +21,8 @@ const { regions, countries } = useLocationFilters()
 const selectedRegion = ref()
 const selectedCountry = ref()
 const clusters = ref<searchClusterInfo[]>([])
+const standTypes = ref<{ label: string; value: string }[]>([])
+const filteredStandType = ref<{ label: string; value: string }[]>([])
 const selectedClusters = ref<searchClusterInfo[]>([])
 const selectedCluster = ref<searchClusterInfo | null>(null)
 const showManageClusterDialog = ref(false)
@@ -86,23 +88,11 @@ onMounted(async () => {
 
   var filter = new ClusterFilter()
   filter.brandId = brandid
-  await clusterService.searchClusters(filter).then((response) => {
+  await clusterService.searchClusters(filter).then(async (response) => {
     clusters.value = response
-    console.log('Clusters loaded', clusters.value)
+    await getStandTypesFromClusters(clusters.value)
     loading.value = false
   })
-
-  //   FilterService.register(part_FILTER.value, (value: any, filter: any) => {
-  //     if (filter === undefined || filter === null || filter.trim() === '') {
-  //       return true
-  //     }
-
-  //     if (value === undefined || value === null) {
-  //       return false
-  //     }
-
-  //     return value.toString() === filter.toString()
-  //   })
 })
 
 async function onRegionChange() {
@@ -132,6 +122,28 @@ async function onCountryChange() {
   } else {
     countries.value = []
   }
+}
+
+function onStandTypeChange() {
+  if (filteredStandType.value) {
+    filters.value.standTypeName.value = filteredStandType.value ?? null
+  }
+}
+
+async function getStandTypesFromClusters(clustersList: searchClusterInfo[]) {
+  for (var cl of clustersList) {
+    let st = { label: cl.standTypeName, value: cl.standTypeName }
+    if (st.label != null) {
+      if (standTypes.value != null && standTypes.value != undefined) {
+        if (!standTypes.value.some((c: { value: string }) => c.value === st.value)) {
+          standTypes.value.push(st)
+        }
+      } else {
+        standTypes.value = [st]
+      }
+    }
+  }
+  standTypes.value.sort((a, b) => a.label.localeCompare(b.label))
 }
 
 async function clearFilters() {
@@ -268,7 +280,16 @@ async function saveLayout({ valid }: any) {
           class="mr-2"
         />
 
-        <!-- <Button label="Clear" icon="pi pi-filter" @click="clearFilters" /> -->
+        <Select
+          v-model="filteredStandType"
+          :options="standTypes ?? []"
+          @change="onStandTypeChange"
+          option-label="label"
+          option-value="label"
+          placeholder="Select a stand type"
+          class="mr-2"
+        />
+
         <Button
           type="button"
           icon="pi pi-filter-slash"
@@ -336,14 +357,14 @@ async function saveLayout({ valid }: any) {
           filterField="standTypeName"
           style="min-width: 10rem"
         >
-          <template #filter="{ filterModel, filterCallback }">
+          <!-- <template #filter="{ filterModel, filterCallback }">
             <InputText
               v-model="filterModel.value"
               type="text"
               @input="filterCallback()"
               placeholder="Search by stand type"
             />
-          </template>
+          </template> -->
         </Column>
         <Column
           field="standAssemblyNumber"

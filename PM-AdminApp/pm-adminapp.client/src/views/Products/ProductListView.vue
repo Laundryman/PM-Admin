@@ -5,6 +5,7 @@ import { useLocationFilters } from '@/components/composables/locationFilters'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
 import { ProductFilter } from '@/models/Products/productFilter.model'
 import { searchProductInfo } from '@/models/Products/searchProductInfo.model'
+import { default as categoryService } from '@/services/Categories/CategoryService'
 import { default as countryService } from '@/services/Countries/CountryService'
 import { default as productService } from '@/services/Products/ProductService'
 import { useBrandStore } from '@/stores/brandStore'
@@ -16,8 +17,10 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const { regions, countries } = useLocationFilters()
+const categories = ref()
 const selectedRegion = ref()
 const selectedCountry = ref()
+const selectedCategory = ref()
 const products = ref<searchProductInfo[]>([])
 const selectedProducts = ref<searchProductInfo[]>([])
 const toast = useToast()
@@ -42,6 +45,8 @@ watch(brand, async (newBrand) => {
       products.value = response
       console.log('Products loaded for brand change', products.value)
     })
+
+    await getCategoriesFromProducts(products.value)
     let rFilter = new regionFilter()
     rFilter.brandId = newBrand.id
     useLocationFilters()
@@ -57,7 +62,7 @@ onMounted(async () => {
   layout.layoutState.disableBrandSelect = false
   await productService.initialise()
   await countryService.initialise()
-
+  await categoryService.initialise()
   let brandid = brandStore.activeBrand?.id ?? 0
   let rFilter = new regionFilter()
   rFilter.brandId = brandid
@@ -67,6 +72,12 @@ onMounted(async () => {
       regions.value = response
     })
 
+  // await categoryService.getAllCategories().then((data) => {
+  //   // create categoryOptions array for select dropdown
+  //   categories.value = data.data
+  //   loading.value = false
+  // })
+
   var filter = new ProductFilter()
   filter.brandId = brandid
   await productService.searchProducts(filter).then((response) => {
@@ -74,17 +85,7 @@ onMounted(async () => {
     loading.value = false
   })
 
-  //   FilterService.register(part_FILTER.value, (value: any, filter: any) => {
-  //     if (filter === undefined || filter === null || filter.trim() === '') {
-  //       return true
-  //     }
-
-  //     if (value === undefined || value === null) {
-  //       return false
-  //     }
-
-  //     return value.toString() === filter.toString()
-  //   })
+  await getCategoriesFromProducts(products.value)
 })
 
 async function onRegionChange() {
@@ -97,6 +98,7 @@ async function onRegionChange() {
       products.value = response
       console.log('Products loaded', products.value)
     })
+    filters.value.categoryName.value = selectedCategory.value ?? null
   } else {
     countries.value = []
   }
@@ -111,11 +113,32 @@ async function onCountryChange() {
       products.value = response
       console.log('Products loaded', products.value)
     })
+    filters.value.categoryName.value = selectedCategory.value ?? null
   } else {
     countries.value = []
   }
 }
 
+async function getCategoriesFromProducts(products: searchProductInfo[]) {
+  // Implement the logic to set categories from parts
+  for (var product of products) {
+    let cat = { label: product.categoryName, value: product.categoryId }
+    if (categories.value !== null && categories.value !== undefined) {
+      if (!categories.value.some((c: { value: number }) => c.value === cat.value)) {
+        categories.value.push(cat)
+      }
+    } else {
+      categories.value = [cat]
+    }
+  }
+  categories.value.sort((a, b) => a.label.localeCompare(b.label))
+}
+
+function onCategoryChange() {
+  if (selectedCategory.value) {
+    filters.value.categoryName.value = selectedCategory.value ?? null
+  }
+}
 // async function filterPublished() {
 //   let filter = new ProductFilter()
 //   filter.brandId = layout.getActiveBrand?.id ?? 0
@@ -144,6 +167,8 @@ async function clearFilters() {
     regions.value = response
     console.log('Regions loaded', regions.value)
   })
+
+  filters.value.categoryName.value = null
 }
 
 function editProduct(product: searchProductInfo) {
@@ -188,12 +213,16 @@ function copyProduct(product: searchProductInfo) {
           class="mr-2"
         />
 
-        <!-- <ToggleButton
-          v-model="showPublishedOnly"
-          onLabel="Show Published"
-          offLabel="Show All"
-          @click="filterPublished()"
-        /> -->
+        <Select
+          v-model="selectedCategory"
+          :options="categories ?? []"
+          @change="onCategoryChange"
+          option-label="label"
+          option-value="label"
+          placeholder="Select a category"
+          class="mr-2"
+        />
+
         <Button
           type="button"
           icon="pi pi-filter-slash"

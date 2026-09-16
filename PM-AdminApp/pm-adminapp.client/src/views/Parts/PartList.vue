@@ -18,6 +18,8 @@ import { useRouter } from 'vue-router'
 const { regions, countries } = useLocationFilters()
 const selectedRegion = ref()
 const selectedCountry = ref()
+const selectedCategory = ref()
+const categories = ref<{ label: string; value: number }[]>([])
 const selectedPart = ref<SearchPartInfo | null>(null)
 const parts = ref<SearchPartInfo[]>([])
 // const selectedParts = ref<SearchPartInfo[]>([])
@@ -67,23 +69,27 @@ onMounted(async () => {
 
   var filter = new PartFilter()
   filter.brandId = brandid
-  await partService.searchParts(filter).then((response) => {
+  await partService.searchParts(filter).then(async (response) => {
     parts.value = response
+    await getCategoriesFromParts(parts.value)
     loading.value = false
   })
-
-  //   FilterService.register(part_FILTER.value, (value: any, filter: any) => {
-  //     if (filter === undefined || filter === null || filter.trim() === '') {
-  //       return true
-  //     }
-
-  //     if (value === undefined || value === null) {
-  //       return false
-  //     }
-
-  //     return value.toString() === filter.toString()
-  //   })
 })
+
+async function getCategoriesFromParts(partsList: SearchPartInfo[]) {
+  // Implement the logic to set categories from parts
+  for (var part of partsList) {
+    let cat = { label: part.categoryName, value: part.categoryId }
+    if (categories.value !== null && categories.value !== undefined) {
+      if (!categories.value.some((c: { value: number }) => c.value === cat.value)) {
+        categories.value.push(cat)
+      }
+    } else {
+      categories.value = [cat]
+    }
+  }
+  categories.value.sort((a, b) => a.label.localeCompare(b.label))
+}
 
 async function onRegionChange() {
   if (selectedRegion.value) {
@@ -114,9 +120,16 @@ async function onCountryChange() {
   }
 }
 
+function onCategoryChange() {
+  if (selectedCategory.value) {
+    filters.value.categoryName.value = selectedCategory.value ?? null
+  }
+}
+
 async function clearFilters() {
   selectedRegion.value = null
   selectedCountry.value = null
+  selectedCategory.value = null
   countries.value = []
   let filter = new PartFilter()
   filter.brandId = brandStore.activeBrand?.id ?? 0
@@ -130,6 +143,8 @@ async function clearFilters() {
     regions.value = response
     console.log('Regions loaded', regions.value)
   })
+
+  filters.value.categoryName.value = null
 }
 
 function editPart(part: SearchPartInfo) {
@@ -202,7 +217,16 @@ function copyPart(part: SearchPartInfo) {
           class="mr-2"
         />
 
-        <!-- <Button label="Clear" icon="pi pi-filter" @click="clearFilters" /> -->
+        <Select
+          v-model="selectedCategory"
+          :options="categories ?? []"
+          @change="onCategoryChange"
+          option-label="label"
+          option-value="label"
+          placeholder="Select a category"
+          class="mr-2"
+        />
+
         <Button
           type="button"
           icon="pi pi-filter-slash"
@@ -269,14 +293,14 @@ function copyPart(part: SearchPartInfo) {
           filterField="categoryName"
           style="min-width: 10rem"
         >
-          <template #filter="{ filterModel, filterCallback }">
+          <!-- <template #filter="{ filterModel, filterCallback }">
             <InputText
               v-model="filterModel.value"
               type="text"
               @input="filterCallback()"
               placeholder="Search by category"
             />
-          </template>
+          </template> -->
         </Column>
         <Column field="partTypeName" header="Part Type" sortable style="min-width: 10rem"></Column>
         <Column field="dateUpdated" header="Last Updated" sortable style="min-width: 12rem">

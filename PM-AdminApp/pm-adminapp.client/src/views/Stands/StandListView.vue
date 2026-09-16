@@ -18,6 +18,10 @@ const router = useRouter()
 const { regions, countries } = useLocationFilters()
 const selectedRegion = ref()
 const selectedCountry = ref()
+const selectedStandType = ref()
+const selectedParentStandType = ref()
+const standTypes = ref<{ label: string; value: string }[]>([])
+const parentStandTypes = ref<{ label: string; value: string }[]>([])
 const stands = ref<searchStandInfo[]>([])
 const selectedStands = ref<searchStandInfo[]>([])
 const toast = useToast()
@@ -69,22 +73,13 @@ onMounted(async () => {
 
   var filter = new StandFilter()
   filter.brandId = brandid
-  await standService.searchStands(filter).then((response) => {
+  await standService.searchStands(filter).then(async (response) => {
     stands.value = response
+    // await getParentStandTypesFromStands(stands.value)
+    await getStandTypesFromStands(stands.value)
     console.log('Stands loaded', stands.value)
   })
   loading.value = false
-  //   FilterService.register(part_FILTER.value, (value: any, filter: any) => {
-  //     if (filter === undefined || filter === null || filter.trim() === '') {
-  //       return true
-  //     }
-
-  //     if (value === undefined || value === null) {
-  //       return false
-  //     }
-
-  //     return value.toString() === filter.toString()
-  //   })
 })
 
 async function onRegionChange() {
@@ -123,6 +118,7 @@ async function onCountryChange() {
 async function clearFilters() {
   selectedRegion.value = null
   selectedCountry.value = null
+  selectedStandType.value = null
   countries.value = []
   let filter = new StandFilter()
   filter.brandId = brandStore.activeBrand?.id ?? 0
@@ -136,6 +132,54 @@ async function clearFilters() {
     regions.value = response
     console.log('Regions loaded', regions.value)
   })
+
+  filters.value.standTypeName.value = null
+}
+
+function onStandTypeChange() {
+  if (selectedStandType.value) {
+    filters.value.standTypeName.value = selectedStandType.value ?? null
+  }
+}
+
+function onParentStandTypeChange() {
+  if (selectedParentStandType.value) {
+    filters.value.parentStandTypeName.value = selectedParentStandType.value ?? null
+  }
+}
+
+async function getStandTypesFromStands(standsList: searchStandInfo[]) {
+  // Implement the logic to set categories from parts
+  for (var stn of standsList) {
+    let cat = { label: stn.standTypeName, value: stn.standTypeName }
+    if (cat.label != null) {
+      if (standTypes.value !== null && standTypes.value !== undefined) {
+        if (!standTypes.value.some((c: { value: string }) => c.value === cat.value)) {
+          standTypes.value.push(cat)
+        }
+      } else {
+        standTypes.value = [cat]
+      }
+    }
+  }
+  standTypes.value.sort((a, b) => a.label.localeCompare(b.label))
+}
+
+async function getParentStandTypesFromStands(standsList: searchStandInfo[]) {
+  // Implement the logic to set categories from parts
+  for (var stn of standsList) {
+    let cat = { label: stn.parentStandTypeName, value: stn.parentStandTypeName }
+    if (cat.label != null) {
+      if (parentStandTypes.value !== null && parentStandTypes.value !== undefined) {
+        if (!parentStandTypes.value.some((c: { value: string }) => c.value === cat.value)) {
+          parentStandTypes.value.push(cat)
+        }
+      } else {
+        parentStandTypes.value = [cat]
+      }
+    }
+  }
+  parentStandTypes.value.sort((a, b) => a.label.localeCompare(b.label))
 }
 
 function editStand(stand: searchStandInfo) {
@@ -189,7 +233,26 @@ function copyStand(stand: searchStandInfo) {
           class="mr-2"
         />
 
-        <!-- <Button label="Clear" icon="pi pi-filter" @click="clearFilters" /> -->
+        <!-- <Select
+          v-model="selectedParentStandType"
+          :options="parentStandTypes ?? []"
+          @change="onParentStandTypeChange"
+          option-label="label"
+          option-value="label"
+          placeholder="Select a parent stand type"
+          class="mr-2"
+        /> -->
+
+        <Select
+          v-model="selectedStandType"
+          :options="standTypes ?? []"
+          @change="onStandTypeChange"
+          option-label="label"
+          option-value="label"
+          placeholder="Select a stand type"
+          class="mr-2"
+        />
+
         <Button
           type="button"
           icon="pi pi-filter-slash"
@@ -253,14 +316,14 @@ function copyStand(stand: searchStandInfo) {
           filterField="parentStandTypeName"
           style="min-width: 16rem"
         >
-          <template #filter="{ filterModel, filterCallback }">
+          <!-- <template #filter="{ filterModel, filterCallback }">
             <InputText
               v-model="filterModel.value"
               type="text"
               @input="filterCallback()"
               placeholder="Search by parent stand type"
             />
-          </template>
+          </template> -->
         </Column>
         <Column
           field="standTypeName"
@@ -268,14 +331,14 @@ function copyStand(stand: searchStandInfo) {
           filterField="standTypeName"
           style="min-width: 16rem"
         >
-          <template #filter="{ filterModel, filterCallback }">
+          <!-- <template #filter="{ filterModel, filterCallback }">
             <InputText
               v-model="filterModel.value"
               type="text"
               @input="filterCallback()"
               placeholder="Search by stand type"
             />
-          </template>
+          </template> -->
         </Column>
         <Column
           field="standAssemblyNumber"

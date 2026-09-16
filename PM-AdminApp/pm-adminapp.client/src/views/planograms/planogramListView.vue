@@ -26,6 +26,7 @@ const planograms = ref<searchPlanogramInfo[]>([])
 const selectedPlanograms = ref<searchPlanogramInfo[]>([])
 const selectedRegion = ref()
 const selectedCountry = ref()
+const selectedStatus = ref()
 
 const brand = storeToRefs(brandStore).activeBrand
 
@@ -34,20 +35,35 @@ const filters = ref({
   name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   standTypeName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   statusName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-
+  regionId: { value: null, matchMode: FilterMatchMode.EQUALS },
+  countryId: { value: null, matchMode: FilterMatchMode.EQUALS },
   locked: { value: null, matchMode: FilterMatchMode.EQUALS },
 })
+
 const statuses = ref([
-  'Editing',
-  'Submitted',
-  'Ordered',
-  'Deleted',
-  'Approved',
-  'Validated',
-  'Archived',
+  { label: 'Editing', value: PlanogramStatusEnum.Editing },
+  { label: 'Submitted', value: PlanogramStatusEnum.Submitted },
+  { label: 'Validated', value: PlanogramStatusEnum.Validated },
+  { label: 'Approved', value: PlanogramStatusEnum.Approved },
+  // { label: 'Ordered', value: PlanogramStatusEnum.Ordered },
+  { label: 'Deleted', value: PlanogramStatusEnum.Deleted },
 ])
+
+// const statuses = ref([
+//   'Editing',
+//   'Submitted',
+//   'Ordered',
+//   'Deleted',
+//   'Approved',
+//   'Validated',
+//   'Archived',
+// ])
 watch(brand, async (newBrand) => {
   if (newBrand) {
+    filters.value.countryId.value = null
+    filters.value.regionId.value = null
+    filters.value.statusName.value = null
+
     let filter = new PlanogramFilter()
     filter.brandId = newBrand.id
     await planogramService.searchPlanograms(filter).then((response) => {
@@ -99,15 +115,18 @@ onMounted(async () => {
 async function onRegionChange() {
   if (selectedRegion.value) {
     countries.value = await useLocationFilters().onRegionChange(selectedRegion.value)
-    let filter = new PlanogramFilter()
-    filter.brandId = brandStore.activeBrand?.id ?? 0
+    // let filter = new PlanogramFilter()
+    // filter.brandId = brandStore.activeBrand?.id ?? 0
 
-    filter.regionId = selectedRegion.value
-    filter.regionsList = selectedRegion.value ? selectedRegion.value.toString() : ''
-    await planogramService.searchPlanograms(filter).then((response) => {
-      planograms.value = response
-      console.log('Planograms loaded', planograms.value)
-    })
+    // filter.regionId = selectedRegion.value
+    // filter.regionsList = selectedRegion.value ? selectedRegion.value.toString() : ''
+    // await planogramService.searchPlanograms(filter).then((response) => {
+    //   planograms.value = response
+    //   console.log('Planograms loaded', planograms.value)
+    // })
+    filters.value.countryId.value = selectedCountry.value
+    filters.value.regionId.value = selectedRegion.value
+    filters.value.statusName.value = selectedStatus.value
   } else {
     countries.value = []
   }
@@ -115,15 +134,18 @@ async function onRegionChange() {
 
 async function onCountryChange() {
   if (selectedCountry.value) {
-    let filter = new PlanogramFilter()
-    filter.brandId = brandStore.activeBrand?.id ?? 0
-    filter.countryId = selectedCountry.value
-    filter.countriesList = selectedCountry.value ? selectedCountry.value.toString() : ''
-    filter.regionsList = selectedRegion.value ? selectedRegion.value.toString() : ''
-    await planogramService.searchPlanograms(filter).then((response) => {
-      planograms.value = response
-      console.log('Planograms loaded', planograms.value)
-    })
+    //   let filter = new PlanogramFilter()
+    //   filter.brandId = brandStore.activeBrand?.id ?? 0
+    //   filter.countryId = selectedCountry.value
+    //   filter.countriesList = selectedCountry.value ? selectedCountry.value.toString() : ''
+    //   filter.regionsList = selectedRegion.value ? selectedRegion.value.toString() : ''
+    //   await planogramService.searchPlanograms(filter).then((response) => {
+    //     planograms.value = response
+    //     console.log('Planograms loaded', planograms.value)
+    //   })
+    filters.value.countryId.value = selectedCountry.value
+    filters.value.regionId.value = selectedRegion.value
+    filters.value.statusName.value = selectedStatus.value
   } else {
     countries.value = []
   }
@@ -150,9 +172,22 @@ function getStatusSeverity(status: string): string {
   }
 }
 
+function onStatusChange() {
+  if (selectedStatus.value) {
+    // let statusName = statuses.value.find((s) => s.value === selectedStatus.value)?.label;
+    // filters.value.statusName.value = statusName ?? null;
+    filters.value.statusName.value = selectedStatus.value
+  }
+}
+
 async function clearFilters() {
   selectedRegion.value = null
   selectedCountry.value = null
+  selectedStatus.value = null
+  filters.value.statusName.value = selectedStatus.value
+  filters.value.countryId.value = selectedCountry.value
+  filters.value.regionId.value = selectedRegion.value
+
   countries.value = []
   let filter = new PlanogramFilter()
   filter.brandId = brandStore.activeBrand?.id ?? 0
@@ -270,6 +305,16 @@ function editPlanogram(planogram: searchPlanogramInfo) {
           class="mr-2"
         />
 
+        <Select
+          v-model="selectedStatus"
+          :options="statuses ?? []"
+          @change="onStatusChange"
+          option-label="label"
+          option-value="label"
+          placeholder="Select a status"
+          class="mr-2"
+        />
+
         <Button
           type="button"
           icon="pi pi-filter-slash"
@@ -343,7 +388,7 @@ function editPlanogram(planogram: searchPlanogramInfo) {
           <template #body="{ data }">
             <Tag :value="data.statusName" :severity="getStatusSeverity(data.statusName)" />
           </template>
-          <template #filter="{ filterModel, filterCallback }">
+          <!-- <template #filter="{ filterModel, filterCallback }">
             <Select
               v-model="filterModel.value"
               @change="filterCallback()"
@@ -356,7 +401,7 @@ function editPlanogram(planogram: searchPlanogramInfo) {
                 <Tag :value="slotProps.option" :severity="getStatusSeverity(slotProps.option)" />
               </template>
             </Select>
-          </template>
+          </template> -->
         </Column>
         <Column field="dateCreated" header="Created At" sortable style="min-width: 6rem">
           <template #body="slotProps">
@@ -398,8 +443,8 @@ function editPlanogram(planogram: searchPlanogramInfo) {
             <Button
               v-if="slotProps.data.locked"
               v-tooltip="'Unlock Planogram'"
-              severity="danger"
-              icon="pi pi-lock"
+              severity="success"
+              icon="pi pi-lock-open"
               variant="outlined"
               rounded
               class="mr-2"
@@ -408,7 +453,7 @@ function editPlanogram(planogram: searchPlanogramInfo) {
             <Button
               v-if="!slotProps.data.locked"
               v-tooltip="'Lock Planogram'"
-              icon="pi pi-lock-open"
+              icon="pi pi-lock"
               variant="outlined"
               rounded
               class="mr-2"
