@@ -75,5 +75,6 @@ export const useAuthStore = defineStore('auth', () => {
     GetToken,
     GetGraphToken,
     setCurrentlyLoggedInUserInfo,
+    currentlyLoggedInUser: userInfo,
   }
 })

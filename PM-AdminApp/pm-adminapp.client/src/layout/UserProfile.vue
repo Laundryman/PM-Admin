@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import userService from '@/services/Identity/UserService'
 import { useAuthStore } from '@/stores/auth'
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 
 const auth = useAuthStore()
+const currentUser = ref<any | null>(null)
 
 onMounted(async () => {
   if (auth.initialized === true) {
@@ -13,7 +14,14 @@ onMounted(async () => {
       await userService.getCurrentUserInfo()
     }
 
-    console.log('User Info in UserProfile:', auth.userInfo)
+    currentUser.value = auth.currentlyLoggedInUser
+    if (!currentUser.value) {
+      await userService.initialise()
+      const userInfo = await userService.getCurrentUserInfo()
+      console.log('No current user found in authStore.')
+      currentUser.value = await userService.getCurrentUserInfo()
+      auth.setCurrentlyLoggedInUserInfo(currentUser.value)
+    }
   }
 })
 // const props = defineProps({
@@ -43,8 +51,10 @@ function logout() {
         class="w-20 h-20 mb-2 border-circle shadow-2"
       /> -->
       <div class="flex flex-col gap-1">
-        <div class="text-lg font-bold text-900 mb-1">{{ auth.userInfo?.displayName }}</div>
-        <div class="text-sm text-600 mb-3">{{ auth.userInfo?.userPrincipalName }}</div>
+        <div class="text-lg font-bold text-900 mb-1">
+          {{ auth.currentlyLoggedInUser?.displayName }}
+        </div>
+        <div class="text-sm text-600 mb-3">{{ auth.currentlyLoggedInUser?.mail }}</div>
         <button
           pButton
           type="button"

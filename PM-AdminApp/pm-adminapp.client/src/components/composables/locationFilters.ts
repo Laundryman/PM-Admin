@@ -7,6 +7,8 @@ import { ref } from 'vue'
 export function useLocationFilters() {
   const regions = ref<Region[] | null>([])
   const countries = ref<Country[] | null>([])
+  const availableCountries = ref<number[] | null>([])
+  const availableRegions = ref<number[] | null>([])
 
   async function getRegions(rFilter: regionFilter) {
     await countryService
@@ -19,6 +21,15 @@ export function useLocationFilters() {
     return regions.value
   }
 
+  async function setAvailableCountries(countryIds: number[]) {
+    //countries.value = countries.value?.filter((c) => availableCountries.includes(c.id)) ?? []
+    availableCountries.value = countryIds
+  }
+
+  async function setAvailableRegions(regionIds: number[]) {
+    availableRegions.value = regionIds
+    // regions.value = regions.value?.filter((r) => availableRegions.value?.includes(r.id)) ?? []
+  }
   async function onRegionChange(selectedRegion: number | null) {
     if (selectedRegion) {
       await countryService
@@ -34,7 +45,10 @@ export function useLocationFilters() {
     return countries.value
   }
 
-  async function getCountriesForRegions(selectedRegions: number[] | null) {
+  async function getCountriesForRegions(
+    selectedRegions: number[] | null,
+    availableCountriesParam: number[] | null = null,
+  ) {
     if (selectedRegions && selectedRegions.length > 0) {
       await countryService
         .initialise()
@@ -45,6 +59,10 @@ export function useLocationFilters() {
         allCountries = allCountries.concat(response)
       }
       countries.value = allCountries
+      if (availableCountriesParam?.length) {
+        countries.value =
+          countries.value?.filter((c) => availableCountriesParam?.includes(c.id)) ?? []
+      }
       console.log('Countries loaded for regions', selectedRegions, countries.value)
     } else {
       countries.value = []
@@ -52,5 +70,15 @@ export function useLocationFilters() {
     return countries.value
   }
 
-  return { regions, countries, getRegions, onRegionChange, getCountriesForRegions }
+  return {
+    regions,
+    countries,
+    getRegions,
+    onRegionChange,
+    getCountriesForRegions,
+    setAvailableCountries,
+    setAvailableRegions,
+    availableCountries,
+    availableRegions,
+  }
 }

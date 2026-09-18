@@ -54,6 +54,9 @@ const { regions, countries } = useLocationFilters()
 const locationFilters = useLocationFilters()
 const standTypes = ref<StandType[] | null>([])
 const stands = ref<Stand[] | null>([]) // Replace 'any' with the appropriate type for stands
+const allStandsForStandType = ref<Stand[] | null>(null)
+const availableCountries = ref<number[] | null>(null)
+const availableRegions = ref<number[] | null>(null)
 
 const resolver = ref(
   zodResolver(
@@ -70,14 +73,7 @@ const resolver = ref(
 onMounted(async () => {
   await countryService.initialise()
 
-  let brandid = brandStore.activeBrand?.id ?? 0
-  let rFilter = new regionFilter()
-  rFilter.brandId = brandid
-  await useLocationFilters()
-    .getRegions(rFilter)
-    .then((response) => {
-      regions.value = response
-    })
+  standTypes.value = await getStandTypes()
 })
 // async function onRegionChange() {
 //   if (selectedRegion.value) {
@@ -116,7 +112,46 @@ async function getStandTypes() {
   return await standTypeService.getAllStandTypes(filter)
 }
 
-async function getStands() {
+async function getAvailableCountries() {
+  // Implement the logic to get available countries here
+  availableCountries.value = []
+  availableRegions.value = []
+  for (let stand of allStandsForStandType.value) {
+    // Implement the logic to get available countries for each stand type here
+    let countryArray = stand.countriesList.split(',').map((id) => parseInt(id))
+    availableCountries.value = availableCountries.value.concat(countryArray ?? [])
+    let regionArray = stand.regionsList.split(',').map((id) => parseInt(id))
+    availableRegions.value = availableRegions.value.concat(regionArray ?? [])
+  }
+
+  //remove duplicates
+  availableCountries.value = [...new Set(availableCountries.value)]
+  availableRegions.value = [...new Set(availableRegions.value)]
+
+  //get regions
+  let brandid = brandStore.activeBrand?.id ?? 0
+  let rFilter = new regionFilter()
+  rFilter.brandId = brandid
+  rFilter.idList = availableRegions.value.join(',')
+
+  regions.value = []
+  countries.value = []
+  await useLocationFilters()
+    .getRegions(rFilter)
+    .then((response) => {
+      regions.value = response
+    })
+}
+
+async function onStandTypeChange() {
+  //clear previous selections related to stands
+  selectedStandId.value = null
+  selectedStand.value = null
+  selectedLayoutId.value = null
+  selectedLayout.value = null
+  ms_selectedCountries.value = []
+  ms_selectedRegions.value = []
+
   // Implement the logic to get stands here
   if (selectedStandTypeId.value) {
     selectedStandType.value =
@@ -124,14 +159,13 @@ async function getStands() {
     await standService.initialise()
     let filter = new StandFilter()
     filter.brandId = brandStore.activeBrand?.id
-    // filter.countryId = selectedCountryId.value
-    filter.countryIds = ms_selectedCountries.value.map((id) => id.toString()).join(',') // Convert to array of numbers
-    filter.regionIds = ms_selectedRegions.value.map((id) => id.toString()).join(',')
 
     filter.standTypeId = selectedStandTypeId.value as number
     await clusterService.initialise()
-    stands.value = await clusterService.getStands(filter)
+    allStandsForStandType.value = await clusterService.getStands(filter)
     // Do something with the retrieved stands
+
+    await getAvailableCountries()
   }
 }
 
@@ -188,6 +222,7 @@ async function onRegionChange(evt: any) {
   if (selectedRegionIds.value.length > 0) {
     countrySelectList.value = await locationFilters.getCountriesForRegions(
       selectedRegionIds.value ?? [],
+      availableCountries.value,
     )
     //remove any countries from the selected list that are no longer in the available list
     if (ms_selectedCountries.value) {
@@ -197,15 +232,35 @@ async function onRegionChange(evt: any) {
     }
   }
 
+  stands.value = []
+  selectedStand.value = null
+  selectedLayoutId.value = null
+  selectedLayout.value = null
+  ms_selectedCountries.value = []
+
   // emit('update:selectedRegions', selectedRegionIds)
 }
 
 async function onCountryChange(evt: any) {
-  //let emitData = { countries: ms_selectedCountries.value, regions: ms_selectedRegions.value }
-  // emit('update:selectedCountries', emitData)
+  if (selectedStandTypeId.value) {
+    selectedStandType.value =
+      standTypes.value?.find((st) => st.id === selectedStandTypeId.value) ?? null
+    await standService.initialise()
+    let filter = new StandFilter()
+    filter.brandId = brandStore.activeBrand?.id
+    // filter.countryId = selectedCountryId.value
+    if (ms_selectedCountries.value?.length) {
+      filter.countryIds = ms_selectedCountries.value.map((id) => id.toString()).join(',') // Convert to array of numbers
+    }
+    if (ms_selectedRegions.value?.length) {
+      filter.regionIds = ms_selectedRegions.value.map((id) => id.toString()).join(',')
+    }
 
-  standTypes.value = await getStandTypes()
-  // console.log('Stand Types:', standTypes.value)
+    filter.standTypeId = selectedStandTypeId.value as number
+    await clusterService.initialise()
+    stands.value = await clusterService.getStands(filter)
+    // Do something with the retrieved stands
+  }
 }
 
 function onSelectAllCountriesChange(event: any) {
@@ -237,31 +292,18 @@ function clearCountrySelection() {
           <div class="md:w-1/2">
             <div class="card flex flex-col gap-4">
               <div class="form-group">
-                <label for="planogramName">Cluster Name:</label>
-                <InputText name="clusterName" id="clusterName" type="text" v-model="clusterName" />
-                <Message
-                  v-if="$form.clusterName?.invalid"
-                  severity="error"
-                  size="small"
-                  variant="simple"
-                  >{{ $form.clusterName.error?.message ?? '&nbsp;' }}</Message
-                >
-              </div>
-              <div class="form-group">
-                <label for="layoutPartNumber">Part Number:</label>
-                <InputText
-                  name="layoutPartNumber"
-                  id="layoutPartNumber"
-                  type="text"
-                  v-model="layoutPartNumber"
+                <label for="standType">Stand Type:</label>
+                <Select
+                  name="standType"
+                  id="standType"
+                  v-model="selectedStandTypeId"
+                  :options="standTypes ?? []"
+                  @change="onStandTypeChange"
+                  option-label="name"
+                  option-value="id"
+                  placeholder="Select a stand type"
+                  required
                 />
-                <Message
-                  v-if="$form.layoutPartNumber?.invalid"
-                  severity="error"
-                  size="small"
-                  variant="simple"
-                  >{{ $form.layoutPartNumber.error?.message ?? '&nbsp;' }}</Message
-                >
               </div>
 
               <div class="flex flex-col gap-2">
@@ -274,6 +316,7 @@ function clearCountrySelection() {
                   class="w-full"
                   option-label="name"
                   option-value="id"
+                  placeholder="select a region"
                   @change="onRegionChange"
                 >
                   <template #option="option">
@@ -292,17 +335,6 @@ function clearCountrySelection() {
                 >
               </div>
               <div class="flex flex-col gap-2">
-                <!-- <Select
-                  name="country"
-                  v-model="selectedCountryId"
-                  :options="countries ?? []"
-                  @change="onCountryChange"
-                  option-label="name"
-                  option-value="id"
-                  placeholder="Select a country"
-                  class="mr-2"
-                  fluid
-                /> -->
                 <label for="countries">Countries:</label>
                 <MultiSelect
                   name="countries"
@@ -313,6 +345,7 @@ function clearCountrySelection() {
                   option-label="name"
                   option-value="id"
                   @change="onCountryChange"
+                  placeholder="select a country"
                   :selectAll="selectAllCountries"
                   @selectall-change="onSelectAllCountriesChange($event)"
                 >
@@ -330,20 +363,7 @@ function clearCountrySelection() {
                   >{{ $form.countries.error?.message ?? '&nbsp;' }}</Message
                 >
               </div>
-              <div class="form-group">
-                <label for="standType">Stand Type:</label>
-                <Select
-                  name="standType"
-                  id="standType"
-                  v-model="selectedStandTypeId"
-                  :options="standTypes ?? []"
-                  @change="getStands"
-                  option-label="name"
-                  option-value="id"
-                  placeholder="Select a stand type"
-                  required
-                />
-              </div>
+
               <div class="form-group">
                 <label for="stand">Stand:</label>
                 <Select
@@ -359,11 +379,44 @@ function clearCountrySelection() {
                 />
               </div>
 
-              <div class="flex gap-2 justify-between">
-                <Button type="submit" severity="secondary" class="w-60" :fluid="false"
-                  >Create Cluster</Button
+              <div class="form-group">
+                <label for="planogramName">Cluster Name:</label>
+                <InputText
+                  name="clusterName"
+                  id="clusterName"
+                  type="text"
+                  v-model="clusterName"
+                  placeholder="Enter cluster name"
+                />
+                <Message
+                  v-if="$form.clusterName?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.clusterName.error?.message ?? '&nbsp;' }}</Message
                 >
-                <Button
+              </div>
+              <div class="form-group">
+                <label for="layoutPartNumber">Part Number:</label>
+                <InputText
+                  name="layoutPartNumber"
+                  id="layoutPartNumber"
+                  type="text"
+                  v-model="layoutPartNumber"
+                  placeholder="Enter part number"
+                />
+                <Message
+                  v-if="$form.layoutPartNumber?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.layoutPartNumber.error?.message ?? '&nbsp;' }}</Message
+                >
+              </div>
+
+              <div class="flex gap-2 justify-between">
+                <Button type="submit" class="w-60" :fluid="false">Create Cluster</Button>
+                <!-- <Button
                   type="button"
                   class="w-50"
                   icon="pi pi-filter-slash"
@@ -371,7 +424,7 @@ function clearCountrySelection() {
                   variant="outlined"
                   @click="clearFilters()"
                   :fluid="false"
-                />
+                /> -->
               </div>
             </div>
           </div>

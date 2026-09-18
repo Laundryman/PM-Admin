@@ -22,6 +22,7 @@ const unguarded = ['/', '/login', '/logout']
 // })
 
 const routes: RouteRecordRaw[] = [
+  { path: '', name: 'Welcome', component: () => import('@/views/LandingPageView.vue') },
   { path: '/', name: 'Welcome', component: () => import('@/views/LandingPageView.vue') },
   // hook('/login', auth.login),
   // hook('/logout', auth.logout),
@@ -263,11 +264,15 @@ router.beforeEach(async (to, from, next) => {
       await auth.login()
       return next()
     } catch (err) {
-      return '/'
+      return next({ name: 'Welcome' })
     }
   }
 
   // unguarded
+  if (auth.account) {
+    await brands.initialise()
+    return next({ name: 'home' })
+  }
   next()
 })
 
