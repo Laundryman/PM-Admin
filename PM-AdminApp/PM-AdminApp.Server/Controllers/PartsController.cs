@@ -19,6 +19,7 @@ using PMApplication.Interfaces.RepositoryInterfaces;
 using PMApplication.Services;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
+using PMInfrastructure.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -163,37 +164,27 @@ namespace PM_AdminApp.Server.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Something went wrong inside GetPartById action: {ex.Message}");
+                _logger.LogError(ex, $"Something went wrong inside GetPartById action: {ex.Message}");
                 return StatusCode(500, "Internal server error");
             }
         }
 
-        //[HttpGet("{id}/account")]
-        //public async Task<IActionResult> GetPartWithDetails(int id)
-        //{
-        //    try
-        //    {
-        //        var part = await _partRepository.
-
-        //        if (part == null)
-        //        {
-        //            _logger.LogError($"Part with id: {id}, hasn't been found in db.");
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            _logger.LogInfo($"Returned part with details for id: {id}");
-        //            //var ownerResult = _mapper.Map<OwnerDto>(owner);
-        //            //return Ok(ownerResult);
-        //            return Ok(part);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError($"Something went wrong inside GetPartWithDetails action: {ex.Message}");
-        //        return StatusCode(500, "Internal server error");
-        //    }
-        //}
+        [HttpDelete]
+        public async Task<IActionResult> DeletePart(long Id)
+        {
+            try
+            {
+                var part = await _partAsyncRepository.GetByIdAsync(Id);
+                await _partAsyncRepository.DeleteAsync(part);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = $"Cannot delete part with id {Id}";
+                _logger.LogError(ex, errorMessage);
+                return BadRequest(errorMessage);
+            }
+        }
 
 
         [HttpPost]

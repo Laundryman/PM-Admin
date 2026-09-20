@@ -69,11 +69,15 @@ const filters = ref({
 
 watch(brand, async (newBrand) => {
   if (newBrand) {
+    loading.value = true
     let filter = new JobFolderFilter()
+    filter.includeChildren = true
+
     filter.brandId = newBrand.id
     await jobsService.searchJobFolders(filter).then((response) => {
       jobFolders.value = response.data
       console.log('Job Folders loaded for brand change', jobFolders.value)
+      loading.value = false
     })
     let rFilter = new regionFilter()
     rFilter.brandId = newBrand.id
@@ -107,7 +111,7 @@ onMounted(async () => {
   filter.includeChildren = true
   await jobsService.searchJobFolders(filter).then((response) => {
     jobFolders.value = response.data
-    console.log('Job Folders loaded', jobFolders.value)
+    loading.value = false
   })
 })
 
@@ -336,49 +340,44 @@ function addJob(folder: JobFolder) {
 <template>
   <div>
     <h1>JobFolders View</h1>
-    <!-- JobFolders list content goes here -->
-    <Toolbar class="mb-6">
-      <template #start>
-        <Select
-          v-model="selectedRegion"
-          :options="regions ?? []"
-          @change="onRegionFilterChange"
-          option-label="name"
-          option-value="id"
-          placeholder="Select a region"
-          class="mr-2"
-        />
+    <div class="w-full sticky top-16 block z-10 bg-slate-50">
+      <Toolbar class="mb-6">
+        <template #start>
+          <Select
+            v-model="selectedRegion"
+            :options="regions ?? []"
+            @change="onRegionFilterChange"
+            option-label="name"
+            option-value="id"
+            placeholder="Select a region"
+            class="mr-2"
+          />
 
-        <Select
-          v-model="selectedCountry"
-          :options="countries ?? []"
-          @change="onCountryFilterChange"
-          option-label="name"
-          option-value="id"
-          placeholder="Select a country"
-          class="mr-2"
-        />
+          <Select
+            v-model="selectedCountry"
+            :options="countries ?? []"
+            @change="onCountryFilterChange"
+            option-label="name"
+            option-value="id"
+            placeholder="Select a country"
+            class="mr-2"
+          />
 
-        <!-- <Button label="Clear" icon="pi pi-filter" @click="clearFilters" /> -->
-        <Button
-          type="button"
-          icon="pi pi-filter-slash"
-          label="Clear"
-          variant="outlined"
-          @click="clearFilters()"
-        />
-      </template>
+          <!-- <Button label="Clear" icon="pi pi-filter" @click="clearFilters" /> -->
+          <Button
+            type="button"
+            icon="pi pi-filter-slash"
+            label="Clear"
+            variant="outlined"
+            @click="clearFilters()"
+          />
+        </template>
 
-      <template #end>
-        <Button
-          label="New"
-          icon="pi pi-plus"
-          severity="secondary"
-          class="mr-2"
-          @click="addJobFolder()"
-        />
-      </template>
-    </Toolbar>
+        <template #end>
+          <Button label="New" icon="pi pi-plus" class="mr-2" @click="addJobFolder()" />
+        </template>
+      </Toolbar>
+    </div>
     <div class="card">
       <DataTable
         ref="dt"
@@ -386,6 +385,7 @@ function addJob(folder: JobFolder) {
         v-model:expanded-rows="expandedRows"
         v-model:selection="selectedJobFolder"
         selectionMode="single"
+        :loading="loading"
         :globalFilterFields="[
           //'categoryName',
           'name',
@@ -402,6 +402,8 @@ function addJob(folder: JobFolder) {
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} job folders"
         @row-expand="onRowExpand"
         tableClass="hide-row-border"
+        scrollable
+        scrollHeight="calc(70vh - 130px)"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
@@ -422,14 +424,6 @@ function addJob(folder: JobFolder) {
           filterField="description"
           style="min-width: 16rem"
         >
-          <template #filter="{ filterModel, filterCallback }">
-            <InputText
-              v-model="filterModel.value"
-              type="text"
-              @input="filterCallback()"
-              placeholder="Search by description"
-            />
-          </template>
         </Column>
         <Column field="jobs" header="Jobs" style="min-width: 12rem">
           <template #body="slotProps">
@@ -458,7 +452,7 @@ function addJob(folder: JobFolder) {
         </Column>
 
         <template #expansion="slotProps">
-          <div class="p-4">
+          <div class="p-4 border-solid border border-gray-300">
             <h5>Jobs for {{ slotProps.data.name }}</h5>
             <DataTable
               :value="slotProps.data.jobs"

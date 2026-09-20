@@ -283,49 +283,51 @@ function editPlanogram(planogram: searchPlanogramInfo) {
     <div class="flex flex-wrap gap-4 mb-0"></div>
 
     <!-- Add your planogram list view content here -->
-    <Toolbar class="mb-6">
-      <template #start>
-        <Select
-          v-model="selectedRegion"
-          :options="regions ?? []"
-          @change="onRegionChange"
-          option-label="name"
-          option-value="id"
-          placeholder="Select a region"
-          class="mr-2"
-        />
+    <div class="w-full sticky top-16 block z-10 bg-slate-50">
+      <Toolbar class="mb-6">
+        <template #start>
+          <Select
+            v-model="selectedRegion"
+            :options="regions ?? []"
+            @change="onRegionChange"
+            option-label="name"
+            option-value="id"
+            placeholder="Select a region"
+            class="mr-2"
+          />
 
-        <Select
-          v-model="selectedCountry"
-          :options="countries ?? []"
-          @change="onCountryChange"
-          option-label="name"
-          option-value="id"
-          placeholder="Select a country"
-          class="mr-2"
-        />
+          <Select
+            v-model="selectedCountry"
+            :options="countries ?? []"
+            @change="onCountryChange"
+            option-label="name"
+            option-value="id"
+            placeholder="Select a country"
+            class="mr-2"
+          />
 
-        <Select
-          v-model="selectedStatus"
-          :options="statuses ?? []"
-          @change="onStatusChange"
-          option-label="label"
-          option-value="label"
-          placeholder="Select a status"
-          class="mr-2"
-        />
+          <Select
+            v-model="selectedStatus"
+            :options="statuses ?? []"
+            @change="onStatusChange"
+            option-label="label"
+            option-value="label"
+            placeholder="Select a status"
+            class="mr-2"
+          />
 
-        <Button
-          type="button"
-          icon="pi pi-filter-slash"
-          label="Clear"
-          variant="outlined"
-          @click="clearFilters()"
-        />
-      </template>
+          <Button
+            type="button"
+            icon="pi pi-filter-slash"
+            label="Clear"
+            variant="outlined"
+            @click="clearFilters()"
+          />
+        </template>
 
-      <template #end> </template>
-    </Toolbar>
+        <template #end> </template>
+      </Toolbar>
+    </div>
     <div class="card">
       <DataTable
         ref="dt"
@@ -348,6 +350,8 @@ function editPlanogram(planogram: searchPlanogramInfo) {
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         :rowsPerPageOptions="[5, 10, 25]"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} planograms"
+        scrollable
+        scrollHeight="calc(70vh - 130px)"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">

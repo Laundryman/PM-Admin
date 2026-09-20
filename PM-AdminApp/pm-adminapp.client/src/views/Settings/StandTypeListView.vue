@@ -227,6 +227,8 @@ const getHideIcon = (hide: boolean) => {
         sortMode="single"
         sortField="parentStandTypeName"
         :sortOrder="1"
+        scrollable
+        scrollHeight="calc(70vh - 130px)"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
@@ -255,19 +257,20 @@ const getHideIcon = (hide: boolean) => {
           style="min-width: 16rem"
         ></Column>
 
-        <!-- <Column :exportable="false" style="min-width: 12rem">
+        <Column :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
-              icon="pi pi-pencil"
+              v-tooltip.bottom="'Add a new child StandType'"
+              icon="pi pi-plus"
               variant="outlined"
               rounded
               class="mr-2"
-              @click="editStandType(slotProps.data)"
+              @click="addStandType(slotProps.data)"
             />
           </template>
-        </Column> -->
+        </Column>
         <template #expansion="slotProps">
-          <div class="p-4">
+          <div class="p-4 border-solid border border-gray-300">
             <!-- <h5>{{ slotProps.data.name }}</h5> -->
             <DataTable :value="slotProps.data.childStandTypes" tableStyle="min-width: 50rem">
               <Column
@@ -301,18 +304,12 @@ const getHideIcon = (hide: boolean) => {
               <Column header="Actions" :exportable="false" style="min-width: 12rem">
                 <template #body="slotProps">
                   <Button
+                    v-tooltip.bottom="'Edit this StandType'"
                     icon="pi pi-pencil"
                     variant="outlined"
                     rounded
                     class="mr-2"
                     @click="editStandType(slotProps.data)"
-                  />
-                  <Button
-                    icon="pi pi-plus"
-                    variant="outlined"
-                    rounded
-                    class="mr-2"
-                    @click="addStandType(slotProps.data)"
                   />
                 </template>
               </Column>

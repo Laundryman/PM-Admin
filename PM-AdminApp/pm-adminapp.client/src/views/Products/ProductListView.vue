@@ -28,7 +28,8 @@ const loading = ref(true)
 const layout = useSystemStore()
 const brandStore = useBrandStore()
 const brand = storeToRefs(brandStore).activeBrand
-const showPublishedOnly = ref(false)
+const showPublished = ref(true)
+const showUnPublished = ref(true)
 const searchText = ref('')
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -185,65 +186,118 @@ function openNew() {
 function copyProduct(product: searchProductInfo) {
   router.push({ name: 'copyProduct', params: { id: product.id } })
 }
+
+function onShowPublishedChange() {
+  if (showPublished.value) {
+    if (showUnPublished.value) {
+      filters.value.published.value = null
+    } else {
+      filters.value.published.value = true
+    }
+  } else {
+    filters.value.published.value = false
+  }
+  console.log('Show Published changed', showPublished.value)
+}
+
+function onShowUnPublishedChange() {
+  if (showUnPublished.value) {
+    if (showPublished.value) {
+      filters.value.published.value = null
+    } else {
+      filters.value.published.value = false
+    }
+  } else {
+    filters.value.published.value = true
+  }
+  console.log('Show Unpublished changed', showUnPublished.value)
+}
 </script>
 
 <template>
   <div>
     <h1>Product List View</h1>
     <!-- Product list content goes here -->
-    <Toolbar class="mb-6">
-      <template #start>
-        <Select
-          v-model="selectedRegion"
-          :options="regions ?? []"
-          @change="onRegionChange"
-          option-label="name"
-          option-value="id"
-          placeholder="Select a region"
-          class="mr-2"
-        />
+    <div class="w-full sticky top-16 block z-10 bg-slate-50">
+      <Toolbar class="mb-6">
+        <template #start>
+          <Select
+            v-model="selectedRegion"
+            :options="regions ?? []"
+            @change="onRegionChange"
+            option-label="name"
+            option-value="id"
+            placeholder="Select a region"
+            class="mr-2"
+          />
 
-        <Select
-          v-model="selectedCountry"
-          :options="countries ?? []"
-          @change="onCountryChange"
-          option-label="name"
-          option-value="id"
-          placeholder="Select a country"
-          class="mr-2"
-        />
+          <Select
+            v-model="selectedCountry"
+            :options="countries ?? []"
+            @change="onCountryChange"
+            option-label="name"
+            option-value="id"
+            placeholder="Select a country"
+            class="mr-2"
+          />
 
-        <Select
-          v-model="selectedCategory"
-          :options="categories ?? []"
-          @change="onCategoryChange"
-          option-label="label"
-          option-value="label"
-          placeholder="Select a category"
-          class="mr-2"
-        />
+          <Select
+            v-model="selectedCategory"
+            :options="categories ?? []"
+            @change="onCategoryChange"
+            option-label="label"
+            option-value="label"
+            placeholder="Select a category"
+            class="mr-2"
+          />
 
-        <Button
-          type="button"
-          icon="pi pi-filter-slash"
-          label="Clear"
-          variant="outlined"
-          @click="clearFilters()"
-          v-tooltip="'Clear filters'"
-        />
-      </template>
+          <ToggleButton
+            v-model="showPublished"
+            onLabel="Show Published"
+            offLabel="Show Published"
+            class="min-w-16 mr-2"
+            @change="onShowPublishedChange"
+          >
+            <template #icon="{ value }">
+              <CheckCircle class="text-green-500" v-if="value" />
+              <TimesCircle class="text-red-500" v-else />
+            </template>
+          </ToggleButton>
+          <ToggleButton
+            v-model="showUnPublished"
+            onLabel="Show Unpublished"
+            offLabel="Show Unpublished"
+            class="min-w-29 mr-2"
+            @change="onShowUnPublishedChange"
+          >
+            <template #icon="{ value }">
+              <CheckCircle class="text-green-500" v-if="value" />
+              <TimesCircle class="text-red-500" v-else />
+            </template>
+          </ToggleButton>
 
-      <template #end>
-        <Button
-          label="New"
-          icon="pi pi-plus"
-          severity="primary"
-          class="mr-2"
-          @click="openNew"
-          v-tooltip="'Create a product'"
-        />
-      </template>
-    </Toolbar>
+          <Button
+            type="button"
+            icon="pi pi-filter-slash"
+            label="Clear"
+            variant="outlined"
+            @click="clearFilters()"
+            v-tooltip="'Clear filters'"
+          />
+        </template>
+
+        <template #end>
+          <Button
+            label="New"
+            icon="pi pi-plus"
+            severity="primary"
+            class="mr-2"
+            @click="openNew"
+            v-tooltip="'Create a product'"
+          />
+        </template>
+      </Toolbar>
+    </div>
     <div class="card">
       <DataTable
         ref="dt"
@@ -267,6 +321,8 @@ function copyProduct(product: searchProductInfo) {
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         :rowsPerPageOptions="[5, 10, 25]"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
+        scrollable
+        scrollHeight="calc(70vh - 130px)"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
@@ -286,14 +342,6 @@ function copyProduct(product: searchProductInfo) {
           filterField="parentCategoryName"
           style="min-width: 16rem"
         >
-          <template #filter="{ filterModel, filterCallback }">
-            <InputText
-              v-model="filterModel.value"
-              type="text"
-              @input="filterCallback()"
-              placeholder="Search by parent category"
-            />
-          </template>
         </Column>
         <Column
           field="categoryName"
@@ -301,22 +349,8 @@ function copyProduct(product: searchProductInfo) {
           filterField="categoryName"
           style="min-width: 16rem"
         >
-          <template #filter="{ filterModel, filterCallback }">
-            <InputText
-              v-model="filterModel.value"
-              type="text"
-              @input="filterCallback()"
-              placeholder="Search by category"
-            />
-          </template>
         </Column>
-        <column field="published" header="Published" data-type="boolean" style="min-width: 20rem">
-          <!-- <template #body="slotProps">
-            <span v-if="slotProps.data.published" class="text-green-500 font-bold"
-              ><i class="pi pi-check"
-            /></span>
-            <span v-else class="text-red-500 font-bold"><i class="pi pi-times" /></span>
-          </template> -->
+        <Column field="published" header="Published" data-type="boolean" style="min-width: 20rem">
           <template #body="{ data }">
             <i
               class="pi"
@@ -326,14 +360,7 @@ function copyProduct(product: searchProductInfo) {
               }"
             ></i>
           </template>
-          <template #filter="{ filterModel }">
-            <Checkbox
-              v-model="filterModel.value"
-              :indeterminate="filterModel.value === null"
-              binary
-            />
-          </template>
-        </column>
+        </Column>
         <Column header="Actions" :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button

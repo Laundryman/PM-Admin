@@ -210,30 +210,30 @@ function copyStand(stand: searchStandInfo) {
 <template>
   <div>
     <h1>Stand List View</h1>
-    <!-- Stand list content goes here -->
-    <Toolbar class="mb-6">
-      <template #start>
-        <Select
-          v-model="selectedRegion"
-          :options="regions ?? []"
-          @change="onRegionChange"
-          option-label="name"
-          option-value="id"
-          placeholder="Select a region"
-          class="mr-2"
-        />
+    <div class="w-full sticky top-16 block z-10 bg-slate-50">
+      <Toolbar class="mb-6">
+        <template #start>
+          <Select
+            v-model="selectedRegion"
+            :options="regions ?? []"
+            @change="onRegionChange"
+            option-label="name"
+            option-value="id"
+            placeholder="Select a region"
+            class="mr-2"
+          />
 
-        <Select
-          v-model="selectedCountry"
-          :options="countries ?? []"
-          @change="onCountryChange"
-          option-label="name"
-          option-value="id"
-          placeholder="Select a country"
-          class="mr-2"
-        />
+          <Select
+            v-model="selectedCountry"
+            :options="countries ?? []"
+            @change="onCountryChange"
+            option-label="name"
+            option-value="id"
+            placeholder="Select a country"
+            class="mr-2"
+          />
 
-        <!-- <Select
+          <!-- <Select
           v-model="selectedParentStandType"
           :options="parentStandTypes ?? []"
           @change="onParentStandTypeChange"
@@ -243,37 +243,38 @@ function copyStand(stand: searchStandInfo) {
           class="mr-2"
         /> -->
 
-        <Select
-          v-model="selectedStandType"
-          :options="standTypes ?? []"
-          @change="onStandTypeChange"
-          option-label="label"
-          option-value="label"
-          placeholder="Select a stand type"
-          class="mr-2"
-        />
+          <Select
+            v-model="selectedStandType"
+            :options="standTypes ?? []"
+            @change="onStandTypeChange"
+            option-label="label"
+            option-value="label"
+            placeholder="Select a stand type"
+            class="mr-2"
+          />
 
-        <Button
-          type="button"
-          icon="pi pi-filter-slash"
-          label="Clear"
-          variant="outlined"
-          @click="clearFilters()"
-          v-tooltip="'Clear filters'"
-        />
-      </template>
+          <Button
+            type="button"
+            icon="pi pi-filter-slash"
+            label="Clear"
+            variant="outlined"
+            @click="clearFilters()"
+            v-tooltip="'Clear filters'"
+          />
+        </template>
 
-      <template #end>
-        <Button
-          label="New"
-          icon="pi pi-plus"
-          severity="primary"
-          class="mr-2"
-          @click="openNew"
-          v-tooltip.left="'Create a stand'"
-        />
-      </template>
-    </Toolbar>
+        <template #end>
+          <Button
+            label="New"
+            icon="pi pi-plus"
+            severity="primary"
+            class="mr-2"
+            @click="openNew"
+            v-tooltip.left="'Create a stand'"
+          />
+        </template>
+      </Toolbar>
+    </div>
     <div class="card">
       <DataTable
         ref="dt"
@@ -297,6 +298,8 @@ function copyStand(stand: searchStandInfo) {
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         :rowsPerPageOptions="[5, 10, 25]"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} stands"
+        scrollable
+        scrollHeight="calc(70vh - 130px)"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">

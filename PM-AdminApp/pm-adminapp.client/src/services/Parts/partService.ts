@@ -75,6 +75,27 @@ export const partService = {
     return response.data
   },
 
+  async deletePart(partId: number): Promise<Part> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+    }
+
+    let response = await apiClient
+      .delete('/deletePart', {
+        params: {
+          id: partId,
+        },
+      })
+      .then((response) => {
+        return response.data
+      })
+      .catch((err) => {
+        console.log('Error deleting part:', err)
+        throw err
+      })
+    return response.data
+  },
+
   async initialise() {
     const authStore = useAuthStore()
     if (!authStore.initialized) {

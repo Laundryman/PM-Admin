@@ -10,6 +10,8 @@ import { default as countryService } from '@/services/Countries/CountryService'
 import { partService } from '@/services/Parts/partService'
 import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
+import CheckCircle from '@primeicons/vue/check-circle'
+import TimesCircle from '@primeicons/vue/times-circle'
 import { FilterMatchMode } from '@primevue/core/api/'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
@@ -30,9 +32,12 @@ const brandStore = useBrandStore()
 const brand = storeToRefs(brandStore).activeBrand
 const searchText = ref('')
 const router = useRouter()
+const showPublished = ref(true)
+const showUnPublished = ref(true)
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   categoryName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  published: { value: null, matchMode: FilterMatchMode.EQUALS },
 })
 
 watch(brand, async (newBrand) => {
@@ -162,92 +167,153 @@ function copyPart(part: SearchPartInfo) {
   router.push({ name: 'copyPart', params: { id: part.id } })
 }
 
-// function onRowSelect(event: any) {
-//   selectedPart.value = event.data
-//   toast.add({
-//     severity: 'info',
-//     summary: 'Product Selected',
-//     detail: 'Name: ' + event.data.name,
-//     life: 3000,
-//   })
-// }
-// function onRowUnselect(event: any) {
-//   selectedPart.value = null
-//   toast.add({
-//     severity: 'info',
-//     summary: 'Product Unselected',
-//     detail: 'Name: ' + event.data.name,
-//     life: 3000,
-//   })
-// }
+function onShowPublishedChange() {
+  if (showPublished.value) {
+    if (showUnPublished.value) {
+      filters.value.published.value = null
+    } else {
+      filters.value.published.value = true
+    }
+  } else {
+    filters.value.published.value = false
+  }
+  console.log('Show Published changed', showPublished.value)
+}
 
-// function confirmDeleteSelected() {
-//   toast.add({
-//     severity: 'info',
-//     summary: 'Info',
-//     detail: 'Delete Selected Parts - Functionality to be implemented',
-//     life: 3000,
-//   })
-// }
+function onShowUnPublishedChange() {
+  if (showUnPublished.value) {
+    if (showPublished.value) {
+      filters.value.published.value = null
+    } else {
+      filters.value.published.value = false
+    }
+  } else {
+    filters.value.published.value = true
+  }
+  console.log('Show Unpublished changed', showUnPublished.value)
+}
+function deletePart(part: SearchPartInfo) {
+  if (confirm(`Are you sure you want to delete the part "${part.name}"?`)) {
+    partService
+      .deletePart(part.id)
+      .then((response) => {
+        toast.add({
+          severity: 'success',
+          summary: 'Part Deleted',
+          detail: 'Part deleted successfully.',
+          life: 3000,
+        })
+        // Refresh the part list after deletion
+        let filter = new PartFilter()
+        filter.brandId = brandStore.activeBrand?.id ?? 0
+        partService.searchParts(filter).then((response) => {
+          parts.value = response
+          console.log('Parts loaded', parts.value)
+        })
+      })
+      .catch((error) => {
+        toast.add({
+          severity: 'error',
+          summary: 'Error Deleting Part',
+          detail: 'An error occurred while deleting the part.',
+          life: 3000,
+        })
+      })
+  }
+}
 </script>
 
 <template>
-  <div>
+  <div class="part-list-view">
     <h1>Part List View</h1>
     <!-- Part list content goes here -->
-    <Toolbar class="mb-6">
-      <template #start>
-        <Select
-          v-model="selectedRegion"
-          :options="regions ?? []"
-          @change="onRegionChange"
-          option-label="name"
-          option-value="id"
-          placeholder="Select a region"
-          class="mr-2"
-        />
+    <div class="w-full sticky top-16 block z-10 bg-slate-50">
+      <Toolbar class="mb-6">
+        <template #start>
+          <Select
+            v-model="selectedRegion"
+            :options="regions ?? []"
+            @change="onRegionChange"
+            option-label="name"
+            option-value="id"
+            placeholder="Select a region"
+            class="mr-2"
+          />
 
-        <Select
-          v-model="selectedCountry"
-          :options="countries ?? []"
-          @change="onCountryChange"
-          option-label="name"
-          option-value="id"
-          placeholder="Select a country"
-          class="mr-2"
-        />
+          <Select
+            v-model="selectedCountry"
+            :options="countries ?? []"
+            @change="onCountryChange"
+            option-label="name"
+            option-value="id"
+            placeholder="Select a country"
+            class="mr-2"
+          />
 
-        <Select
-          v-model="selectedCategory"
-          :options="categories ?? []"
-          @change="onCategoryChange"
-          option-label="label"
-          option-value="label"
-          placeholder="Select a category"
-          class="mr-2"
-        />
+          <Select
+            v-model="selectedCategory"
+            :options="categories ?? []"
+            @change="onCategoryChange"
+            option-label="label"
+            option-value="label"
+            placeholder="Select a category"
+            class="mr-2"
+          />
 
-        <Button
-          type="button"
-          icon="pi pi-filter-slash"
-          label="Clear"
-          variant="outlined"
-          @click="clearFilters()"
-          v-tooltip="'Clear filters'"
-        />
-      </template>
+          <ToggleButton
+            v-model="showPublished"
+            onLabel="Show Published"
+            offLabel="Show Published"
+            class="min-w-16 mr-2"
+            @change="onShowPublishedChange"
+          >
+            <template #icon="{ value }">
+              <CheckCircle class="text-green-500" v-if="value" />
+              <TimesCircle class="text-red-500" v-else />
+            </template>
+          </ToggleButton>
+          <ToggleButton
+            v-model="showUnPublished"
+            onLabel="Show Unpublished"
+            offLabel="Show Unpublished"
+            class="min-w-29 mr-2"
+            @change="onShowUnPublishedChange"
+          >
+            <template #icon="{ value }">
+              <CheckCircle class="text-green-500" v-if="value" />
+              <TimesCircle class="text-red-500" v-else />
+            </template>
+          </ToggleButton>
 
-      <template #end>
-        <Button
-          label="New"
-          icon="pi pi-plus"
-          severity="primary"
-          class="mr-2"
-          @click="openNew"
-          v-tooltip="'Create a part'"
-        />
-      </template>
-    </Toolbar>
+          <Button
+            type="button"
+            icon="pi pi-filter-slash"
+            label="Clear"
+            variant="outlined"
+            @click="clearFilters()"
+            v-tooltip="'Clear filters'"
+          />
+        </template>
+
+        <template #end>
+          <IconField>
+            <InputIcon>
+              <i class="pi pi-search" />
+            </InputIcon>
+            <InputText v-model="filters['global'].value" placeholder="Search..." />
+          </IconField>
+
+          <Button
+            label="New"
+            icon="pi pi-plus"
+            severity="primary"
+            class="mr-2"
+            @click="openNew"
+            v-tooltip="'Create a part'"
+          />
+        </template>
+      </Toolbar>
+    </div>
     <div class="card">
       <DataTable
         ref="dt"
@@ -271,22 +337,29 @@ function copyPart(part: SearchPartInfo) {
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
         :rowsPerPageOptions="[5, 10, 25]"
         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} parts"
+        scrollable
+        scrollHeight="calc(70vh - 130px)"
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
             <h4 class="m-0">Manage Parts</h4>
-            <IconField>
-              <InputIcon>
-                <i class="pi pi-search" />
-              </InputIcon>
-              <InputText v-model="filters['global'].value" placeholder="Search..." />
-            </IconField>
           </div>
         </template>
         <!-- <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column> -->
         <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
-        <Column field="description" header="Description" sortable style="min-width: 16rem"></Column>
+        <Column field="description" header="Description" sortable style="min-width: 12rem"></Column>
         <Column field="partNumber" header="Part Number" sortable style="min-width: 12rem"></Column>
+        <Column field="published" header="Published" data-type="boolean" style="min-width: 5rem">
+          <template #body="{ data }">
+            <i
+              class="pi"
+              :class="{
+                'pi-check-circle text-green-500 ': data.published,
+                'pi-times-circle text-red-500': !data.published,
+              }"
+            ></i>
+          </template>
+        </Column>
         <Column
           field="categoryName"
           header="Category"
@@ -311,7 +384,13 @@ function copyPart(part: SearchPartInfo) {
 
         <Column field="facings" header="Facing" sortable style="min-width: 4rem"></Column>
         <Column field="stock" header="Stock" sortable style="min-width: 4rem"></Column>
-        <Column header="Actions" :exportable="false" style="min-width: 12rem">
+        <Column
+          header="Actions"
+          :frozen="true"
+          alignFrozen="right"
+          :exportable="false"
+          style="min-width: 12rem"
+        >
           <template #body="slotProps">
             <Button
               v-tooltip="'Edit Part'"
@@ -328,6 +407,15 @@ function copyPart(part: SearchPartInfo) {
               rounded
               class="mr-2"
               @click="copyPart(slotProps.data)"
+            />
+            <Button
+              v-tooltip="'Delete Part'"
+              icon="pi pi-trash"
+              severity="danger"
+              variant="outlined"
+              rounded
+              class="mr-2"
+              @click="deletePart(slotProps.data)"
             />
           </template>
         </Column>
