@@ -500,7 +500,7 @@ namespace PM_AdminApp.Server.Controllers
 
         }
         [HttpPost]
-        public async Task<IActionResult> SearchPlanograms([FromBody] PlanogramFilterDto filterDto)
+        public async Task<IActionResult> SearchPlanograms([FromBody] PlanoWidgetFilterDto filterDto)
         {
             try
             {

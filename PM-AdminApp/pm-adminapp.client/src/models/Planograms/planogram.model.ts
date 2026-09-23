@@ -1,3 +1,5 @@
+import type { Brand } from '../Brands/brand.model'
+
 export class Planogram {
   id!: number
   clusterId!: number
@@ -30,4 +32,5 @@ export class Planogram {
   archivedByName!: string
   archivedBy!: number
   jobId!: number
+  brand!: Brand
 }
