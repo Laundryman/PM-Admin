@@ -176,6 +176,7 @@ function onShowPublishedChange() {
     }
   } else {
     filters.value.published.value = false
+    showUnPublished.value = true
   }
   console.log('Show Published changed', showPublished.value)
 }
@@ -189,6 +190,7 @@ function onShowUnPublishedChange() {
     }
   } else {
     filters.value.published.value = true
+    showPublished.value = true
   }
   console.log('Show Unpublished changed', showUnPublished.value)
 }
@@ -203,13 +205,15 @@ function deletePart(part: SearchPartInfo) {
           detail: 'Part deleted successfully.',
           life: 3000,
         })
-        // Refresh the part list after deletion
-        let filter = new PartFilter()
-        filter.brandId = brandStore.activeBrand?.id ?? 0
-        partService.searchParts(filter).then((response) => {
-          parts.value = response
-          console.log('Parts loaded', parts.value)
-        })
+        // // Refresh the part list after deletion
+        // let filter = new PartFilter()
+        // filter.brandId = brandStore.activeBrand?.id ?? 0
+        // partService.searchParts(filter).then((response) => {
+        //   parts.value = response
+        // })
+
+        //remove deleted part from the parts list
+        parts.value = parts.value.filter((p) => p.id !== part.id)
       })
       .catch((error) => {
         toast.add({

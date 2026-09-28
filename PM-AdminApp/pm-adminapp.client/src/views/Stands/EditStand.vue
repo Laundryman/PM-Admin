@@ -938,7 +938,7 @@ async function onFormSubmit({ valid }: any) {
                     </fieldset>
                   </div>
 
-                  <Button type="submit" severity="secondary" label="Submit" />
+                  <Button type="submit" severity="primary" label="Submit" />
                 </TabPanel>
                 <TabPanel value="1">
                   <div class="card grid grid-cols-2 gap-4">
@@ -1195,7 +1195,7 @@ async function onFormSubmit({ valid }: any) {
                       </fieldset>
                     </div>
                   </div>
-                  <Button type="submit" severity="secondary" label="Submit" />
+                  <Button type="submit" severity="primary" label="Submit" />
                 </TabPanel>
               </TabPanels>
             </Tabs>

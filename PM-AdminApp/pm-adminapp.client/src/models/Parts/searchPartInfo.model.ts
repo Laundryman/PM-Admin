@@ -23,6 +23,7 @@ export class SearchPartInfo {
   dateCreated!: Date
   dateUpdated!: Date
   published!: boolean
+  status!: number
   countryList!: string
   discontinued!: boolean
   testingType!: string

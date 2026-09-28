@@ -106,7 +106,15 @@ onMounted(async () => {
     productModel.value.brandId = brandStore.activeBrand?.id ?? 0
   }
 
-  if (router.currentRoute.value.name === 'editProduct') {
+    if (router.currentRoute.value.name === 'copyProduct') {
+    newProduct.value = true
+    productModel.value.id = 0 //reset for copy
+    productModel.value.name = productModel.value.name + ' - Copy'
+    productModel.value.fullDescription = productModel.value.fullDescription + '-COPY'
+    productModel.value.productImage = ''
+
+  }
+  if (router.currentRoute.value.name === 'editProduct' || router.currentRoute.value.name === 'copyProduct') {
     initialiseProductForm()
   }
 
@@ -115,7 +123,7 @@ onMounted(async () => {
     productImageSrc.value = productImageUrl + productModel.value.productImage
   }
   selectedParentCategoryId.value = productModel.value.parentCategoryId || null
-  if (router.currentRoute.value.name === 'editProduct') {
+  if (router.currentRoute.value.name === 'editProduct' || router.currentRoute.value.name === 'copyProduct') {
     ms_selectedRegions.value = productModel.value.regions.map((c) => c.id)
     countrySelectList.value = await locationFilters.getCountriesForRegions(ms_selectedRegions.value)
     ms_selectedCountries.value = productModel.value.countries.map((c) => c.id)
@@ -649,7 +657,7 @@ async function saveShade(updateShade: Shade) {
         </div>
 
 
-        <Button type="submit" severity="secondary" label="Submit" />
+        <Button type="submit" severity="primary" label="Submit" />
       </Form>
 
      </TabPanel>

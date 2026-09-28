@@ -106,7 +106,21 @@ body {
                 content: url('../assets/toolbar/icon-share.svg');
             }
         }
-
+        &[data-name="save-file"] {
+          font-family: "Inter",sans-serif;
+          font-size: 12px;
+          font-weight: 500;
+          border-radius: var(--jj-border-radius-small);
+          border: 1px solid var(--jj-border-primary);
+          background-color: var(--jj-bg-primary);
+          color: var(--jj-text-primary);
+          padding: 6px 10px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-left: 4px
+        }
         &[data-name="toggle-snaplines"],
         &[data-name="toggle-scratchpad"] {
             display: flex;

@@ -116,7 +116,10 @@ onMounted(async () => {
     partModel.value.brandId = brandStore.activeBrand?.id ?? 0
   }
 
-  if (router.currentRoute.value.name === 'editPart') {
+  if (
+    router.currentRoute.value.name === 'editPart' ||
+    router.currentRoute.value.name === 'copyPart'
+  ) {
     newPart.value = false
     initialisePartForm()
   }
@@ -193,12 +196,6 @@ onMounted(async () => {
 
 function initialisePartForm() {
   partFormTemplateRef.value?.setValues({ ...partModel.value })
-  // partform.value?.setFieldValue('countries', [])
-
-  //default the selection to ALL COUNTRIES LP - so user sees something
-  // selectedRegion.value =
-  //   regionSelectList.value?.find((region) => region.name === 'ALL COUNTRIES LP')?.id || null
-  // onRegionChange()
 }
 
 function mapPubishedProducts() {
@@ -573,7 +570,7 @@ async function onFormSubmit({ valid }: any) {
           summary: 'Form is submitted.',
           life: 3000,
         })
-        //router.push({ name: 'partList' })
+        router.push({ name: 'parts' })
       })
       .catch((error) => {
         toast.add({
@@ -1146,7 +1143,7 @@ async function onFormSubmit({ valid }: any) {
                 <label for="dateCreated">Created Date:</label>
                 <DatePicker
                   name="createdDate"
-                  dateFormat="dd/mm/yyyy"
+                  dateFormat="dd/mm/yy"
                   placeholder="Created Date"
                   fluid
                   v-model="partModel.dateCreated"
@@ -1158,7 +1155,7 @@ async function onFormSubmit({ valid }: any) {
           </fieldset>
         </div>
 
-        <Button type="submit" severity="secondary" label="Submit" />
+        <Button type="submit" severity="primary" label="Submit" />
       </Form>
     </div>
   </div>

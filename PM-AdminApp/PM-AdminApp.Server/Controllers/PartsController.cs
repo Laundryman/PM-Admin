@@ -19,7 +19,7 @@ using PMApplication.Interfaces.RepositoryInterfaces;
 using PMApplication.Services;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
-using PMInfrastructure.Repositories;
+using PMApplication.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -174,12 +174,25 @@ namespace PM_AdminApp.Server.Controllers
         {
             try
             {
-                var part = await _partAsyncRepository.GetByIdAsync(Id);
-                await _partAsyncRepository.DeleteAsync(part);
+                var filter = new PartFilter() { Id = Id, IncludeProducts = true };
+                var spec = new PartSpecification(filter); 
+                var part = await _partAsyncRepository.FirstAsync(spec);
+
+                if (part == null)
+                {
+                    _logger.LogError($"Part with id: {Id}, hasn't been found in db.");
+                    return NotFound();
+                }
+
+                part.Status = (int)ItemStatusEnum.Deleted;
+                await _partAsyncRepository.UpdateAsync(part);
                 return Ok();
             }
             catch (Exception ex)
             {
+
+                //The DELETE statement conflicted with the REFERENCE constraint "FK_CountryParts_Parts". The conflict occurred in database "planMatrCore2", table "dbo.CountryParts", column 'PartId'.
+                // The statement has been terminated.
                 var errorMessage = $"Cannot delete part with id {Id}";
                 _logger.LogError(ex, errorMessage);
                 return BadRequest(errorMessage);
@@ -233,7 +246,7 @@ namespace PM_AdminApp.Server.Controllers
 
                 await _partAsyncRepository.UpdateAsync(partEdit);
 
-                return Ok(partEdit);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -282,7 +295,7 @@ namespace PM_AdminApp.Server.Controllers
 
                 await _partAsyncRepository.UpdateAsync(newPart);
 
-                return Ok(newPart);
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -291,35 +304,6 @@ namespace PM_AdminApp.Server.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePart(int id)
-        {
-            try
-            {
-
-                var part = await _partAsyncRepository.GetByIdAsync(id);
-                if (part == null)
-                {
-                    _logger.LogError($"Part with id: {id}, hasn't been found in db.");
-                    return NotFound();
-                }
-
-                //if (_partRepository.Account.AccountsByPart(id).Any())
-                //{
-                //    _logger.LogError($"Cannot delete part with id: {id}. It has related accounts. Delete those accounts first");
-                //    return BadRequest("Cannot delete part. It has related accounts. Delete those accounts first");
-                //}
-
-                await _partAsyncRepository.DeleteAsync(part);
-
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Something went wrong inside DeletePart action: {ex.Message}");
-                return StatusCode(500, "Internal server error");
-            }
-        }
 
         //private async Task UpdatePartCategories(Part origPart, PartUploadDto updatePart)
         //{
@@ -625,7 +609,8 @@ namespace PM_AdminApp.Server.Controllers
                 {
                     var styleElement = svgDoc.Descendants().First(d => d.Name.LocalName == "defs").Descendants()
                         .First(s => s.Name.LocalName == "style");
-                    if (styleElement != null)
+                    var partClassName = "#X" + partNumber + "-" + partId.ToString();
+                    if (styleElement != null && styleElement.Value.IndexOf(partClassName) != -1 )
                     {
                         styleElement.Value =
                             styleElement.Value.Replace(".cls--",

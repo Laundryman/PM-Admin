@@ -349,6 +349,22 @@ export class MenuService {
       throw new Error('MenuService not initialized')
     }
   }
+  async loadClusterMenu(clusterId: number) {
+    if (initialized.value !== false) {
+      if (token.value) {
+        apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+        apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
+      }
+      const response = await apiClient.get('/clusters/getMenuData', {
+        params: {
+          id: clusterId,
+        },
+      })
+      return response.data
+    } else {
+      throw new Error('MenuService not initialized')
+    }
+  }
 
   async loadClusterMenuCategories(clusterId: number) {
     if (initialized.value !== false) {
@@ -375,7 +391,7 @@ export class MenuService {
     }
 
     const response = await apiClient
-      .get('/clusters/getmenu', { params: { id: clusterId } })
+      .get('/clusters/getmenudata', { params: { id: clusterId } })
       .then((res) => {
         return res.data
       })

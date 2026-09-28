@@ -231,6 +231,11 @@ async function saveLayout({ valid }: any) {
   filter.name = clusterName.value
   filter.id = selectedCluster.value?.id ?? 0
   filter.published = selectedCluster.value?.published ?? false
+  filter.brandId = brandStore.activeBrand?.id ?? 0
+  filter.countryIds = (mc_selectedCountries.value?.join(',') || '') ?? ''
+  filter.regionIds = (manageCluster.ms_selectedRegions.value?.join(',') || '') ?? ''
+  filter.standId = selectedStand.value.id ?? 0
+  filter.standTypeId = selectedStand.value.standTypeId ?? 0
   await clusterService.initialise()
   var saveStatus = await clusterService.saveLayout(filter)
   if (saveStatus === 200) {

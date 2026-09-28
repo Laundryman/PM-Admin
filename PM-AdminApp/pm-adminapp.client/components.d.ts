@@ -58,8 +58,6 @@ declare module 'vue' {
     PricingWidget: typeof import('./src/components/landing/PricingWidget.vue')['default']
     ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RecentPlanogramWidget: typeof import('./src/components/dashboard/RecentPlanogramWidget.vue')['default']
-    RecentPlanoWidget: typeof import('./src/components/dashboard/RecentPlanoWidget.vue')['default']
-    RecentSalesWidget: typeof import('./src/components/dashboard/RecentSalesWidget.vue')['default']
     'RegionCountry.component': typeof import('./src/components/Forms/RegionCountry.component.vue')['default']
     RevenueStreamWidget: typeof import('./src/components/dashboard/RevenueStreamWidget.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

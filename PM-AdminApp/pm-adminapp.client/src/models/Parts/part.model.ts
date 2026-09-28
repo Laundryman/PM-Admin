@@ -14,6 +14,7 @@ export class Part {
   customerRefNo!: string
   published!: boolean
   discontinued!: boolean
+  status!: number
   facings!: number
   height!: number
   width!: number

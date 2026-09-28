@@ -27,8 +27,16 @@ export const partService = {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
-    let response = await apiClient.post('/searchParts', filter)
-    return response.data
+    apiClient.defaults.headers['Content-Type'] = 'application/json'
+    let response = await apiClient
+      .post('/searchParts', filter)
+      .then((resp) => {
+        return resp.data
+      })
+      .catch((error) => {
+        throw error
+      })
+    return response
     // } else {
     //   throw new Error('PartService not initialized')
     // }
@@ -38,11 +46,13 @@ export const partService = {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
+    apiClient.defaults.headers['Content-Type'] = 'application/json'
+
     let response = await apiClient.get('/getPart', { params: { id: partId } })
     return response.data
   },
 
-  async savePart(part: FormData): Promise<Part> {
+  async savePart(part: FormData) {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
@@ -51,15 +61,15 @@ export const partService = {
     let response = await apiClient
       .post('/savePart', part)
       .then((resp) => {
-        return resp.data
+        return resp
       })
       .catch((error) => {
         throw error
       })
-    return response.data
+    return response
   },
 
-  async createPart(part: FormData): Promise<Part> {
+  async createPart(part: FormData) {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
@@ -67,18 +77,19 @@ export const partService = {
     let response = await apiClient
       .post('/createPart', part)
       .then((resp) => {
-        return resp
+        return resp.data
       })
       .catch((error) => {
         throw error
       })
-    return response.data
+    return response
   },
 
   async deletePart(partId: number): Promise<Part> {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
+    apiClient.defaults.headers['Content-Type'] = 'application/json'
 
     let response = await apiClient
       .delete('/deletePart', {
@@ -93,7 +104,7 @@ export const partService = {
         console.log('Error deleting part:', err)
         throw err
       })
-    return response.data
+    return response
   },
 
   async initialise() {

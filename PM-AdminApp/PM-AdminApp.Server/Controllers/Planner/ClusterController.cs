@@ -21,6 +21,7 @@ using PMApplication.Interfaces.RepositoryInterfaces;
 using PMApplication.Interfaces.ServiceInterfaces;
 using PMApplication.Services;
 using PMApplication.Specifications.Filters;
+using PMInfrastructure.Repositories;
 using System.Data;
 using System.Diagnostics.Metrics;
 using System.Net;
@@ -45,12 +46,12 @@ namespace PM_AdminApp.Server.Controllers.Planner
         private readonly ICategoryService _categoryService;
         private readonly IClusterRepository _clusterRepository;
         private readonly IStandService _standService;
-
+        private readonly ICountryRepository _countryRepository;
         public ClusterController(IPartService partService,
                 IStandService standService,
                 IBrandService brandService,
                 IPlanogramService planogramService,
-                IMapper mapper, ILogger<ClusterController> logger, IAuditService auditService, IConfiguration config, ICategoryService categoryService, IClusterService clusterService, IClusterRepository clusterRepository)
+                IMapper mapper, ILogger<ClusterController> logger, IAuditService auditService, IConfiguration config, ICategoryService categoryService, IClusterService clusterService, IClusterRepository clusterRepository, ICountryRepository countryRepository)
         {
             _partService = partService;
             _standService = standService;
@@ -63,6 +64,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
             _categoryService = categoryService;
             _clusterService = clusterService;
             _clusterRepository = clusterRepository;
+            _countryRepository = countryRepository;
             //this._versionService = versionService;
         }
 
@@ -84,6 +86,71 @@ namespace PM_AdminApp.Server.Controllers.Planner
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetMenuData(long id)
+        {
+            var menu = new PlanmMenuDto();
+            try
+            {
+
+                var clusterFilter = new ClusterFilter()
+                {
+                    Id = id
+                };
+                var cluster = await _clusterService.GetCluster(clusterFilter);
+                var standTypeId = cluster.Stand.StandTypeId; //need to get from planogram when denormalised
+                var brandId = cluster.BrandId;
+                //var countryId = cluster.CountryId ?? 0;
+
+                var partFilter = new PartFilter
+                {
+                    BrandId = brandId,
+                    ClusterId = id,
+                    StandTypeId = standTypeId
+                };
+                var menuParts = await _partService.GetPlanmClusterMenu(partFilter);
+                var menuCats = new List<Category>();
+                var currentCatId = 0;
+                foreach (var cat in menuParts)
+                {
+                    if (cat.ParentCategoryId != currentCatId)
+                    {
+                        currentCatId = cat.ParentCategoryId;
+                        if (!menuCats.Any(c => c.Id == cat.ParentCategoryId))
+                        {
+                            var pcat = await _categoryService.GetCategory(cat.ParentCategoryId);
+                            menuCats.Add(pcat);
+                        }
+                    }
+                }
+
+                //Get Parent Categoriesry);
+                var menuCategories = new List<CategoryMenuDto>();
+                //loop through each category to build menu
+                foreach (var cat in menuCats)
+                {
+                    var menucat = _mapper.Map<CategoryMenuDto>(cat);
+                    menuCategories.Add(menucat);
+                }
+                menu.Categories = menuCategories;
+
+                menu.Parts = menuParts.ToList();
+                //We're not using the country and region here: but we need to think about how we might regarding users.
+                return Ok(menu);
+            }
+            catch (Exception ex)
+            {
+                //log an error
+                _logger.LogError("Could not get menu");
+                return BadRequest("Could not get Menu");
+            }
+            finally
+            {
+
+            }
+        }
+
+        [HttpGet]
+        [Obsolete ("This method is obsolete. Use the new GetMenuData method instead.")]
         public async Task<IActionResult> GetMenuCategories(long id)
         {
             var menu = new PlanmMenuDto();
@@ -149,6 +216,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
 
         //[Route("api/v2/planx/get-menu/{planogramId}")]
         [HttpGet]
+        [Obsolete("This method is obsolete. Use the new GetMenuData method instead.")]
         public async Task<IActionResult> GetMenu(long id)
         {
             var menu = new PlanmMenuDto();
@@ -401,12 +469,31 @@ namespace PM_AdminApp.Server.Controllers.Planner
 
                 if (layout == null)
                 {
-                    return NotFound("Cluster not found");
+                    return NotFound("Layout not found");
                 }
 
                 layout.Name = layoutData.Name;
                 layout.Published = layoutData.Published;
                 layout.DateUpdated = DateTime.Now;
+                if (layoutData.CountryIds != null)
+                {
+                    var countryIds = layoutData.CountryIds.Split(",").Select(int.Parse).ToList();
+                    foreach (var id in countryIds)
+                    {
+                        var country = await _countryRepository.GetByIdAsync(id);
+                        if (country != null && !layout.Countries.Contains(country))
+                        {
+                            layout.Countries.Add(country);
+                        }
+
+                    }
+                }
+                else
+                {
+                    return BadRequest("No Country Data provided");
+                }
+
+
                 await _clusterService.SaveCluster(layout);
                 var role = (RoleEnum)int.Parse(userProfile?.RoleId ?? "0");
 

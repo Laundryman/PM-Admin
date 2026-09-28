@@ -1,6 +1,7 @@
-﻿import { Category } from '../models/Category';
-
+﻿import { Category } from '../models/Category'
+import type { MenuPart } from './MenuPart'
 
 export class Menu {
-  categories!: Category[];
+  categories!: Category[]
+  parts!: MenuPart[]
 }

@@ -15,7 +15,7 @@ import { onMounted, ref } from 'vue'
 
 const menuService = ref<MenuService | null>(null)
 
-const menuCategories = ref<Menu | null>(null)
+const menuData = ref<Menu | null>(null)
 const stencilGroups = ref<StencilGroups | null>(null)
 const stencil = ref<ui.Stencil | null>(null)
 // const extendedStencil = ref<ui.Stencil | null>(null);
@@ -124,15 +124,16 @@ onMounted(async () => {
   menuService.value = new MenuService()
   await menuService.value.initialise()
   if (!props.isCluster) {
-    menuCategories.value = await menuService.value.loadMenuCategories(props.planogramId)
+    menuData.value = await menuService.value.loadMenuCategories(props.planogramId)
   } else {
-    menuCategories.value = await menuService.value.loadClusterMenuCategories(props.clusterId)
+    // menuData.value = await menuService.value.loadClusterMenuCategories(props.clusterId)
+    menuData.value = await menuService.value.loadClusterMenuData(props.clusterId)
   }
 
   stencilGroups.value = new StencilGroups()
 
-  menuCategories.value?.categories.forEach((category) => {
-    let i = menuCategories.value?.categories.indexOf(category)
+  menuData.value?.categories.forEach((category) => {
+    let i = menuData.value?.categories.indexOf(category)
     //let item = {category.CategoryName: { index: 1, label: category.CategoryName }};
     //Stencil.groups.push(item);
     let item = JSON.stringify(
@@ -912,16 +913,16 @@ async function loadSearchGraph() {
   let searchData: MenuPart[]
   let menuService = new MenuService()
   await menuService.initialise()
-  let menuData: any
-  if (!props.isCluster) {
-    menuData = await menuService.loadMenuData(planogramId).catch((error) => {
-      console.log('Error loading menu data:', error)
-      return null
-    })
-  } else {
-    menuData = await Promise.resolve(menuService.loadClusterMenuData(props.clusterId))
-  }
-  searchData = menuData as any
+  // let menuData: any
+  // if (!props.isCluster) {
+  //   menuData = await menuService.loadMenuData(planogramId).catch((error) => {
+  //     console.log('Error loading menu data:', error)
+  //     return null
+  //   })
+  // } else {
+  //   menuData = await Promise.resolve(menuService.loadClusterMenuData(props.clusterId))
+  // }
+  searchData = menuData.value.parts as any
 
   await populateSearchGraph(props.searchGraph as joint.dia.Graph, searchData)
 }
