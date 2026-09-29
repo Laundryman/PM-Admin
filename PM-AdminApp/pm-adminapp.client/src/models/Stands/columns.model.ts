@@ -3,7 +3,7 @@ export class Column {
   standId!: number
   position!: number
   width!: number
-  uprights!: Upright[]
+  columnUprightList!: Upright[]
 }
 
 export class Upright {

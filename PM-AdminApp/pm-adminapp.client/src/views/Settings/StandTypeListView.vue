@@ -107,12 +107,14 @@ async function saveStandType() {
   }
 
   if (standType?.value.name?.trim()) {
-    formData.append('id', String(standType.value.id ?? 0))
-    formData.append('name', standType.value.name)
-    formData.append('description', String(standType.value.description))
-    formData.append('lock', String(standType.value.lock))
-    formData.append('hidePrices', String(standType.value.hidePrices))
-    formData.append('file', file.value ?? '')
+    formData.append('id', standType.value.id?.toString() || '0')
+    formData.append('name', standType.value.name.toString())
+    formData.append('description', standType.value.description.toString())
+    formData.append('lock', standType.value.lock.toString() || 'false')
+    formData.append('hidePrices', standType.value.hidePrices.toString() || 'false')
+    if (file.value) {
+      formData.append('file', file.value)
+    }
     if (standType.value.id) {
       await standTypeService
         .updateStandType(formData)
@@ -141,8 +143,8 @@ async function saveStandType() {
         life: 3000,
       })
     } else {
-      formData.append('brandId', String(standType.value.brandId))
-      formData.append('parentStandTypeId', String(standType.value.parentStandTypeId))
+      formData.append('brandId', standType.value.brandId.toString() || '0')
+      formData.append('parentStandTypeId', standType.value.parentStandTypeId.toString() || '0')
       await standTypeService
         .addStandType(formData)
         .then((response) => {
@@ -177,8 +179,9 @@ function addStandType(cat: StandType) {
     standType.value = new StandType()
     standType.value.brandId = brand.value.id
     standType.value.brandName = brand.value.name
-    standType.value.parentStandTypeId = cat.parentStandTypeId
-    standType.value.parentStandType = cat.parentStandType
+    standType.value.parentStandTypeId = cat.id
+    standType.value.parentStandTypeName = cat.name
+    // standType.value.parentStandType = cat
     standType.value.hidePrices = false
     standType.value.lock = false
     standTypeDialog.value = true

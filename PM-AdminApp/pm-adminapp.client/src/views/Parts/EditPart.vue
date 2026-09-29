@@ -43,7 +43,9 @@ const categoryFilters = useCategoryFilters()
 const partForm = usePartForm()
 const layout = useSystemStore()
 const router = useRouter()
-const newPart = ref(true)
+const newPart = ref(false)
+const copyPart = ref(false)
+const editPart = ref(false)
 //const brand = storeToRefs(layout).getActiveBrand
 const toast = useToast()
 const regionSelectList = ref<Region[] | null>(null)
@@ -99,7 +101,7 @@ onMounted(async () => {
   partModel.value = { ...part.value } as Part //clone(part.value)
 
   if (router.currentRoute.value.name === 'copyPart') {
-    newPart.value = true
+    copyPart.value = true
     partModel.value.id = 0 //reset for copy
     partModel.value.name = partModel.value.name + ' - Copy'
     partModel.value.partNumber = partModel.value.partNumber + '-COPY'
@@ -114,6 +116,9 @@ onMounted(async () => {
   if (router.currentRoute.value.name === 'newPart') {
     newPart.value = true
     partModel.value.brandId = brandStore.activeBrand?.id ?? 0
+  }
+  if (router.currentRoute.value.name === 'editPart') {
+    editPart.value = true
   }
 
   if (
@@ -602,7 +607,11 @@ async function onFormSubmit({ valid }: any) {
       />
     </div>
     <div class="w-full sticky bg-white top-16 block p-10 z-10">
-      <h2><span v-if="!newPart">Edit Part</span><span v-else>New Part</span></h2>
+      <h2>
+        <span v-if="editPart">Edit Part</span>
+        <span v-else-if="copyPart">Copy Part</span>
+        <span v-else-if="newPart">New Part</span>
+      </h2>
       <div class="card flex flex-col gap-2">
         <span class="font-bold text-xl">{{ partModel.name }}</span>
         <span class="text-gray-600">Part No: {{ partModel.partNumber }}</span>

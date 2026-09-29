@@ -383,7 +383,17 @@ async function saveLayout({ valid }: any) {
 
         <Column field="height" header="Height" sortable style="min-width: 6rem"></Column>
         <Column field="width" header="Width" sortable style="min-width: 6rem"></Column>
-        <Column field="published" header="Published" sortable style="min-width: 4rem"></Column>
+        <Column field="published" header="Published" sortable style="min-width: 4rem">
+          <template #body="{ data }">
+            <i
+              class="pi"
+              :class="{
+                'pi-check-circle text-green-500 ': data.published,
+                'pi-times-circle text-red-500': !data.published,
+              }"
+            ></i>
+          </template>
+        </Column>
         <Column field="dateCreated" header="Date Created" sortable style="min-width: 4rem">
           <template #body="slotProps">
             {{ new Date(slotProps.data.dateCreated).toLocaleDateString() }}

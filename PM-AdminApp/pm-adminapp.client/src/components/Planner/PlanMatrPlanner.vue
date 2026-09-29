@@ -593,7 +593,14 @@ onMounted(async () => {
         return joint.routers.rightAngle.call(this, vertices, opt, linkView)
       },
     },
-    interactive: { linkMove: false },
+    interactive: (cellView) => {
+      const { model } = cellView
+      return {
+        linkMove: false,
+        // labelMove: false,
+        elementMove: !model.attributes.disableMove,
+      }
+    },
     async: true,
     sorting: joint.dia.Paper.sorting.APPROX,
   })
@@ -934,6 +941,8 @@ async function initializeStand() {
           height: stand.value?.height ?? 0,
         }
         carcass.value.attributes.disableMove = true
+        carcass.value.attributes.pointerEvents = 'none'
+        carcass.value.attributes.selectable = false
         carcass.value.resize(stand.value?.width ?? 0, stand.value?.height ?? 0, {
           ignoreMove: true,
         })
@@ -1118,7 +1127,7 @@ async function initializeStand() {
               const standRow = new planmatr.Row({
                 attrs: {
                   label: {
-                    text: row.id.toString(),
+                    // text: row.id.toString(),
                     fill: 'yellow',
                   },
                   body: {
@@ -1131,6 +1140,7 @@ async function initializeStand() {
                 ignoreMove: true,
                 ignoreCommandManager: true,
               })
+              standRow.attributes.disableMove = true
               carcass.value?.embed(standRow, { deep: true, ignoreCommandManager: true })
               standRow.toFront({ ignoreCommandManager: true })
 
@@ -2295,10 +2305,11 @@ function validatePlacement(
       }
     } else if (
       (cell?.isElement() && cell.attributes.type == 'planmatr.Column') ||
-      cell?.attributes.type == 'planmatr.Carcass'
+      cell?.attributes.type == 'planmatr.Carcass' ||
+      cell?.attributes.type == 'planmatr.Row'
     ) {
       if (!command.options.ignoreMove) {
-        return next(new Error('Cannot move carcass'))
+        return next(new Error('Cannot move this element'))
       } else return next(err)
     } else if (
       cell?.isElement() &&

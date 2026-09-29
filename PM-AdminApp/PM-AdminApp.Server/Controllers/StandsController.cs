@@ -325,13 +325,11 @@ namespace PM_AdminApp.Server.Controllers
 
         private async Task UpdateColumnCollection(Stand origStand, StandUpdateDto updateStand)
         {
-            var existingCols = origStand.ColumnList;
-            var newCols = updateStand.ColumnList;
+            var existingByPosition = origStand.ColumnList.ToDictionary(c => c.Position);
 
             foreach (var col in updateStand.ColumnList)
             {
-                var origCol = origStand.ColumnList.FirstOrDefault(c => c.Position == col.Position);
-                if (origCol == null)
+                if (!existingByPosition.TryGetValue(col.Position, out var origCol))
                 {
                     StandColumn newCol = new StandColumn()
                     {
@@ -346,7 +344,8 @@ namespace PM_AdminApp.Server.Controllers
                         {
                             Height = upright.Height,
                             Position = upright.Position,
-                            StandId = col.StandId
+                            StandId = col.StandId,
+                            Width = col.Width
 
                         };
                         newUprightList.Add(newUpright);
@@ -363,19 +362,8 @@ namespace PM_AdminApp.Server.Controllers
                 }
             }
 
-            var columnsToDelete = new List<StandColumn>();
-            //remove deleted columns
-            for (int i = origStand.ColumnList.Count - 1; i >= 0; i--)
-            {
-                var origCol = origStand.ColumnList[i];
-                var updatedColumn = updateStand.ColumnList.FirstOrDefault(c => c.Id == origCol.Id);
-                if (updatedColumn == null)
-                {
-                    var dbCol = origStand.ColumnList.FirstOrDefault(c => c.Id == origCol.Id);
-                    columnsToDelete.Add(dbCol);
-                }
-            }
-
+            var updatedIds = new HashSet<int>(updateStand.ColumnList.Select(c => c.Id));
+            var columnsToDelete = origStand.ColumnList.Where(c => !updatedIds.Contains(c.Id)).ToList();
             foreach (var col in columnsToDelete)
             {
                 origStand.ColumnList.Remove(col);
@@ -388,7 +376,10 @@ namespace PM_AdminApp.Server.Controllers
             List<StandColumnUpright> newUprightList = new List<StandColumnUpright>();
             foreach (var upright in editCol.ColumnUprightList)
             {
-                var currUpright = origCol.StandColumnUprights.First(c => c.Id == upright.Id);
+                StandColumnUpright currUpright = null;
+                if (origCol.StandColumnUprights != null) {
+                    currUpright = origCol.StandColumnUprights.FirstOrDefault(c => c.Position == upright.Position);
+                }
                 if (currUpright != null)
                 {
                     currUpright.Position = upright.Position;
@@ -400,10 +391,12 @@ namespace PM_AdminApp.Server.Controllers
                     {
                         Height = upright.Height,
                         Position = upright.Position,
-                        //StandId = origCol.StandId
+                        Width = upright.Width,
+                        StandId = upright.StandId
 
                     };
-                    origCol.StandColumnUprights.Add(newUpright);
+                    newUprightList.Add(newUpright);
+                    //origCol.StandColumnUprights.Add(newUpright);
                 }
 
             }
@@ -425,7 +418,11 @@ namespace PM_AdminApp.Server.Controllers
             }
 
             //reset the upright list
-            origCol.StandColumnUprights = newUprightList;
+            foreach (var ur in newUprightList)
+            {
+                origCol.StandColumnUprights.Add(ur);
+            }
+            //origCol.StandColumnUprights = newUprightList;
         }
 
         private async Task UpdateRowCollection(Stand origStand, StandUpdateDto updateStand)

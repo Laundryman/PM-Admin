@@ -365,21 +365,24 @@ watch(
 function addUpright(position: number) {
   let col = colsTable.value?.find((c) => c.position === position)
   if (col) {
-    if (!col.uprights) {
-      col.uprights = []
+    if (!col.columnUprightList) {
+      col.columnUprightList = []
     }
     let upright = new Upright()
-    upright.position = (col.uprights.length ?? 0) + 1
+    upright.position = (col.columnUprightList.length ?? 0) + 1
 
-    col.uprights.push(upright)
+    // col.uprights.push(upright)
+    standModel.value.columnList
+      .find((c) => c.position === position)
+      ?.columnUprightList?.push(upright)
   }
 }
 
 function delUpright(colPosition: number, position: number) {
   let col = colsTable.value?.find((c) => c.position === colPosition)
-  let upright = col?.uprights?.find((u) => u.position === position)
-  if (col && upright && col.uprights) {
-    col.uprights = col.uprights.filter((u) => u.position !== position)
+  let upright = col?.columnUprightList?.find((u) => u.position === position)
+  if (col && upright && col.columnUprightList) {
+    col.columnUprightList = col.columnUprightList.filter((u) => u.position !== position)
   } //
   //if (col && col.uprights && col.uprights.length > 0) { col.uprights.pop() } }
 }
@@ -474,7 +477,10 @@ async function onFormSubmit({ valid }: any) {
       if (editCol) {
         element.width = editCol.width ?? 0
       }
-      if (element.uprights) {
+      if (editCol.columnUprightList?.length) {
+        editCol.columnUprightList?.forEach((upright) => {
+          updateUprightWidth(upright, element.position)
+        })
       }
     })
     cols.forEach((element) => {
@@ -484,10 +490,25 @@ async function onFormSubmit({ valid }: any) {
         let newCol = new Column()
         newCol.position = element.position
         newCol.width = element.width ?? 0
-        newCol.uprights = element.uprights ?? []
+        newCol.columnUprightList = element.columnUprightList ?? []
         standModel.value.columnList?.push(newCol)
       }
     })
+  }
+}
+
+async function updateUprightWidth(newUpright: Upright, columnPosition: number) {
+  const col = standModel.value.columnList.find((c) => c.position === columnPosition)
+  if (col) {
+    const upright = col.columnUprightList?.find((u) => u.position === newUpright.position)
+    if (upright) {
+      upright.width = newUpright.width ?? 0
+    } else {
+      const newColUpright = new Upright()
+      newColUpright.position = newUpright.position
+      newColUpright.width = newUpright.width ?? 0
+      col.columnUprightList?.push(newColUpright)
+    }
   }
 }
 </script>
@@ -1040,13 +1061,13 @@ async function onFormSubmit({ valid }: any) {
                                     </div>
                                   </div>
                                   <div
-                                    v-if="col.uprights && col.uprights.length > 0"
+                                    v-if="col.columnUprightList && col.columnUprightList.length > 0"
                                     class="border p-5 mb-10"
                                   >
                                     <div class="font-bold mb-4">
                                       Uprights for Column {{ col.position }}
                                     </div>
-                                    <div v-for="upright in col.uprights">
+                                    <div v-for="upright in col.columnUprightList">
                                       <div class="flex flex-row flex-wrap gap-2 items-center mb-2">
                                         <div class="p-5 shrink" style="width">
                                           <FloatLabel variant="in">

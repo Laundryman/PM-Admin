@@ -74,7 +74,7 @@ namespace PM_AdminApp.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddStandType(StandTypeUploadDto standTypeDto)
+        public async Task<IActionResult> AddStandType([FromForm] StandTypeUploadDto standTypeDto)
         {
             try
             {
@@ -137,7 +137,8 @@ namespace PM_AdminApp.Server.Controllers
         {
             try
             {
-                var standType = await _standTypeRepository.GetByIdAsync(standTypeDto.Id);
+
+                var standType = await _standTypeRepository.GetByIdAsync((int)standTypeDto.Id);
                 if (standType == null)
                 {
                     _logger.LogWarning($"StandType with id: {standTypeDto.Id}, hasn't been found in db.");
@@ -156,8 +157,8 @@ namespace PM_AdminApp.Server.Controllers
                     parentStandType = await _standTypeRepository.GetByIdAsync((int)standType.ParentStandTypeId);
                 }
 
-                if (standTypeDto.ParentStandTypeId != null) 
-                    standType.StandImage = standTypeDto.StandImage;
+                //if (standTypeDto.ParentStandTypeId != null) 
+                //    standType.StandImage = standTypeDto.StandImage;
 
                 if (standTypeDto.File != null && standTypeDto.File.Length > 0)
                 {

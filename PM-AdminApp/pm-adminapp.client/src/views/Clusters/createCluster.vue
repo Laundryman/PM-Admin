@@ -196,14 +196,14 @@ async function createLayout({ valid }: any) {
 
   // Implement the logic to create a cluster here
   let filter = new CreateLayoutFilter()
-  filter.name = clusterName.value
-  filter.countryId = selectedCountryId.value
+  filter.brandId = brandStore.activeBrand?.id as number
+  // filter.regionId = selectedRegion.value as number
+  // filter.countryId = selectedCountryId.value
   filter.standTypeId = selectedStandTypeId.value as number
   filter.standId = selectedStandId.value as number
-  filter.regionId = selectedRegion.value as number
+  filter.name = clusterName.value
   filter.countryIds = ms_selectedCountries.value?.map((id) => id.toString()).join(',') ?? ''
   filter.regionIds = ms_selectedRegions.value?.map((id) => id.toString()).join(',') ?? ''
-  filter.brandId = brandStore.activeBrand?.id as number
 
   await clusterService.initialise()
   await clusterService.createLayout(filter).then((newClusterId) => {
