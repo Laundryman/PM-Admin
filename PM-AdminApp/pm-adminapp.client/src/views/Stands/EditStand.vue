@@ -1054,7 +1054,7 @@ async function updateUprightWidth(newUpright: Upright, columnPosition: number) {
                                     <div class="ml-5 p-2">
                                       <Button
                                         icon="pi pi-plus"
-                                        tooltip="Add Upright"
+                                        v-tooltip="'Add Upright'"
                                         class="h-10 w-40"
                                         @click="addUpright(col.position ?? 0)"
                                       ></Button>

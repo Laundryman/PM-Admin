@@ -6,6 +6,7 @@ export class Region {
   brandId!: number
   countryList!: string
   countries!: Country[]
+  status!: number
   contstructor() {
     this.id = 0
     this.name = ''

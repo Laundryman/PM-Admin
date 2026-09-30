@@ -85,34 +85,55 @@ const hideDialog = () => {
 async function saveRegion(rg: Region) {
   submitted.value = true
 
-  if (region.value.id) {
-    await countryService
-      .saveRegion(rg)
-      .then((response) => {
-        if (response && response) {
-          console.log(response)
-        }
-      })
-      .catch((error) => {
-        console.error('Error updating region:', error)
-      })
-    toast.add({
-      severity: 'success',
-      summary: 'Successful',
-      detail: 'Region Updated',
-      life: 3000,
-    })
-  } else {
+  if (!region.value.id) {
     region.value.id = 0
-    // region.value.brandLogo = 'brand-placeholder.svg'
-    regions.value.push(region.value)
-    toast.add({
-      severity: 'success',
-      summary: 'Successful',
-      detail: 'Region Created',
-      life: 3000,
-    })
+    region.value.countryList = selectedCountries.value?.join(',') || ''
+    region.value.countries = selectedCountries.value
+      ?.map((id) => countrySelectList.value?.find((c) => c.id === id))
+      .filter((c) => c !== undefined) as Country[]
+    region.value.brandId = brandStore.activeBrand?.id ?? 0
+    region.value.name = rg.name ?? ''
+    var tempRegions = [...regions.value]
+    tempRegions.unshift(region.value)
+    regions.value = tempRegions
   }
+
+  await countryService
+    .saveRegion(rg)
+    .then((response) => {
+      if (response && response) {
+        console.log(response)
+      }
+      toast.add({
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'Region Updated',
+        life: 3000,
+      })
+    })
+    .catch((error) => {
+      console.error('Error updating region:', error)
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error updating region',
+        life: 3000,
+      })
+    })
+  // } else {
+  //   region.value.id = 0
+  //   region.value.countryList = selectedCountries.value?.join(',') || ''
+  //   region.value.countries = selectedCountries.value?.map((id) => countrySelectList.value?.find((c) => c.id === id)).filter((c) => c !== undefined) as Country[]
+  //   region.value.brandId = brandStore.activeBrand?.id ?? 0
+  //   region.value.name = rg.name ?? ''
+  //   regions.value.push(region.value)
+  //   toast.add({
+  //     severity: 'success',
+  //     summary: 'Successful',
+  //     detail: 'Region Created',
+  //     life: 3000,
+  //   })
+  // }
 
   regionDialog.value = false
   region.value = new Region()

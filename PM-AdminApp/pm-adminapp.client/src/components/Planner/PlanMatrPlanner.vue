@@ -1062,8 +1062,8 @@ async function initializeStand() {
             })
 
             if (stand.value?.layoutStyle == StandLayoutEnum.Pitch) {
-              if (column.attributes?.attrs?.['.body']) {
-                column.attributes.attrs['.body']['stroke'] = 'none'
+              if (column.attributes?.attrs?.['body']) {
+                column.attributes.attrs['body']['stroke'] = 'none'
               }
             }
             column.resize(col.width, currentStand.merchHeight, { ignoreCommandManager: true })
@@ -1083,7 +1083,7 @@ async function initializeStand() {
             uprights.forEach(function (upright: any) {
               const upr = new planmatr.Upright({
                 attrs: {
-                  line: {
+                  upright: {
                     //y2: (stand.value?.height - (stand.value?.headerHeight + stand.value?.footerHeight)),
                     //y2: (stand.value?.height - stand.value?.headerHeight - unusableSpace),
                     y2: merchspace - unusableSpace,
@@ -1092,6 +1092,7 @@ async function initializeStand() {
                   },
                 },
               })
+              // upr.attributes.attrs.upright['stroke'] = 'black'
               upr.resize(1, merchspace - unusableSpace, { ignoreCommandManager: true })
               upr.attributes.disableMove = true
               upr.addTo(graph.value as joint.dia.Graph, { ignoreCommandManager: true })

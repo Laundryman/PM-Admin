@@ -209,7 +209,7 @@ export namespace planmatr {
           '.': {
             magnet: false,
           },
-          line: {
+          upright: {
             fill: 'none',
             stroke: '#000',
             'stroke-width': 1,

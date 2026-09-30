@@ -415,7 +415,7 @@ async function saveLayout({ valid }: any) {
                 @click="editCluster(slotProps.data)"
                 ><Grip />
               </Button>
-              <Button
+              <!-- <Button
                 v-tooltip="'Delete Cluster'"
                 variant="outlined"
                 rounded
@@ -423,7 +423,7 @@ async function saveLayout({ valid }: any) {
                 class="mr-2"
                 @click="deleteCluster(slotProps.data)"
                 ><Trash />
-              </Button>
+              </Button> -->
             </div>
           </template>
         </Column>

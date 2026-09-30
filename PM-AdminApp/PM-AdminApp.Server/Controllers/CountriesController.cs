@@ -6,6 +6,7 @@ using PMApplication.Dtos.Filters;
 using PMApplication.Dtos.PagedLists;
 using PMApplication.Entities.CountriesAggregate;
 using PMApplication.Entities.StandAggregate;
+using PMApplication.Enums;
 using PMApplication.Interfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
@@ -136,24 +137,12 @@ namespace PM_AdminApp.Server.Controllers
         {
             try
             {
-                var filterDto = new RegionsFilterDto();
-                filterDto.BrandId = brandId;
-                var spec = new RegionSpecification(_mapper.Map<RegionFilter>(filterDto));
+                var filter = new RegionFilter();
+                filter.BrandId = brandId;
+                var spec = new RegionSpecification(filter);
                 var regions = await _regionRepository.ListAsync(spec);
-                //var countFilter = filterDto;
-                //countFilter.IsPagingEnabled = false;
-                //var countSpec = new RegionSpecification(_mapper.Map<RegionFilter>(countFilter));
-                //int totalItems = await _regionRepository.CountAsync(countSpec);
-                _logger.LogInformation($"Returned all parts from database.");
+                _logger.LogInformation($"Returned all regions from database.");
 
-                //var response = new PagedRegionListDto();
-                //response.Data = _mapper.Map<List<RegionDto>>(regions);
-                //update partTypenames here
-                //response.Page = new Page();
-                //response.Page.PageNumber = filterDto.Page;
-                //response.Page.TotalItems = totalItems;
-                //response.Page.TotalPages = (int)Math.Ceiling((decimal)totalItems / (decimal)filterDto.PageSize);
-                //response.Page.Size = filterDto.PageSize;
                 return Ok(regions);
             }
             catch (Exception ex)
@@ -217,8 +206,26 @@ namespace PM_AdminApp.Server.Controllers
                 {
                     if (region.Id == 0)
                     {
-                        var regionEntity = _mapper.Map<Region>(region);
+                        //var regionEntity = _mapper.Map<Region>(region);
+                        var regionEntity = new Region();
+                        regionEntity.BrandId = region.BrandId;
+                        regionEntity.Name = region.Name;
+                        regionEntity.CountryList = region.CountryList;
+                        regionEntity.Status = (int)ItemStatusEnum.Published;
                         await _regionRepository.AddAsync(regionEntity);
+
+                        //add region countries
+                        foreach (var country in region.Countries)
+                        {
+                            var countryToAdd = await _countryRepository.GetByIdAsync(country.Id);
+                            if (countryToAdd != null)
+                            {
+                                regionEntity.Countries.Add(countryToAdd);
+                            }
+                        }
+
+                        await _regionRepository.UpdateAsync(regionEntity);
+
                         _logger.LogInformation($"Region with id: {regionEntity.Id} has been created.");
                         return Ok(regionEntity.Id);
                     }

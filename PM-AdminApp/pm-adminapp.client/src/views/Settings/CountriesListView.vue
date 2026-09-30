@@ -10,6 +10,7 @@ import { onMounted, ref } from 'vue'
 
 const loading = ref(true)
 const flagImageUrl = import.meta.env.VITE_APP_FLAGIMAGE_URL
+const newFlag = ref<File | null>(null)
 const countries = ref()
 const country = ref(new Country())
 const countryDialog = ref(false)
@@ -70,8 +71,8 @@ async function saveCountry() {
   submitted.value = true
 
   const formData = new FormData()
-  if (file.value) {
-    formData.append('file', file.value)
+  if (newFlag.value) {
+    formData.append('flag', newFlag.value)
   }
 
   if (country?.value.name?.trim()) {
@@ -129,6 +130,18 @@ const findIndexById = (id: number) => {
 
   return index
 }
+
+function onFlagSelect(event: any) {
+  newFlag.value = event.files[0]
+  const reader = new FileReader()
+  reader.onload = async (e) => {
+    // packShot.value = e.target?.result as string
+    // partModel.value.packShotImageSrc = e.target?.result as string
+    country.value.flagFileName = e.target?.result as string
+  }
+
+  reader.readAsDataURL(newFlag.value!)
+}
 </script>
 
 <template>
@@ -136,7 +149,7 @@ const findIndexById = (id: number) => {
     <div class="card">
       <Toolbar class="mb-6">
         <template #end>
-          <Button label="New" icon="pi pi-plus" class="mr-2" @click="openNew" />
+          <!-- <Button label="New" icon="pi pi-plus" class="mr-2" @click="openNew" /> -->
         </template>
       </Toolbar>
 
@@ -154,7 +167,7 @@ const findIndexById = (id: number) => {
       >
         <template #header>
           <div class="flex flex-wrap gap-2 items-center justify-between">
-            <h4 class="m-0">Manage Countries</h4>
+            <h4 class="m-0">Countries</h4>
             <IconField>
               <InputIcon>
                 <i class="pi pi-search" />
@@ -184,7 +197,7 @@ const findIndexById = (id: number) => {
             />
           </template>
         </Column> -->
-        <Column header="Actions" :exportable="false" style="min-width: 12rem">
+        <!-- <Column header="Actions" :exportable="false" style="min-width: 12rem">
           <template #body="slotProps">
             <Button
               icon="pi pi-pencil"
@@ -194,7 +207,7 @@ const findIndexById = (id: number) => {
               @click="editCountry(slotProps.data)"
             />
           </template>
-        </Column>
+        </Column> -->
       </DataTable>
     </div>
 
@@ -216,6 +229,23 @@ const findIndexById = (id: number) => {
             fluid
           />
           <small v-if="submitted && !country.name" class="text-red-500">Name is required.</small>
+        </div>
+        <img
+          :src="`${flagImageUrl}${country.flagFileName}`"
+          :alt="country.name"
+          class="rounded"
+          style="width: 104px"
+        />
+        <div class="card flex flex-wrap gap-6 items-center justify-between">
+          <FileUpload
+            ref="fileupload"
+            mode="basic"
+            @select="onFlagSelect"
+            customUpload
+            accept="image/*"
+            :maxFileSize="1000000"
+          />
+          <!-- <Button label="Upload" @click="upload" severity="secondary" /> -->
         </div>
       </div>
       <template #footer>
