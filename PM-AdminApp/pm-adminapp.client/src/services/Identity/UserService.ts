@@ -253,6 +253,10 @@ export default {
     })
   },
   changePassword(user: User) {
+    const pwProfile = {
+      passwordProfile: {
+        forceChangePasswordNextSignIn: false,     
+        password: 'xWwvJ]6NMw+bWH-d',
     return apiClient.put('/change-password', user)
   },
 
