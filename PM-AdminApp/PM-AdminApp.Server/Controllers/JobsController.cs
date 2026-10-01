@@ -93,6 +93,7 @@ namespace PM_AdminApp.Server.Controllers
 
                 var id = jobFolderDto.Id;
                 var jobFolderFilter = new JobFolderFilter() { Id = id };
+                jobFolderFilter.IncludeChildren = true; 
                 var spec = new JobFolderSpecification(jobFolderFilter);
                 var folderEdit = await _jobFolderRepository.FirstAsync(spec);
 

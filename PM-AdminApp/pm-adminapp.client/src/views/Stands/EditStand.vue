@@ -290,6 +290,12 @@ function clearCountrySelection() {
   standModel.value.countriesList = ''
 }
 
+function onStandTypeChange(evt: any) {
+  // handle stand type change logic here
+  standModel.value.standTypeId = evt.value
+  standModel.value.standTypeName = evt.option?.name ?? ''
+}
+
 ////////////////////////////////////////////////////
 // Stand Layout Handlers (rows/columns/uprights)
 /////////////////////////////////////////////////////
@@ -644,6 +650,7 @@ async function updateUprightWidth(newUpright: Upright, columnPosition: number) {
                             class="w-full"
                             option-label="name"
                             option-value="id"
+                            @change="onStandTypeChange"
                           >
                             <template #option="option">
                               <div class="flex align-items-center">

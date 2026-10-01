@@ -27,6 +27,7 @@ using System.Diagnostics.Metrics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Web;
+using PMApplication.Specifications;
 
 namespace PM_AdminApp.Server.Controllers.Planner
 {
@@ -463,7 +464,14 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 var userProfile = await this.MappedUser();
                 //get the clusterID
                 var clusterId = layoutData.Id;
-                var layout = await _clusterService.GetCluster((long)clusterId);
+                var filter = new ClusterFilter
+                {
+                    Id = clusterId,
+                    IncludeChildren = true
+                };
+                //var layout = await _clusterService.GetCluster((long)clusterId);
+                var layout = await _clusterRepository.FirstAsync(new ClusterSpecification(filter));
+
                 var brandId = layout.BrandId;
                 var brand = await _brandService.GetBrand((int)brandId);
 

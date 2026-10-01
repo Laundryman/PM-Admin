@@ -175,6 +175,15 @@ namespace PM_AdminApp.Server.Controllers
                 }
 
                 _mapper.Map(updateStand, standEdit);
+                var stFilter = new StandTypeFilter();
+                stFilter.Id = updateStand.StandTypeId;
+                stFilter.IncludeParent = true;
+                var stSpec= new StandTypeSpecification(stFilter);
+
+                var standType = await _standTypeRepository.FirstAsync(stSpec);
+                standEdit.StandTypeName = standType.Name;
+                standEdit.ParentStandTypeId = standType.ParentStandTypeId;
+                standEdit.ParentStandTypeName = standType.ParentStandType.Name;
                 standEdit.DateUpdated = DateTime.Now;
 
                 await _standRepository.UpdateAsync(standEdit);

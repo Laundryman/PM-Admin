@@ -155,6 +155,7 @@ function onCategoryChange() {
 async function clearFilters() {
   selectedRegion.value = null
   selectedCountry.value = null
+  selectedCategory.value = null
   countries.value = []
   let filter = new ProductFilter()
   filter.brandId = brandStore.activeBrand?.id ?? 0

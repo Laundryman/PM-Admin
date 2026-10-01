@@ -180,7 +180,9 @@ const hideDialog = () => {
   submitted.value = false
 }
 
-const savePassword = () => {
+const savePassword = async () => {
+  await UserService.initialise()
+
   submitted.value = true
   if (currentUser?.value?.userName?.trim()) {
     if (currentUser.value.id) {

@@ -8,6 +8,7 @@ import { ref } from 'vue'
 export function useFolderManagement() {
   const folderDialog = ref(false)
   const jobFolder = ref(new JobFolder())
+  const jobFolderEdit = ref(new JobFolder())
   const jobFolders = ref<JobFolder[] | null>(null)
   const submitted = ref(false)
   const folder_countrySelectList = ref<Country[] | null>([])
@@ -28,7 +29,7 @@ export function useFolderManagement() {
 
   async function onFolderRegionChange(selectedRegion: number | null) {
     if (selectedRegion) {
-      jobFolder.value.regionId = selectedRegion
+      jobFolderEdit.value.regionId = selectedRegion
       await countryService
         .initialise()
         .catch((error) => console.error('Error initializing Country Service:', error))
@@ -64,7 +65,7 @@ export function useFolderManagement() {
     multiSelectLists.manageSelectedValues(
       evt.value,
       folder_countrySelectList.value ?? [],
-      jobFolder.value.countries ?? [],
+      jobFolderEdit.value.countries ?? [],
     )
     // jobFolder.value.countriesList = jobFolder.value.countries?.map((c) => c.id).join(',') || ''
   }
@@ -77,20 +78,25 @@ export function useFolderManagement() {
     multiSelectLists.manageSelectedValues(
       folder_selectedCountries.value,
       folder_countrySelectList.value ?? [],
-      jobFolder.value.countries ?? [],
+      jobFolderEdit.value.countries ?? [],
     )
     // jobFolder.value.countriesList = jobFolder.value.countries?.map((c) => c.id).join(',') || ''
   }
 
   function clearCountrySelection() {
     folder_selectedCountries.value = []
-    jobFolder.value.countries = []
+    jobFolderEdit.value.countries = []
     // jobFolder.value.countriesList = ''
   }
 
+  function saveUpdate() {
+    // Implement the save logic for the job folder edit
+    jobFolder.value = { ...jobFolderEdit.value }
+  }
   return {
     folderDialog,
     jobFolder,
+    jobFolderEdit,
     jobFolders,
     submitted,
     folder_countrySelectList,
@@ -103,6 +109,7 @@ export function useFolderManagement() {
     onFolderCountryChange,
     onSelectAllFolderCountriesChange,
     clearCountrySelection,
+    saveUpdate,
     setCountrySelectList,
     setSelectedCountries,
     setRegionSelectList,

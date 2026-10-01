@@ -35,6 +35,7 @@ const folderManagement = useFolderManagement()
 const {
   folderDialog,
   jobFolder,
+  jobFolderEdit,
   folderSelectedRegion,
   folder_regionSelectList,
   folder_countrySelectList,
@@ -204,6 +205,15 @@ const hideFolderDialog = () => {
   submitted.value = false
 }
 async function saveFolder() {
+  //folderManagement.saveUpdate()
+  // jobFolder.value = jobFolderEdit.value
+  jobFolder.value.name = jobFolderEdit.value.name
+  jobFolder.value.description = jobFolderEdit.value.description
+  jobFolder.value.regionId = jobFolderEdit.value.regionId
+  jobFolder.value.countries = jobFolderEdit.value.countries
+  jobFolder.value.region = jobFolderEdit.value.region
+  jobFolder.value.id = jobFolderEdit.value.id
+  jobFolder.value.brandId = jobFolderEdit.value.brandId
   submitted.value = true
 
   if (jobFolder?.value.name?.trim()) {
@@ -248,6 +258,7 @@ async function saveFolder() {
 }
 function editFolder(folder: JobFolder) {
   jobFolder.value = folder
+  jobFolderEdit.value = Object.assign({}, folder)
   folderSelectedRegion.value = folder.regionId ?? null
   folder_selectedCountries.value = folder.countries?.map((c) => c.id) ?? []
   folderManagement.setRegionSelectList(regions.value ?? [])
@@ -492,25 +503,27 @@ function addJob(folder: JobFolder) {
           <label for="name" class="block font-bold mb-3">Name</label>
           <InputText
             id="name"
-            v-model.trim="jobFolder.name"
+            v-model.trim="jobFolderEdit.name"
             required="true"
             autofocus
-            :invalid="submitted && !jobFolder.name"
+            :invalid="submitted && !jobFolderEdit.name"
             fluid
           />
-          <small v-if="submitted && !jobFolder.name" class="text-red-500">Name is required.</small>
+          <small v-if="submitted && !jobFolderEdit.name" class="text-red-500"
+            >Name is required.</small
+          >
         </div>
         <div>
           <label for="description" class="block font-bold mb-3">Description</label>
           <InputText
             id="description"
-            v-model.trim="jobFolder.description"
+            v-model.trim="jobFolderEdit.description"
             required="true"
             autofocus
-            :invalid="submitted && !jobFolder.description"
+            :invalid="submitted && !jobFolderEdit.description"
             fluid
           />
-          <small v-if="submitted && !jobFolder.description" class="text-red-500"
+          <small v-if="submitted && !jobFolderEdit.description" class="text-red-500"
             >Description is required.</small
           >
         </div>
@@ -571,7 +584,7 @@ function addJob(folder: JobFolder) {
                   class="w-text-left"
                   @click="clearCountryFilterSelection"
                 />
-                <template v-for="country in jobFolder.countries">
+                <template v-for="country in jobFolderEdit.countries">
                   <Chip class="flex-wrap" :label="country.name"></Chip>
                 </template>
               </div>

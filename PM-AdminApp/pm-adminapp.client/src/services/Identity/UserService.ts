@@ -252,12 +252,30 @@ export default {
       },
     })
   },
-  changePassword(user: User) {
-    const pwProfile = {
-      passwordProfile: {
-        forceChangePasswordNextSignIn: false,     
-        password: 'xWwvJ]6NMw+bWH-d',
-    return apiClient.put('/change-password', user)
+  changePassword(userInfo: User) {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+      apiClient.defaults.headers['Content-Type'] = 'application/json'
+      apiClient.defaults.headers['prefer'] = 'return=representation'
+    }
+
+    const passwordResetResponse = {
+      newPassword: userInfo.password,
+    }
+    return apiClient.post(
+      `/users/${userInfo.id}/authentication/methods/28c10230-6103-485e-b985-444c60001490/resetPassword`,
+      passwordResetResponse,
+    )
+
+    // const user = {
+    //   passwordProfile: {
+    //     forceChangePasswordNextSignIn: false,
+    //     password: userInfo.password,
+    //   },
+    // }
+
+    // // return apiClient.patch(`/users/${userInfo.id}`, user)
+    // return apiClient.patch('/users/' + userInfo.id, user)
   },
 
   async getAuthenticationMethods(userId: string) {

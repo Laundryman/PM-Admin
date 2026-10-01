@@ -63,7 +63,11 @@ watch(brand, async (newBrand) => {
 
     let rFilter = new regionFilter()
     rFilter.brandId = newBrand.id
-    await useLocationFilters().getRegions(rFilter)
+    await useLocationFilters()
+      .getRegions(rFilter)
+      .then((response) => {
+        regions.value = response
+      })
   }
 })
 
@@ -149,6 +153,7 @@ async function getStandTypesFromClusters(clustersList: searchClusterInfo[]) {
 async function clearFilters() {
   selectedRegion.value = null
   selectedCountry.value = null
+  filteredStandType.value = null
   countries.value = []
   let filter = new ClusterFilter()
   filter.brandId = brandStore.activeBrand?.id ?? 0
@@ -522,7 +527,7 @@ async function saveLayout({ valid }: any) {
                     v-model="manageCluster.ms_selectedRegions"
                     :options="regions ?? []"
                     id="regions"
-                    class="w-full"
+                    class="max-w-[400px]"
                     option-label="name"
                     option-value="id"
                     @change="manageCluster.onRegionChange"
@@ -560,7 +565,7 @@ async function saveLayout({ valid }: any) {
                     v-model="manageCluster.ms_selectedCountries"
                     :options="mcCountrySelectList ?? []"
                     id="countries"
-                    class="w-full"
+                    class="max-w-[400px]"
                     option-label="name"
                     option-value="id"
                     @change="manageCluster.onCountryChange"
@@ -591,7 +596,7 @@ async function saveLayout({ valid }: any) {
                 </div>
 
                 <div class="flex gap-2 justify-between">
-                  <Button type="submit" severity="secondary" class="w-60" :fluid="false"
+                  <Button type="submit" severity="primary" class="w-60" :fluid="false"
                     >Save Cluster</Button
                   >
                 </div>
@@ -601,16 +606,33 @@ async function saveLayout({ valid }: any) {
               <div class="card flex flex-col gap-4">
                 <div class="font-semibold text-xl">Cluster Details</div>
                 <div class="grid grid-cols-12 gap-2">
-                  <label for="name" class="flex items-center mb-2 md:col-span-2 md:mb-0 text-lg"
+                  <label for="name" class="flex items-center mb-2 md:col-span-4 md:mb-0 text-lg"
                     >Name</label
                   >
-                  <div class="col-span-12 md:col-span-10">
+                  <div class="col-span-8 md:col-span-8">
                     <p class="font-bold text-lg">{{ selectedCluster.name ?? '' }}</p>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-12 gap-2">
+                  <div class="col-span-4 text-lg">Stand Type</div>
+                  <div class="col-span-8">
+                    <p class="text-lg">{{ selectedStandType?.name ?? '' }}</p>
+                  </div>
+                </div>
+                <div class="grid grid-cols-12 gap-2">
+                  <label
+                    for="email3"
+                    class="flex items-center col-span-12 mb-2 md:col-span-4 md:mb-0 text-lg"
+                    >Stand:</label
+                  >
+                  <div class="col-span-12 md:col-span-8">
+                    <p class="text-lg">{{ selectedStand?.name ?? '' }}</p>
                   </div>
                 </div>
                 <div class="grid grid-cols-12 gap-2">
                   <div class="col-span-4 text-lg">Countries</div>
-                  <div class="col-span-8 text-lg">
+                  <div class="col-span-8 text-lg overflow-auto max-h-[300px]">
                     <div
                       v-for="country in mcCountrySelectList"
                       :key="country.id"
@@ -624,22 +646,6 @@ async function saveLayout({ valid }: any) {
                         {{ country.name ?? '' }}
                       </template>
                     </div>
-                  </div>
-                </div>
-                <div class="grid grid-cols-12 gap-2">
-                  <div class="col-span-4 text-lg">Stand Type</div>
-                  <div class="col-span-8">
-                    <p class="text-lg">{{ selectedStandType?.name ?? '' }}</p>
-                  </div>
-                </div>
-                <div class="grid grid-cols-12 gap-2">
-                  <label
-                    for="email3"
-                    class="flex items-center col-span-12 mb-2 md:col-span-2 md:mb-0 text-lg"
-                    >Stand</label
-                  >
-                  <div class="col-span-12 md:col-span-10">
-                    <p class="text-lg">{{ selectedStand?.name ?? '' }}</p>
                   </div>
                 </div>
               </div>
