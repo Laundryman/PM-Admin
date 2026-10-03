@@ -472,9 +472,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             {
                 BrandId = brandId,
                 LoadChildren = loadChildren,
-                IsPagingEnabled = isPagingEnabled,
-                Page = page,
-                PageSize = pageSize
+                //IsPagingEnabled = isPagingEnabled,
+                //Page = page,
+                //PageSize = pageSize
             };
             var regionFilter = new RegionFilter
             {

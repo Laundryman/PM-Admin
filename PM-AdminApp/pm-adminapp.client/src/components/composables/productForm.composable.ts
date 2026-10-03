@@ -26,6 +26,7 @@ export function useProductForm() {
     productData.append('countriesList', productModel.value.countriesList || '')
     productData.append('regionsList', productModel.value.regionsList || '')
     productData.append('regions', JSON.stringify(productModel.value.regions || []))
+    // productData.append('regions', JSON.stringify(productModel.value.regions || []))
     productData.append('countries', JSON.stringify(productModel.value.countries || []))
     productData.append('shades', JSON.stringify(productModel.value.shades || []))
 

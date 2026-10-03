@@ -282,13 +282,18 @@ namespace PM_AdminApp.Server.Controllers
             return filteredProducts;
 
         }
-
+        [ApiExplorerSettings(IgnoreApi = true)]
         private async Task UpdateRegionsCollection(Product origProduct, ProductUpdateDto updateProduct)
         {
             var options = new JsonSerializerOptions();
             options.PropertyNameCaseInsensitive = true;
             options.Converters.Add(new JsonStringEnumConverter());
             var regionDtos = JsonSerializer.Deserialize<List<RegionDto>>(updateProduct.Regions, options);
+            //var regionDtos = updateProduct.Regions;
+            if (regionDtos == null)
+            {
+                regionDtos = new List<RegionDto>();
+            }
             foreach (var region in regionDtos)
             {
                 var origRegion = origProduct.Regions.FirstOrDefault(r => r.Id == region.Id);
@@ -321,6 +326,7 @@ namespace PM_AdminApp.Server.Controllers
             origProduct.RegionsList = string.Join(",", origProduct.Regions.Select(r => r.Id));
         }
 
+        [ApiExplorerSettings(IgnoreApi = true)]
         private async Task UpdateCountryCollection(Product origProduct, ProductUpdateDto updateProduct)
         {
             //add new countries
@@ -328,6 +334,10 @@ namespace PM_AdminApp.Server.Controllers
             options.PropertyNameCaseInsensitive = true;
             options.Converters.Add(new JsonStringEnumConverter());
             var productountries = JsonSerializer.Deserialize<List<CountryDto>>(updateProduct.Countries, options);
+            if (productountries == null)
+            {
+                productountries = new List<CountryDto>();
+            }
             foreach (var country in productountries)
             {
                 var origCountry = origProduct.Countries.FirstOrDefault(c => c.Id == country.Id);
@@ -359,7 +369,7 @@ namespace PM_AdminApp.Server.Controllers
 
             //update Part.CountryList string
             origProduct.CountriesList = string.Join(",", origProduct.Countries.Select(c => c.Id));
-        }
+        } 
 
 
         [ApiExplorerSettings(IgnoreApi = true)]

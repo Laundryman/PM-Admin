@@ -2,14 +2,18 @@
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PMApplication.Dtos;
 using PMApplication.Dtos.Filters;
 using PMApplication.Entities;
-using PMApplication.Entities.JobsAggregate;
 using PMApplication.Entities.CountriesAggregate;
+using PMApplication.Entities.JobsAggregate;
+using PMApplication.Entities.ProductAggregate;
 using PMApplication.Interfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
-using PMApplication.Dtos;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using PMApplication.Interfaces.RepositoryInterfaces;
 
 namespace PM_AdminApp.Server.Controllers
 {
@@ -25,9 +29,11 @@ namespace PM_AdminApp.Server.Controllers
         private readonly IAsyncRepository<JobFolder> _jobFolderRepository;
         private readonly IAsyncRepository<Country> _countryRepository;
         private readonly IConfiguration _configuration;
+        private readonly IAsyncRepository<Region> _regionRepository;
+        private readonly IAsyncRepository<Brand> _brandRepository;
 
 
-        public JobsController(ILogger<JobsController> logger, IMapper mapper, IAsyncRepository<Job> jobRepository, IAsyncRepository<JobFolder> jobFolderRepository, IConfiguration configuration, IAsyncRepository<Country> countryRepository)
+        public JobsController(ILogger<JobsController> logger, IMapper mapper, IAsyncRepository<Job> jobRepository, IAsyncRepository<JobFolder> jobFolderRepository, IConfiguration configuration, IAsyncRepository<Country> countryRepository, IAsyncRepository<Region> regionRepository, IAsyncRepository<Brand> brandRepository)
         {
             _logger = logger;
             _mapper = mapper;
@@ -35,6 +41,8 @@ namespace PM_AdminApp.Server.Controllers
             _jobFolderRepository = jobFolderRepository;
             _configuration = configuration;
             _countryRepository = countryRepository;
+            _regionRepository = regionRepository;
+            _brandRepository = brandRepository;
         }
 
         [HttpPost(Name = "JobFolders")]
@@ -118,9 +126,9 @@ namespace PM_AdminApp.Server.Controllers
                     var countriesToAdd = new List<Country>();
                     var countriesToRemove = new List<Country>();
 
-                    foreach (var country in folderEdit.Countries)
-                    {
-                        var keepCountry = jobFolderDto.Countries.Where(c => c.Id == country.Id).FirstOrDefault();
+                    foreach (var country in folderEdit.Countries.ToList())
+                    {       
+                        var keepCountry = jobFolderDto.Countries.FirstOrDefault(c => c.Id == country.Id);
                         if (keepCountry == null)
                         {
                             folderEdit.Countries.Remove(country);
@@ -168,8 +176,22 @@ namespace PM_AdminApp.Server.Controllers
                 var jobFolder = new JobFolder();
                 _mapper.Map(jobFolderDto, jobFolder);
                 jobFolder.DateCreated = DateTime.Now;
+                //var brand = await _brandRepository.GetByIdAsync(jobFolderDto.BrandId);
+                //jobFolder.Brand = brand;
+
+                //var region = await _regionRepository.GetByIdAsync((int)jobFolderDto.RegionId);
+                //if (region != null)
+                //{
+                //    jobFolder.Region = region;
+                //}
+
+                //jobFolder.Brand = null;
+                //jobFolder.Region = null;
+
+                await UpdateCountryCollection(jobFolder, jobFolderDto);
                 var createdFolder = await _jobFolderRepository.AddAsync(jobFolder);
-                return Ok(createdFolder);
+                var responseFolder = _mapper.Map<JobFolderDto>(createdFolder);
+                return Ok(responseFolder);
             }
             catch (Exception ex)
             {
@@ -264,6 +286,95 @@ namespace PM_AdminApp.Server.Controllers
                 _logger.LogWarning($"Something went wrong inside CreateJob action: {ex.Message}");
                 return StatusCode(500, "Internal server error");
             }
+        }
+        
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        //private async Task UpdateRegionsCollection(JobFolder origJob, JobFolderDto updateJob)
+        //{
+        //    var options = new JsonSerializerOptions();
+        //    options.PropertyNameCaseInsensitive = true;
+        //    options.Converters.Add(new JsonStringEnumConverter());
+        //    var regionDtos = JsonSerializer.Deserialize<List<RegionDto>>(updateJob.Region, options);
+        //    //var regionDtos = updateProduct.Regions;
+        //    if (regionDtos == null)
+        //    {
+        //        regionDtos = new List<RegionDto>();
+        //    }
+        //    foreach (var region in regionDtos)
+        //    {
+        //        var origRegion = origJob.Regions.FirstOrDefault(r => r.Id == region.Id);
+        //        if (origRegion == null)
+        //        {
+
+        //            var dbRegion = await _regionRepository.GetByIdAsync(region.Id);
+        //            origJob.Regions.Add(dbRegion);
+        //        }
+        //    }
+
+        //    var regionsToDelete = new List<Region>();
+        //    for (int i = origJob.Regions.Count - 1; i >= 0; i--)
+        //    {
+        //        var origRegion = origJob.Regions[i];
+        //        var updatedRegion = regionDtos.FirstOrDefault(r => r.Id == origRegion.Id);
+        //        if (updatedRegion == null)
+        //        {
+        //            var dbRegion = origJob.Regions.FirstOrDefault(r => r.Id == origRegion.Id);
+        //            regionsToDelete.Add(dbRegion);
+        //        }
+        //    }
+
+        //    foreach (var region in regionsToDelete)
+        //    {
+        //        origJob.Regions.Remove(region);
+        //    }
+
+        //    //update Part.RegionList string
+        //    origJob.RegionsList = string.Join(",", origJob.Regions.Select(r => r.Id));
+        //}
+        [ApiExplorerSettings(IgnoreApi = true)]
+        private async Task UpdateCountryCollection(JobFolder origJobFolder, JobFolderDto updateJob)
+        {
+            //add new countries
+            //var options = new JsonSerializerOptions();
+            //options.PropertyNameCaseInsensitive = true;
+            //options.Converters.Add(new JsonStringEnumConverter());
+            //var productountries = JsonSerializer.Deserialize<List<CountryDto>>(updateJob.Countries, options);
+            var jobCountries = updateJob.Countries;
+            if (jobCountries == null)
+            {
+                jobCountries = new List<CountryDto>();
+            }
+            foreach (var country in jobCountries)
+            {
+                var origCountry = origJobFolder.Countries.FirstOrDefault(c => c.Id == country.Id);
+                if (origCountry == null)
+                {
+                    var dbCountry = await _countryRepository.GetByIdAsync(country.Id);
+                    if (dbCountry != null)
+                    {
+                        origJobFolder.Countries.Add(dbCountry);
+                    }
+                }
+            }
+            //remove deleted countries
+            var countriesToDelete = new List<Country>();
+            // iterate over a snapshot so we can examine/remove safely
+            foreach (var origCountry in origJobFolder.Countries.ToList())
+            {
+                var updatedCountry = jobCountries.FirstOrDefault(c => c.Id == origCountry.Id);
+                if (updatedCountry == null)
+                {
+                    countriesToDelete.Add(origCountry);
+                }
+            }
+
+            foreach (var country in countriesToDelete)
+            {
+                origJobFolder.Countries.Remove(country);
+            }
+
+            //update Part.CountryList string
+            //origJobFolder.CountriesList = string.Join(",", origJobFolder.Countries.Select(c => c.Id));
         }
 
     }

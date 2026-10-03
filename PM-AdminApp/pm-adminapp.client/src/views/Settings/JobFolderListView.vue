@@ -207,13 +207,14 @@ const hideFolderDialog = () => {
 async function saveFolder() {
   //folderManagement.saveUpdate()
   // jobFolder.value = jobFolderEdit.value
+  // const isNewFolder = jobFolder.value.id === 0
   jobFolder.value.name = jobFolderEdit.value.name
   jobFolder.value.description = jobFolderEdit.value.description
   jobFolder.value.regionId = jobFolderEdit.value.regionId
   jobFolder.value.countries = jobFolderEdit.value.countries
   jobFolder.value.region = jobFolderEdit.value.region
   jobFolder.value.id = jobFolderEdit.value.id
-  jobFolder.value.brandId = jobFolderEdit.value.brandId
+  jobFolder.value.brandId = brandStore.activeBrand?.id ?? 0
   submitted.value = true
 
   if (jobFolder?.value.name?.trim()) {
@@ -221,34 +222,32 @@ async function saveFolder() {
       await jobsService
         .updateJobFolder(jobFolder.value)
         .then((response) => {
-          if (response && response.data) {
-            console.log(response.data)
-          }
+          toast.add({
+            severity: 'success',
+            summary: 'Successful',
+            detail: 'Job Folder Updated',
+            life: 3000,
+          })
         })
         .catch((error) => {
           console.error('Error updating job folder:', error)
         })
-      toast.add({
-        severity: 'success',
-        summary: 'Successful',
-        detail: 'Job Folder Updated',
-        life: 3000,
-      })
     } else {
       jobFolder.value.id = 0
 
       await jobsService.createJobFolder(jobFolder.value).then((response) => {
-        console.log('Job Folder created', response)
+        // console.log('Job Folder created', response)
         let newJobFolder = response
-        if (jobFolders.value) {
-          jobFolders.value.push(newJobFolder)
-        }
-      })
-      toast.add({
-        severity: 'success',
-        summary: 'Successful',
-        detail: 'Job Folder Created',
-        life: 3000,
+        const tempFolderList = [...jobFolders.value]
+
+        tempFolderList.unshift(newJobFolder)
+        jobFolders.value = tempFolderList
+        toast.add({
+          severity: 'success',
+          summary: 'Successful',
+          detail: 'Job Folder Created',
+          life: 3000,
+        })
       })
     }
 
@@ -269,7 +268,9 @@ function editFolder(folder: JobFolder) {
 function addJobFolder() {
   folderManagement.setRegionSelectList(regions.value ?? [])
   jobFolder.value = new JobFolder()
+  jobFolderEdit.value = new JobFolder()
   jobFolder.value.brandId = brandStore.activeBrand?.id ?? 0
+  jobFolderEdit.value.brandId = brandStore.activeBrand?.id ?? 0
   folderDialog.value = true
 }
 ////////////////////////////////////////////
@@ -494,7 +495,7 @@ function addJob(folder: JobFolder) {
     </div>
     <Dialog
       v-model:visible="folderDialog"
-      :style="{ width: '450px' }"
+      :style="{ width: '54rem' }"
       header="Job Folder Details"
       :modal="true"
     >
@@ -527,18 +528,18 @@ function addJob(folder: JobFolder) {
             >Description is required.</small
           >
         </div>
-        <div class="bg-gray-50 col-span-2 p-10 mb-5">
-          <fieldset legend="Location" class="col-span-2">
+        <div class="bg-gray-50 flex p-5 mb-5">
+          <fieldset legend="Location" class="flex w-full">
             <legend class="text-lg font-bold mb-2">Location</legend>
-            <div class="flex flex-col gap-10">
-              <div class="p-5 gap-2">
-                <label for="region">Region:</label>
+            <div class="grid grid-flow-col grid-rows-3 gap-4 w-full">
+              <div class="p-5 gap-2 grid grid-cols-12">
+                <label for="region" class="grid mr-5 col-span-2">Region:</label>
                 <Select
                   name="region"
                   v-model="folderSelectedRegion"
                   :options="folder_regionSelectList ?? []"
                   id="region"
-                  class="w-full"
+                  class="col-span-10"
                   option-label="name"
                   option-value="id"
                   @change="folderManagement.onFolderRegionChange(folderSelectedRegion)"
@@ -550,14 +551,14 @@ function addJob(folder: JobFolder) {
                   </template>
                 </Select>
               </div>
-              <div class="p-5 gap-2">
-                <label for="country">Country:</label>
+              <div class="p-5 gap-2 grid grid-cols-12 w-full">
+                <label for="country" class="mr-5 col-span-2">Country:</label>
                 <MultiSelect
                   name="countries"
                   v-model="folder_selectedCountries"
                   :options="folder_countrySelectList ?? []"
                   id="country"
-                  class="w-full"
+                  class="col-span-10"
                   option-label="name"
                   option-value="id"
                   @change="folderManagement.onFolderCountryChange($event)"
@@ -578,7 +579,7 @@ function addJob(folder: JobFolder) {
                   >{{ $form.countries.error?.message }}</Message
                 > -->
               </div>
-              <div class="p-5">
+              <div class="p-5 col-span-1">
                 <Button
                   label="Clear Selection"
                   class="w-text-left"

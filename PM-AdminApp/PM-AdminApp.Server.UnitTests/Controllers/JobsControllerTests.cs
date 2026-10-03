@@ -24,6 +24,7 @@ using PMApplication.Entities;
 using PMApplication.Entities.CountriesAggregate;
 using PMApplication.Entities.JobsAggregate;
 using PMApplication.Interfaces;
+using PMApplication.Interfaces.RepositoryInterfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
 
@@ -50,6 +51,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             // Act
             var controller = new JobsController(
@@ -58,7 +61,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             // Assert
             Assert.IsNotNull(controller);
@@ -79,6 +84,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -86,7 +93,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var filterDto = new JobFolderFilter { Id = 999 };
             var emptyJobFolders = new List<JobFolder>();
@@ -124,6 +133,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -131,7 +142,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var filterDto = new JobFolderFilter { BrandId = 1 };
             var exceptionMessage = "Database connection failed";
@@ -179,6 +192,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -186,7 +201,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var filterDto = new JobFolderFilter
             {
@@ -225,6 +242,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -232,7 +251,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var filterDto = new JobFolderFilter { BrandId = 1 };
 
@@ -265,6 +286,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -272,7 +295,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var filterDto = new JobFolderFilter { BrandId = 1 };
             var jobFolders = new List<JobFolder>();
@@ -306,6 +331,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -313,7 +340,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobFolderDto = new JobFolderDto { Id = 1 };
             var exceptionMessage = "Mapping failed";
@@ -355,6 +384,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -362,7 +393,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobFolderDto = new JobFolderDto
             {
@@ -412,6 +445,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -419,7 +454,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             JobFolderDto? jobFolderDto = null;
             var exceptionMessage = "Value cannot be null";
@@ -461,6 +498,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -468,7 +507,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobFolderDto = new JobFolderDto
             {
@@ -520,6 +561,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -527,7 +570,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobFolderDto = new JobFolderDto { Id = 1 };
 
@@ -568,6 +613,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -575,7 +622,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             // Act
             var result = await controller.SaveJob(null!);
@@ -610,6 +659,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -617,7 +668,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             controller.ModelState.AddModelError("Name", "Required");
 
@@ -656,6 +709,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -663,7 +718,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 999 };
 
@@ -701,6 +758,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -708,7 +767,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1, BrandId = 5 };
             var existingJob = new Job { BrandId = 2 };
@@ -746,6 +807,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -753,7 +816,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1, BrandId = 0 };
             var existingJob = new Job { BrandId = 2 };
@@ -790,6 +855,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -797,7 +864,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1, JobCode = "NEW123" };
             var existingJob = new Job { JobCode = "OLD123" };
@@ -834,6 +903,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -841,7 +912,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1, JobCode = null };
             var existingJob = new Job { JobCode = "OLD123" };
@@ -878,6 +951,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -885,7 +960,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1, CustomerCode = "CUST123" };
             var existingJob = new Job { CustomerCode = "CUST000" };
@@ -922,6 +999,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -929,7 +1008,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1, CustomerCode = null };
             var existingJob = new Job { CustomerCode = "CUST000" };
@@ -966,6 +1047,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -973,7 +1056,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1, DateFrom = "2024-01-15" };
             var existingJob = new Job { DateFrom = new DateTime(2023, 1, 1) };
@@ -1010,6 +1095,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1017,7 +1104,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var originalDate = new DateTime(2023, 1, 1);
             var jobDto = new JobDto { Id = 1, DateFrom = null };
@@ -1055,6 +1144,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1062,7 +1153,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1, DateTo = "2024-12-31" };
             var existingJob = new Job { DateTo = new DateTime(2023, 12, 31) };
@@ -1099,6 +1192,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1106,7 +1201,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var originalDate = new DateTime(2023, 12, 31);
             var jobDto = new JobDto { Id = 1, DateTo = null };
@@ -1144,6 +1241,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1151,7 +1250,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1, Name = "New Job Name" };
             var existingJob = new Job { Name = "Old Job Name" };
@@ -1188,6 +1289,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1195,7 +1298,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1, Name = null };
             var existingJob = new Job { Name = "Old Job Name" };
@@ -1232,6 +1337,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>(); 
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1239,7 +1346,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1, Description = "New Description" };
             var existingJob = new Job { Description = "Old Description" };
@@ -1276,6 +1385,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1283,7 +1394,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1, Description = null };
             var existingJob = new Job { Description = "Old Description" };
@@ -1320,6 +1433,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1327,7 +1442,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto
             {
@@ -1390,6 +1507,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IRegionRepository>();
+            var mockBrandRepository = new Mock<IBrandRepository>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1397,7 +1516,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1 };
             var exceptionMessage = "Database connection failed";
@@ -1439,6 +1560,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1446,7 +1569,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1, BrandId = 5 };
             var existingJob = new Job { BrandId = 2 };
@@ -1491,6 +1616,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1498,7 +1625,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1, DateFrom = "invalid-date" };
             var existingJob = new Job();
@@ -1540,6 +1669,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1547,7 +1678,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1, DateTo = "not-a-date" };
             var existingJob = new Job();
@@ -1591,6 +1724,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1598,7 +1733,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto
             {
@@ -1656,6 +1793,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1663,7 +1802,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = id };
 
@@ -1693,6 +1834,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1700,7 +1843,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { Id = 1, BrandId = -1 };
             var existingJob = new Job { BrandId = 2 };
@@ -1737,6 +1882,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1744,7 +1891,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto
             {
@@ -1786,6 +1935,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1793,7 +1944,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto { JobCode = "TEST" };
             var exceptionMessage = "Mapping error occurred";
@@ -1835,6 +1988,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1842,7 +1997,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto
             {
@@ -1891,6 +2048,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1898,7 +2057,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             mockMapper.Setup(m => m.Map(It.IsAny<JobDto>(), It.IsAny<Job>()))
                 .Throws(new NullReferenceException("Object reference not set to an instance of an object."));
@@ -1940,6 +2101,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -1947,7 +2110,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobDto = new JobDto
             {
@@ -1995,6 +2160,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -2002,7 +2169,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);  
 
             var longString = new string('A', 1000);
             var specialChars = "!@#$%^&*()_+-=[]{}|;':\",./<>?`~";
@@ -2051,6 +2220,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -2058,7 +2229,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             // Act
             var result = await controller.SaveJobFolder(null!);
@@ -2093,6 +2266,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -2100,7 +2275,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             controller.ModelState.AddModelError("Name", "Required");
 
@@ -2139,6 +2316,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -2146,7 +2325,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobFolderDto = new JobFolderDto { Id = 999, Name = "Test" };
 
@@ -2184,6 +2365,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockJobFolderRepository = new Mock<IAsyncRepository<JobFolder>>();
             var mockConfiguration = new Mock<IConfiguration>();
             var mockCountryRepository = new Mock<IAsyncRepository<Country>>();
+            var mockRegionRepository = new Mock<IAsyncRepository<Region>>();
+            var mockBrandRepository = new Mock<IAsyncRepository<Brand>>();
 
             var controller = new JobsController(
                 mockLogger.Object,
@@ -2191,7 +2374,9 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockJobRepository.Object,
                 mockJobFolderRepository.Object,
                 mockConfiguration.Object,
-                mockCountryRepository.Object);
+                mockCountryRepository.Object,
+                mockRegionRepository.Object,
+                mockBrandRepository.Object);
 
             var jobFolderDto = new JobFolderDto { Id = 1, Name = "Test" };
             var exceptionMessage = "Database connection failed";

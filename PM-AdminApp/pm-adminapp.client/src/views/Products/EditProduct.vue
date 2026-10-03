@@ -75,6 +75,7 @@ const productForm = useProductForm()
 const productFormTemplateRef = useTemplateRef<FormInstance>('product-form')
 const initialValues = ref(new Product())
 const newProduct = ref(true);
+const shadeEditable = ref(false)
 
 // Shade Management
 const shademanagement = useShadeManagement()
@@ -129,6 +130,8 @@ onMounted(async () => {
     ms_selectedCountries.value = productModel.value.countries.map((c) => c.id)
     shademanagement.setCountrySelectList(countrySelectList.value, ms_selectedCountries.value) // pass country list to shade management composable - need to filter only selected contries on the product
     shademanagement.setSelectedCountries(ms_selectedCountries.value)
+    //enable shade management if at least one country is selected
+    shadeEditable.value = ms_selectedCountries.value.length > 0
     // dateCreated.value = new Date(productModel.value.dateCreated) //added to bind date picker
   }
 
@@ -182,17 +185,19 @@ async function onRegionChange(evt: any) {
     productModel.value.countries ?? [],
   )
 
+  productModel.value.regions = ms_selectedRegions.value.map((regionId) => regionSelectList.value.find((r) => r.id === regionId)).filter((r) => r !== undefined)
   productModel.value.regionsList = productModel.value.regions?.map((r) => r.id).join(',') || ''
 }
 
 async function onCountryChange(evt: any) {
   // manageSelectedCountries(evt.value)
   multiSelectLists.manageSelectedValues(evt.value, countrySelectList.value ?? [], productModel.value.countries ?? [])
-  console.log('Selected Countries after region change', ms_selectedCountries.value)
-  console.log('Part Model Countries after region change', productModel.value.countries)
   let someArray = productModel.value.countries ?? []
 
   productModel.value.countriesList = productModel.value.countries?.map((c) => c.id).join(',') || ''
+
+    //enable shade management if at least one country is selected
+    shadeEditable.value = ms_selectedCountries.value.length > 0
 }
 
 function onSelectAllCountriesChange(event: any) {
@@ -206,6 +211,8 @@ function onSelectAllCountriesChange(event: any) {
     productModel.value.countries ?? [],
   )
   productModel.value.countriesList = productModel.value.countries?.map((c) => c.id).join(',') || ''
+    //enable shade management if at least one country is selected
+    shadeEditable.value = ms_selectedCountries.value.length > 0
 }
 
 function clearCountrySelection() {
@@ -304,7 +311,7 @@ async function onFormSubmit({ valid }: any) {
           detail: 'Product saved successfully.',
           life: 3000,
         })
-        router.push({ name: 'products' })
+        // router.push({ name: 'products' })
       } else {
         toast.add({
           severity: 'error',
@@ -427,8 +434,8 @@ async function saveShade(updateShade: Shade) {
     <div class="w-full p-10 flex gap-2">
 
           <Button @click="tabId = '0'"  label="Product Details" class="" :outlined="tabId !== '0'" />
-          <Button @click="tabId = '1'"  label="Shades" class="" :outlined="tabId !== '1'" />
-          <Button v-if="tabId == '1'" label="New" icon="pi pi-plus" severity="secondary" class="mr-2" @click="addShade" />
+          <Button @click="tabId = '1'"  label="Shades" class="" :outlined="tabId !== '1'" :disabled="!shadeEditable" v-tooltip="!shadeEditable ? 'Please select a country first' : ''" />
+          <Button v-if="tabId == '1'" label="New" icon="pi pi-plus"  severity="secondary" class="mr-2" @click="addShade" />
     </div>
     </div>
 

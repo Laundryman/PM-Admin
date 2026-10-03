@@ -48,6 +48,7 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockCategoryService = new Mock<ICategoryService>();
             var mockClusterService = new Mock<IClusterService>();
             var mockClusterRepository = new Mock<IClusterRepository>();
+            var mockCountryRepository = new Mock<ICountryRepository>();
 
             // Act
             var controller = new ClusterController(
@@ -61,7 +62,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockConfiguration.Object,
                 mockCategoryService.Object,
                 mockClusterService.Object,
-                mockClusterRepository.Object);
+                mockClusterRepository.Object,
+                mockCountryRepository.Object);
 
             // Assert
             Assert.IsNotNull(controller);
@@ -87,6 +89,7 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockCategoryService = new Mock<ICategoryService>();
             var mockClusterService = new Mock<IClusterService>();
             var mockClusterRepository = new Mock<IClusterRepository>();
+            var mockCountryRepository = new Mock<ICountryRepository>();
 
             var controller = new ClusterController(
                 mockPartService.Object,
@@ -99,7 +102,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockConfiguration.Object,
                 mockCategoryService.Object,
                 mockClusterService.Object,
-                mockClusterRepository.Object);
+                mockClusterRepository.Object,
+                mockCountryRepository.Object);
 
             var filterDto = new ClusterFilterDto { BrandId = 1, RegionId = 2, CountryId = 3 };
             var expectedClusters = new List<SearchClusterInfo>
@@ -145,6 +149,7 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockCategoryService = new Mock<ICategoryService>();
             var mockClusterService = new Mock<IClusterService>();
             var mockClusterRepository = new Mock<IClusterRepository>();
+            var mockCountryRepository = new Mock<ICountryRepository>();
 
             var controller = new ClusterController(
                 mockPartService.Object,
@@ -157,7 +162,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockConfiguration.Object,
                 mockCategoryService.Object,
                 mockClusterService.Object,
-                mockClusterRepository.Object);
+                mockClusterRepository.Object,
+                mockCountryRepository.Object);
 
             var filterDto = new ClusterFilterDto { BrandId = 999, RegionId = 0, CountryId = 0 };
             var emptyClusters = new List<SearchClusterInfo>();
@@ -198,6 +204,7 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockCategoryService = new Mock<ICategoryService>();
             var mockClusterService = new Mock<IClusterService>();
             var mockClusterRepository = new Mock<IClusterRepository>();
+            var mockCountryRepository = new Mock<ICountryRepository>();
 
             var controller = new ClusterController(
                 mockPartService.Object,
@@ -210,7 +217,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockConfiguration.Object,
                 mockCategoryService.Object,
                 mockClusterService.Object,
-                mockClusterRepository.Object);
+                mockClusterRepository.Object,
+                mockCountryRepository.Object);
 
             var filterDto = new ClusterFilterDto { BrandId = 1 };
             var exceptionMessage = "Database connection failed";
@@ -261,6 +269,7 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
             var mockCategoryService = new Mock<ICategoryService>();
             var mockClusterService = new Mock<IClusterService>();
             var mockClusterRepository = new Mock<IClusterRepository>();
+            var mockCountryRepository = new Mock<ICountryRepository>();
 
             var controller = new ClusterController(
                 mockPartService.Object,
@@ -273,7 +282,8 @@ namespace PM_AdminApp.Server.Controllers.UnitTests
                 mockConfiguration.Object,
                 mockCategoryService.Object,
                 mockClusterService.Object,
-                mockClusterRepository.Object);
+                mockClusterRepository.Object,
+                mockCountryRepository.Object);
 
             var filterDto = new ClusterFilterDto { BrandId = brandId, RegionId = (int)regionId, CountryId = (int)countryId };
             var expectedClusters = new List<SearchClusterInfo> { new SearchClusterInfo() };

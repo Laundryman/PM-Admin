@@ -61,7 +61,7 @@ export const partService = {
     let response = await apiClient
       .post('/savePart', part)
       .then((resp) => {
-        return resp
+        return resp.data
       })
       .catch((error) => {
         throw error

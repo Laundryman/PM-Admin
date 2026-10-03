@@ -54,6 +54,7 @@ export default {
           id: id,
         },
       })
+      return response.data
     } else {
       throw new Error('JobsService not initialized')
     }
@@ -85,7 +86,7 @@ export default {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
       }
       apiClient.defaults.headers['Content-Type'] = 'application/json'
-      await apiClient
+      const returnValue = await apiClient
         .post('/createJobFolder', jobFolder)
         .then((response) => {
           return response.data
@@ -93,6 +94,7 @@ export default {
         .catch((error) => {
           throw error
         })
+      return returnValue
     } else {
       throw new Error('JobService not initialized')
     }

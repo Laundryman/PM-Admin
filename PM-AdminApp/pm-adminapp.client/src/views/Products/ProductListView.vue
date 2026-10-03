@@ -351,6 +351,11 @@ function onShowUnPublishedChange() {
           style="min-width: 16rem"
         >
         </Column>
+        <Column field="dateUpdated" header="Last Updated" sortable style="min-width: 12rem">
+          <template #body="slotProps">
+            {{ new Date(slotProps.data.dateUpdated).toLocaleDateString() }}
+          </template>
+        </Column>
         <Column field="published" header="Published" data-type="boolean" style="min-width: 20rem">
           <template #body="{ data }">
             <i

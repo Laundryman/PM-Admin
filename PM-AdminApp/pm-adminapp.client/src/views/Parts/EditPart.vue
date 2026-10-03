@@ -139,7 +139,10 @@ onMounted(async () => {
     cassetteIconSrc.value = partModel.value.svgLineGraphic
   }
   selectedParentCategoryId.value = partModel.value.parentCategoryId || null
-  if (router.currentRoute.value.name === 'editPart') {
+  if (
+    router.currentRoute.value.name === 'editPart' ||
+    router.currentRoute.value.name === 'copyPart'
+  ) {
     ms_selectedRegions.value = partModel.value.regions.map((c) => c.id)
     countrySelectList.value = await locationFilters.getCountriesForRegions(ms_selectedRegions.value)
     ms_selectedCountries.value = partModel.value.countries.map((c) => c.id)
@@ -171,14 +174,20 @@ onMounted(async () => {
     partModel.value.partType = partTypes.value?.find(
       (pt) => pt.id === partModel.value.partTypeId,
     ) as PartType
-    if (router.currentRoute.value.name === 'editPart') {
+    if (
+      router.currentRoute.value.name === 'editPart' ||
+      router.currentRoute.value.name === 'copyPart'
+    ) {
       selectedPartType.value = partModel.value.partType.id ?? null
     }
   })
 
   await standTypeComposable.getStandTypes().then((response) => {
     standTypesList.value = response
-    if (router.currentRoute.value.name === 'editPart') {
+    if (
+      router.currentRoute.value.name === 'editPart' ||
+      router.currentRoute.value.name === 'copyPart'
+    ) {
       selectedStandTypes.value = partModel.value.standTypes.map((st: StandType) => st.id)
       // console.log('Stand Types loaded', standTypesList.value)
       partModel.value.standTypes = standTypesList.value?.filter((st) =>
@@ -195,7 +204,11 @@ onMounted(async () => {
     // console.log('Products loaded', ms_productList.value)
   })
 
-  if (router.currentRoute.value.name === 'editPart') selectedProducts.value = mapPubishedProducts()
+  if (
+    router.currentRoute.value.name === 'editPart' ||
+    router.currentRoute.value.name === 'copyPart'
+  )
+    selectedProducts.value = mapPubishedProducts()
   layout.toggleLoading()
 })
 
