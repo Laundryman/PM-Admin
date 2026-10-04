@@ -1,0 +1,85 @@
+/*! JointJS+ v4.3.3 (2026-09-05) - HTML5 Diagramming Framework
+
+Copyright (c) 2026 client IO
+
+This Source Code Form is subject to the terms of the JointJS+
+License, v. 2.0. If a copy of the JointJS+ License was not
+distributed with this file, You can obtain one at
+https://www.jointjs.com/license or from the JointJS+ archive as was
+distributed by client IO. See the LICENSE file.
+*/
+
+.joint-dialog.joint-theme-light {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+}
+
+.joint-dialog.joint-theme-light .bg {
+    background-color: black;
+}
+
+.joint-dialog.joint-theme-light .fg {
+    border-radius: 5px;
+    background-color: white;
+    border: 1px solid lightgrey;
+}
+
+.joint-dialog.joint-theme-light.inlined .fg {
+    position: relative;
+    top: auto;
+    left: auto;
+    margin: 0;
+    z-index: auto;
+}
+
+.joint-dialog.joint-theme-light .titlebar {
+    background-color: #0ea5e9;
+    padding: 10px;
+    padding-right: 25px;
+    color: white;
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+    border-bottom: 1px solid lightgrey;
+}
+
+.joint-dialog.joint-theme-light[data-type="alert"] .titlebar {
+    background-color: #fe854f;
+}
+.joint-dialog.joint-theme-light[data-type="warning"] .titlebar {
+    background-color: #feb663;
+}
+.joint-dialog.joint-theme-light[data-type="success"] .titlebar {
+    background-color: #31d0c6;
+}
+.joint-dialog.joint-theme-light[data-type="neutral"] .titlebar {
+    background-color: #efefef;
+    color: #696c8a;
+}
+
+.joint-dialog.joint-theme-light .btn-close {
+    background-color: transparent;
+    border: 1px solid transparent;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    border-radius: 4px;
+}
+
+.joint-dialog.joint-theme-light .btn-close:hover {
+    border: 1px solid black;
+}
+
+.joint-dialog.joint-theme-light .body {
+    padding: 10px;
+}
+
+.joint-dialog.joint-theme-light .controls .control-button {
+    border: 1px solid lightgrey;
+    color: black;
+    background-color: transparent;
+    padding: 0 15px;
+    font-size: 10pt;
+    border-radius: 4px;
+}
+
+.joint-dialog.joint-theme-light .controls .control-button:hover {
+    background-color: lightgrey;
+}

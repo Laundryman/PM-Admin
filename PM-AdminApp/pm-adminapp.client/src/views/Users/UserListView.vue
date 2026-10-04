@@ -361,16 +361,6 @@ const getCountryName = (countryId: string) => {
 
     <DataTable
       v-model:filters="filters"
-      filterDisplay="row"
-      :globalFilterFields="[
-        'givenName',
-        'surname',
-        'userName',
-        'userEmailAddress',
-        'country.name',
-        'brandNameList',
-        'role.name',
-      ]"
       ref="dt"
       :value="users"
       v-model:selection="selectedUsers"
@@ -403,35 +393,17 @@ const getCountryName = (countryId: string) => {
         <ProgressSpinner />
       </template>
       <!-- <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column> -->
-      <Column
-        field="givenName"
-        filterField="givenName"
-        header="First Name"
-        sortable
-        :filterMatchModeOptions="matchModeOptions"
-      >
+      <Column field="givenName" filterField="givenName" header="First Name" sortable>
         <template #body="{ data }">
           {{ data.givenName }}
         </template>
       </Column>
-      <Column
-        field="surname"
-        filterField="surname"
-        header="Surname"
-        sortable
-        :filterMatchModeOptions="matchModeOptions"
-      >
+      <Column field="surname" filterField="surname" header="Surname" sortable>
         <template #body="{ data }">
           {{ data.surname }}
         </template>
       </Column>
-      <Column
-        field="userName"
-        filterField="userName"
-        header="User Name"
-        sortable
-        :filterMatchModeOptions="matchModeOptions"
-      >
+      <Column field="userName" filterField="userName" header="User Name" sortable>
         <template #body="{ data }">
           {{ data.userName }}
         </template>
@@ -441,7 +413,6 @@ const getCountryName = (countryId: string) => {
         filterField="userEmailAddress"
         header="User Email Address"
         sortable
-        :filterMatchModeOptions="matchModeOptions"
       >
         <template #body="{ data }">
           {{ data.userEmailAddress }}
@@ -452,7 +423,6 @@ const getCountryName = (countryId: string) => {
         filterField="country.name"
         sortField="country.name"
         header="Country"
-        :filterMatchModeOptions="matchModeOptions"
         sortable
       >
         <template #body="{ data }">

@@ -146,6 +146,22 @@ export default {
         throw error
       })
   },
+
+  async deletePlanogram(id: number): Promise<void> {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+      apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
+    }
+    return apiClient
+      .delete('/deletePlanogram', { params: { planogramId: id } })
+      .then(() => {
+        return
+      })
+      .catch((error) => {
+        throw error
+      })
+  },
+
   async initialise() {
     const authStore = useAuthStore()
     if (!authStore.initialized) {

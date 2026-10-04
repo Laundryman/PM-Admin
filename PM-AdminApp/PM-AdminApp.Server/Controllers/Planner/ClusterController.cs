@@ -573,12 +573,9 @@ namespace PM_AdminApp.Server.Controllers.Planner
                     cluster.StatusId != (int)StatusEnums.PlanogramStatusEnum.Submitted)
                 {
                     cluster.StatusId = (int)StatusEnums.PlanogramStatusEnum.Edit;
-                    //PlanogramStatus status =
-                    //    await _planogramService.GetPlanogramStatus((int)StatusEnums.PlanogramStatusEnum.Edit);
-                    //planogram.Status = status; //redundant?
                 }
-                //await _clusterService.SaveCluster(cluster);
-                ////Audit the action
+                await _clusterService.SaveCluster(cluster);
+                //Audit the action
                 //var audit = new AuditLog
                 //{
                 //    UserId = userProfile.Id,
@@ -586,9 +583,10 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 //    BrandId = cluster.BrandId,
                 //    Roles = userProfile.RoleIds,
                 //    UserName = userProfile.DisplayName,
-                //    Action = (int)LogActionEnum.EditCluster,
+                //    Action = (int)LogActionEnum.EditLayout,
                 //    Message = userProfile.DisplayName + " edited cluster with Id " + clusterId.ToString(),
-                //    ClusterId = (long)clusterId
+                //    ObjectId = (long)clusterId,
+                //    ObjectName = cluster.Name
                 //};
 
                 //await _auditService.AuditEvent(audit);
@@ -653,8 +651,8 @@ namespace PM_AdminApp.Server.Controllers.Planner
                     BrandName = brand.Name,
                     RoleId = int.Parse(userProfile?.RoleId ?? "0"),
                     RoleName = nameof(role),
-                    PlanoId = cluster.Id,
-                    PlanoName = cluster.Name,
+                    ObjectId = cluster.Id,
+                    ObjectName = cluster.Name,
                     //CountryId = cluster.CountriesList,
                     //RegionId = cluster.RegionsList
                     //CountryName = country?.Name,

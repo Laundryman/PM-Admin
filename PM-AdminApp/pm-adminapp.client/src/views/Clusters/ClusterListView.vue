@@ -361,7 +361,7 @@ async function saveLayout({ valid }: any) {
             </IconField>
           </div>
         </template>
-        <!-- <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column> -->
+        <template #empty> No clusters found. </template>
         <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
         <Column field="standName" header="Stand Name" sortable style="min-width: 12rem"></Column>
         <Column
@@ -369,6 +369,7 @@ async function saveLayout({ valid }: any) {
           header="StandType"
           filterField="standTypeName"
           style="min-width: 10rem"
+          sortable
         >
           <!-- <template #filter="{ filterModel, filterCallback }">
             <InputText

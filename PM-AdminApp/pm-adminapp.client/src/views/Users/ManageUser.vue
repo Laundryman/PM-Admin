@@ -897,7 +897,7 @@ async function onFormSubmit({ valid }: any) {
             </div>
           </fieldset>
         </div>
-        <div class="bg-gray-50 col-span-2 p-10 mb-5">
+        <div class="bg-gray-50 col-span-2 p-10 mb-5" v-if="userModel.brandIds != undefined">
           <!-- don't show the tabs if the user is a global admin as they shouldn't be restricted by
             brand level access -->
           <Tabs

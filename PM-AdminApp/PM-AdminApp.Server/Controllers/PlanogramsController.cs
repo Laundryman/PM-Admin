@@ -199,7 +199,7 @@ namespace PM_AdminApp.Server.Controllers
         }
 
         //[Route("api/v2/planogram/delete/{planogramId}")]
-        [HttpGet]
+        [HttpDelete]
         public async Task<int> DeletePlanogram(int planogramId)
         {
             // we can retrieve the userId from the request

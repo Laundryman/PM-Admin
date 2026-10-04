@@ -122,6 +122,8 @@ async function clearFilters() {
   countries.value = []
   let filter = new JobFolderFilter()
   filter.brandId = brandStore.activeBrand?.id ?? 0
+  filter.includeChildren = true
+
   await jobsService.searchJobFolders(filter).then((response) => {
     jobFolders.value = response.data
     console.log('Job Folders loaded', jobFolders.value)
@@ -151,6 +153,8 @@ async function onRegionFilterChange() {
     let filter = new JobFolderFilter()
     filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.regionId = selectedRegion.value
+    filter.includeChildren = true
+
     await jobsService.searchJobFolders(filter).then((response) => {
       jobFolders.value = response.data
       console.log('Job Folders loaded', jobFolders.value)
@@ -165,6 +169,8 @@ async function onCountryFilterChange() {
     let filter = new JobFolderFilter()
     filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.countryId = selectedCountry.value
+    filter.includeChildren = true
+
     await jobsService.searchJobFolders(filter).then((response) => {
       jobFolders.value = response.data
       console.log('Job Folders loaded', jobFolders.value)
@@ -428,6 +434,7 @@ function addJob(folder: JobFolder) {
             </IconField>
           </div>
         </template>
+        <template #empty> No job folders found. </template>
         <Column expander style="width: 5rem" />
         <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
         <Column
@@ -472,9 +479,21 @@ function addJob(folder: JobFolder) {
             >
               <Column field="jobCode" header="Job Code" sortable></Column>
               <Column field="description" header="Description" sortable></Column>
-              <Column field="dateFrom" header="Date From" sortable></Column>
-              <Column field="dateTo" header="Date To" sortable></Column>
-              <Column field="uploadedOn" header="Date Added" sortable></Column>
+              <Column field="dateFrom" header="Date From" sortable>
+                <template #body="slotProps">
+                  {{ new Date(slotProps.data.dateFrom).toLocaleDateString() }}
+                </template>
+              </Column>
+              <Column field="dateTo" header="Date To" sortable>
+                <template #body="slotProps">
+                  {{ new Date(slotProps.data.dateTo).toLocaleDateString() }}
+                </template>
+              </Column>
+              <Column field="uploadedOn" header="Date Added" sortable>
+                <template #body="slotProps">
+                  {{ new Date(slotProps.data.uploadedOn).toLocaleDateString() }}
+                </template>
+              </Column>
 
               <Column header="Actions" headerStyle="width:4rem">
                 <template #body="slotProps">
@@ -646,7 +665,7 @@ function addJob(folder: JobFolder) {
             v-model="jobDateRange"
             selectionMode="range"
             :manualInput="false"
-            dateFormat="dd/mm/yyyy"
+            dateFormat="dd/mm/yy"
           />
           <small v-if="submitted && !jobDateRange" class="text-red-500"
             >Date Range is required.</small

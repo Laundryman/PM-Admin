@@ -129,9 +129,8 @@ async function saveStandType() {
               1,
               updatedStandType,
             )
-          standTypes.value
-            .find((c: StandType) => c.id === updatedStandType.parentStandTypeId)
-            .childStandTypes.push(updatedStandType)
+          standTypes.value.find((c: StandType) => c.id === updatedStandType.parentStandTypeId)
+          // .childStandTypes.push(updatedStandType)
         })
         .catch((error) => {
           console.log('Error updating standType:', error)

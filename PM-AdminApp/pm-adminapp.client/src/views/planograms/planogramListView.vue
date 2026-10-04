@@ -13,10 +13,12 @@ import Lock from '@primeicons/vue/lock'
 import LockOpen from '@primeicons/vue/lock-open'
 import { FilterMatchMode } from '@primevue/core/api/'
 import { storeToRefs } from 'pinia'
+import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const toast = useToast()
 const layout = useSystemStore()
 const brandStore = useBrandStore()
 const loading = ref(false)
@@ -250,12 +252,40 @@ function restore(planogram: searchPlanogramInfo) {
       planograms.value = planograms.value.map((p) =>
         p.id === planogram.id ? { ...p, statusId: 1, statusName: 'Editing' } : p,
       )
-      // clearFilters()
+      toast.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Planogram restored successfully.',
+        group: 'center',
+        life: 3000,
+      })
     })
     .catch((error) => {
       console.error('Error restoring planogram', error)
     })
   // console.log('Restore planogram', planogram)
+  // layout.setActivePart(part)
+  // Navigate to edit page
+}
+function deletePlanogram(planogram: searchPlanogramInfo) {
+  planogramService
+    .deletePlanogram(planogram.id)
+    .then(() => {
+      console.log('Planogram deleted', planogram)
+      // Refresh the planogram list after deleting
+      planograms.value = planograms.value.filter((p) => p.id !== planogram.id)
+      toast.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Planogram deleted successfully.',
+        group: 'center',
+        life: 3000,
+      })
+    })
+    .catch((error) => {
+      console.error('Error deleting planogram', error)
+    })
+  // console.log('Delete planogram', planogram)
   // layout.setActivePart(part)
   // Navigate to edit page
 }
@@ -364,6 +394,7 @@ function editPlanogram(planogram: searchPlanogramInfo) {
             </IconField>
           </div>
         </template>
+        <template #empty> No planograms found. </template>
 
         <Column field="name" header="Name" sortable style="min-width: 12rem">
           <template #body="{ data }">
@@ -464,6 +495,16 @@ function editPlanogram(planogram: searchPlanogramInfo) {
               @click="lock(slotProps.data)"
             />
             <Button
+              v-if="slotProps.data.statusId !== 4"
+              v-tooltip="'Delete Planogram'"
+              icon="pi pi-trash"
+              variant="outlined"
+              rounded
+              severity="danger"
+              class="mr-2"
+              @click="deletePlanogram(slotProps.data)"
+            />
+            <Button
               v-if="slotProps.data.statusId === 4"
               v-tooltip="'Restore Planogram to editing'"
               icon="pi pi-undo"
@@ -489,4 +530,5 @@ function editPlanogram(planogram: searchPlanogramInfo) {
       </DataTable>
     </div>
   </div>
+  <Toast position="center" group="center" />
 </template>

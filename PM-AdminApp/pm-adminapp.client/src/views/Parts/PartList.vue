@@ -349,7 +349,7 @@ function deletePart(part: SearchPartInfo) {
             <h4 class="m-0">Manage Parts</h4>
           </div>
         </template>
-        <!-- <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column> -->
+        <template #empty> No parts found. </template>
         <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
         <Column field="description" header="Description" sortable style="min-width: 12rem"></Column>
         <Column field="partNumber" header="Part Number" sortable style="min-width: 12rem"></Column>

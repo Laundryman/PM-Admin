@@ -74,7 +74,9 @@ const tabId = ref('0')
 const productForm = useProductForm()
 const productFormTemplateRef = useTemplateRef<FormInstance>('product-form')
 const initialValues = ref(new Product())
-const newProduct = ref(true);
+const newProduct = ref(false);
+const editProduct = ref(false)
+const copyProduct = ref(false)
 const shadeEditable = ref(false)
 
 // Shade Management
@@ -105,10 +107,13 @@ onMounted(async () => {
 
   if (router.currentRoute.value.name === 'newProduct') {
     productModel.value.brandId = brandStore.activeBrand?.id ?? 0
-  }
-
-    if (router.currentRoute.value.name === 'copyProduct') {
     newProduct.value = true
+  }
+    if (router.currentRoute.value.name === 'editProduct') {
+    editProduct.value = true
+    }
+    if (router.currentRoute.value.name === 'copyProduct') {
+    copyProduct.value = true
     productModel.value.id = 0 //reset for copy
     productModel.value.name = productModel.value.name + ' - Copy'
     productModel.value.fullDescription = productModel.value.fullDescription + '-COPY'
@@ -421,7 +426,10 @@ async function saveShade(updateShade: Shade) {
       />
     </div>
     <div class="w-full sticky bg-white top-16 block p-10 z-10">
-      <h2><span v-if="!newProduct">Edit Product</span><span v-else>New Product</span></h2>
+      <h2><span v-if="newProduct">New Product</span>
+        <span v-else-if="editProduct">Edit Product</span>
+        <span v-else-if="copyProduct">Copy Product</span>
+    </h2>
       <div class="grid gap-2 grid-cols-2 ml-10">
         <div class="flex flex-col gap-1">
           <span class="font-bold text-xl">{{ productModel.name }}</span>

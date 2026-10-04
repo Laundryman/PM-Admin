@@ -220,6 +220,11 @@ onMounted(async () => {
         }
       }
     }
+
+    if (selection.value?.collection.length == null || selection.value?.collection.length == 0) {
+      // handle empty selection case if needed
+      planogramStore.dirty = false
+    }
   })
 
   commandManager.value.on('stack:redo', function (opt: any) {
@@ -468,7 +473,8 @@ onMounted(async () => {
       }
       if (
         opt.propertyPath.includes('attrs/text/text') ||
-        opt.propertyPath.includes('attrs/#label/text')
+        opt.propertyPath.includes('attrs/#label/text') ||
+        opt.propertyPath.includes('shelfInfo/label')
       ) {
         // var labelVal = opt.propertyValue;
         if (cell.attributes.type === 'planmatr.Part.Shelf') {
@@ -551,10 +557,12 @@ onMounted(async () => {
           }
 
           if (opt.propertyPath.includes('shelfInfo/label')) {
-            // cell.attributes.shelfInfo.attrs['.label'].text = opt.propertyValue
             cell.attributes.shelfInfo.label = opt.propertyValue
-
-            cell.findView(paper.value as joint.dia.Paper).render()
+            setProperty('/label/text', opt.propertyValue, {}, cell)
+            if (cell.attributes.attrs != undefined && cell.attributes.attrs['label'] != undefined) {
+              cell.attributes.attrs['label'].text = opt.propertyValue
+              cell.findView(paper.value as joint.dia.Paper).render()
+            }
           }
         }
       } catch (e) {
@@ -1340,14 +1348,18 @@ function initializeSelection() {
     'element:pointerdown',
     (elementView: joint.dia.ElementView, evt: joint.dia.Event) => {
       // Select an element if CTRL/Meta key is pressed while the element is clicked.
+      console.log('element:pointerdown', elementView.model.attributes.type)
+
       if (
-        elementView.attributes.type == 'planmatr.Carcass' ||
-        elementView.attributes.type == 'planmatr.Header' ||
-        elementView.attributes.type == 'planmatr.Column' ||
-        elementView.attributes.type == 'planmatr.Row' ||
-        elementView.attributes.type == 'planmatr.Upright'
+        elementView.model.attributes.type == 'planmatr.Carcass' ||
+        elementView.model.attributes.type == 'planmatr.Header' ||
+        elementView.model.attributes.type == 'planmatr.Column' ||
+        elementView.model.attributes.type == 'planmatr.Row' ||
+        elementView.model.attributes.type == 'planmatr.Upright'
       ) {
         elementView.preventDefaultInteraction(evt)
+        console.log('selection after not adding:', selection.value?.collection.toArray())
+
         return
       }
       if (keyboard!.isActive('ctrl meta', evt)) {
@@ -1477,6 +1489,20 @@ function renderContextToolbar(point: joint.dia.Point, selectedCells: joint.dia.C
 function onSelectionChange() {
   // const { paper, selection } = this;
   const { collection } = selection.value as joint.ui.Selection
+
+  //remove any non selectable elements from the selection
+  collection.each(function (cell: joint.dia.Cell) {
+    if (
+      cell.attributes.type === 'planmatr.Carcass' ||
+      cell.attributes.type === 'planmatr.Column' ||
+      cell.attributes.type === 'planmatr.Row' ||
+      cell.attributes.type === 'standard.Rectangle' ||
+      cell.attributes.type === 'planmatr.Upright' ||
+      cell.attributes.type === 'planmatr.Header'
+    ) {
+      collection.remove(cell)
+    }
+  })
   paper.value?.removeTools()
   joint.ui.Halo.clear(paper.value as joint.dia.Paper)
   joint.ui.FreeTransform.clear(paper.value as joint.dia.Paper)
@@ -1966,25 +1992,6 @@ function initializeNavigator() {
 // }
 
 async function savePlanogram() {
-  // if (planogramService.value) {
-  // const savePlanogramService = new SaveService(
-  //     planogramService.value as PlanogramService,
-  //     utilitiesService.value as UtilitiesService,
-  //     commandManager.value as joint.dia.CommandManager,
-  //     graph.value as joint.dia.Graph,
-  //     paper.value as joint.dia.Paper,
-  //     stand.value,
-  //     carcass.value as planmatr.Carcass,
-  //     isCluster.value,
-  //     partOverlap.value,
-  //     partOverlapAmount.value,
-  //     planogram.value?.id as number,
-  //     planogram.value?.name as string,
-  //     props.clusterId as number,
-  //     props.appMode
-  // );
-  //     await savePlanogramService.savePlanogram(scratchPadHidden.value as boolean, selection.value as joint.ui.Selection, currentInspector.value as joint.ui.Inspector, currentView.value as CurrentView);
-  // }
   toggleScratchPad()
   if (props.appMode === AppMode.Cluster) {
     await useSavePlanogram(
@@ -1992,37 +1999,55 @@ async function savePlanogram() {
       clusterStore.cluster.brandId,
       0,
       // clusterStore.cluster.countryId,0
-    ).savePlanogram(
-      clusterStore.cluster.name as string,
-      clusterStore.cluster.id as number,
-      props.clusterId as number,
-      currentView.value as CurrentView,
-      commandManager.value as joint.dia.CommandManager,
-      paper.value as joint.dia.Paper,
-      graph.value as joint.dia.Graph,
-      carcass.value as planmatr.Carcass,
-      stand.value,
-      partOverlap.value,
-      partOverlapAmount.value,
     )
+      .savePlanogram(
+        clusterStore.cluster.name as string,
+        clusterStore.cluster.id as number,
+        props.clusterId as number,
+        currentView.value as CurrentView,
+        commandManager.value as joint.dia.CommandManager,
+        paper.value as joint.dia.Paper,
+        graph.value as joint.dia.Graph,
+        carcass.value as planmatr.Carcass,
+        stand.value,
+        partOverlap.value,
+        partOverlapAmount.value,
+      )
+      .then(() => {
+        // handle successful save if needed
+        clusterStore.dirty = false
+      })
+      .catch((error) => {
+        // handle save error if needed
+        console.error('Failed to save cluster:', error)
+      })
   } else {
     await useSavePlanogram(
       props.appMode,
       planogramStore.planogram.brandId,
       planogramStore.planogram.countryId,
-    ).savePlanogram(
-      planogramStore.planogram.name as string,
-      planogramStore.planogram.id as number,
-      props.clusterId as number,
-      currentView.value as CurrentView,
-      commandManager.value as joint.dia.CommandManager,
-      paper.value as joint.dia.Paper,
-      graph.value as joint.dia.Graph,
-      carcass.value as planmatr.Carcass,
-      stand.value,
-      partOverlap.value,
-      partOverlapAmount.value,
     )
+      .savePlanogram(
+        planogramStore.planogram.name as string,
+        planogramStore.planogram.id as number,
+        props.clusterId as number,
+        currentView.value as CurrentView,
+        commandManager.value as joint.dia.CommandManager,
+        paper.value as joint.dia.Paper,
+        graph.value as joint.dia.Graph,
+        carcass.value as planmatr.Carcass,
+        stand.value,
+        partOverlap.value,
+        partOverlapAmount.value,
+      )
+      .then(() => {
+        // handle successful save if needed
+        planogramStore.dirty = false
+      })
+      .catch((error) => {
+        // handle save error if needed
+        console.error('Failed to save planogram:', error)
+      })
   }
   // toggleScratchPad();
 }

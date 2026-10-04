@@ -271,20 +271,20 @@ function getToolbarConfig() {
         type: 'separator',
         group: 'layout',
       },
-      {
-        type: 'checkbox',
-        name: 'toggle-scratchpad',
-        group: 'layout',
-        label: 'Scratchpad',
-        value: true,
-        attrs: {
-          label: {
-            'data-tooltip': 'Toggle Scratchpad',
-            'data-tooltip-position': 'top',
-            'data-tooltip-position-selector': '.toolbar-container',
-          },
-        },
-      },
+      // {
+      //   type: 'checkbox',
+      //   name: 'toggle-scratchpad',
+      //   group: 'layout',
+      //   label: 'Scratchpad',
+      //   value: true,
+      //   attrs: {
+      //     label: {
+      //       'data-tooltip': 'Toggle Scratchpad',
+      //       'data-tooltip-position': 'top',
+      //       'data-tooltip-position-selector': '.toolbar-container',
+      //     },
+      //   },
+      // },
       {
         type: 'separator',
         group: 'layout',

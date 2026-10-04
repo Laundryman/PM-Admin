@@ -336,6 +336,8 @@ function onShowUnPublishedChange() {
             </IconField>
           </div>
         </template>
+        <template #empty> No products found. </template>
+
         <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
         <Column
           field="parentCategoryName"
