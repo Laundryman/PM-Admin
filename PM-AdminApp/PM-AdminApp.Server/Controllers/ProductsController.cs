@@ -6,7 +6,6 @@ using PMApplication.Dtos;
 using PMApplication.Dtos.Filters;
 using PMApplication.Entities;
 using PMApplication.Entities.CountriesAggregate;
-using PMApplication.Entities.PartAggregate;
 using PMApplication.Entities.ProductAggregate;
 using PMApplication.Entities.StandAggregate;
 using PMApplication.Interfaces;
