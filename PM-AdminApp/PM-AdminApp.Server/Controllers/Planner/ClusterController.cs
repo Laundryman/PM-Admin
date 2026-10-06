@@ -631,6 +631,9 @@ namespace PM_AdminApp.Server.Controllers.Planner
                         }
                     }
                 }
+
+                //Now handle any parts not associated with shelves
+                await SaveCassettes((int)clusterData.ClusterId, clusterData.cassetteInfo.ToList());
                 //var brand = await _brandService.GetBrand(cluster.BrandId ?? 0);
                 //var country = await _countryService.GetCountry(cluster.CountryId ?? 0);
                 //var region = await _regionService.GetRegion(cluster.RegionId ?? 0);
@@ -904,7 +907,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
                     newPart.PositionY = clusterPart.Position.y;
                     newPart.Notes = clusterPart.Notes;
 
-                    newPart.Part = part;
+                    newPart.PartId = part.Id;
 
                     newPart.PartStatusId = clusterPartStatusId;
 
@@ -916,7 +919,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
                     {
                         newPart.DateCreated = DateTime.Now;
                         newPart.DateUpdated = DateTime.Now;
-                        //_clusterService.CreateClusterPart(newPart);
+                        await _clusterService.CreateClusterPart(newPart);
                     } //ERROR Part_CatPartId not exist
 
 

@@ -2,7 +2,15 @@
 import { Shade } from '@/models/Products/shade.model'
 import { usePartStore } from '@/stores/partStore'
 import * as joint from '@joint/plus'
-import { defineAsyncComponent, onMounted, ref, watch } from 'vue'
+import {
+  defineAsyncComponent,
+  defineEmits,
+  defineExpose,
+  defineProps,
+  onMounted,
+  ref,
+  watch,
+} from 'vue'
 const HIDDEN_CLASS_NAME = 'hidden'
 const ShadeEditorAsyncComponent = defineAsyncComponent(
   () => import('@/components/planner/editShades.vue'),
@@ -24,6 +32,7 @@ const emit = defineEmits([
   'shadeUpdated',
   'statusUpdated',
   'labelUpdated',
+  'shelflabelUpdated',
   'copiedToClipBoard',
 ])
 
@@ -528,8 +537,9 @@ function getInspectorConfig(): { [key: string]: any } {
 
             textAreaLabel.addEventListener('click', function () {
               //let cell = inspector.options.cell
-              inspector.options.cell.attributes.shelfInfo.label = value
+              // inspector.options.cell.attributes.shelfInfo.label = value
               inspector.options.cell.prop('shelfInfo/label', value)
+              emit('shelflabelUpdated', inspector.options.cell)
             })
 
             return buttonSet
@@ -601,9 +611,9 @@ function updateShades(updatedCell: joint.dia.Cell) {
 }
 
 function updateLabel(cell: joint.dia.Cell) {
-  // emit('labelUpdated', cell)
-  cell.attributes.shelfInfo.label = cell.attributes.attrs['#label'].text
-  let thisvalue = cell.attributes.shelfInfo.label
+  emit('shelflabelUpdated', cell)
+  // cell.attributes.shelfInfo.label = cell.attributes.attrs['#label'].text
+  // let thisvalue = cell.attributes.shelfInfo.label
 }
 
 defineExpose({
@@ -634,6 +644,7 @@ defineExpose({
         :cassette="props.cell"
         @close="hideDialog"
         @shadeUpdate="updateShades"
+        @shelflabelUpdated="updateLabel"
       />
     </div>
 

@@ -68,6 +68,27 @@ const filters = ref({
   description: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 })
 
+function formatDate(date: string): string {
+  if (!date) return ''
+  const [dateString, timeString] = date.split(' ')
+  const [day, month, year] = dateString.split('/')
+  const [hour, minute, second] = timeString.split(':')
+
+  const dateObj = new Date(+year, +month - 1, +day, +hour, +minute, +second)
+
+  return dateObj.toLocaleDateString('en-GB')
+}
+
+function formatDateTime(date: string): Date {
+  // if (!date) return ''
+  const [dateString, timeString] = date.split(' ')
+  const [day, month, year] = dateString.split('/')
+  const [hour, minute, second] = timeString.split(':')
+
+  const dateObj = new Date(+year, +month - 1, +day, +hour, +minute, +second)
+
+  return dateObj
+}
 watch(brand, async (newBrand) => {
   if (newBrand) {
     loading.value = true
@@ -340,7 +361,21 @@ async function saveJob() {
 }
 function editJob(jobModel: Job) {
   job.value = jobModel
-  jobDateRange.value = [new Date(jobModel.dateFrom), new Date(jobModel.dateTo)]
+  if (jobModel.dateTo != null && jobModel.dateFrom != null) {
+    // ukDateTo = formatDate(jobModel.dateTo)
+    // ukDateFrom = formatDate(jobModel.dateFrom)
+    jobDateRange.value = [jobModel.dateFrom, jobModel.dateTo]
+  } else {
+    if (jobModel.uploadedOn != null) {
+      const startDate = formatDateTime(jobModel.uploadedOn.toString())
+      const endDateMonth = startDate.getMonth() + 1
+      const endDate = startDate
+      endDate.setMonth(endDateMonth)
+      jobDateRange.value = [startDate, endDate]
+    } else {
+      jobDateRange.value = [new Date(), new Date()]
+    }
+  }
   job.value.jobFolderId = jobFolder?.value.id ?? 0
   job.value.jobFolderName = jobFolder?.value.name ?? ''
   jobDialog.value = true
@@ -481,17 +516,17 @@ function addJob(folder: JobFolder) {
               <Column field="description" header="Description" sortable></Column>
               <Column field="dateFrom" header="Date From" sortable>
                 <template #body="slotProps">
-                  {{ new Date(slotProps.data.dateFrom).toLocaleDateString() }}
+                  {{ formatDate(slotProps.data.dateFrom) }}
                 </template>
               </Column>
               <Column field="dateTo" header="Date To" sortable>
                 <template #body="slotProps">
-                  {{ new Date(slotProps.data.dateTo).toLocaleDateString() }}
+                  {{ formatDate(slotProps.data.dateTo) }}
                 </template>
               </Column>
               <Column field="uploadedOn" header="Date Added" sortable>
                 <template #body="slotProps">
-                  {{ new Date(slotProps.data.uploadedOn).toLocaleDateString() }}
+                  {{ formatDate(slotProps.data.uploadedOn) }}
                 </template>
               </Column>
 
@@ -660,12 +695,13 @@ function addJob(folder: JobFolder) {
           >
         </div>
         <div>
-          <label for="description" class="block font-bold mb-3">Date Range</label>
+          <label for="description" class="w-full block font-bold mb-3">Date Range</label>
           <DatePicker
             v-model="jobDateRange"
             selectionMode="range"
             :manualInput="false"
             dateFormat="dd/mm/yy"
+            class="w-full"
           />
           <small v-if="submitted && !jobDateRange" class="text-red-500"
             >Date Range is required.</small

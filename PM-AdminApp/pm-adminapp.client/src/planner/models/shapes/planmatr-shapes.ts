@@ -608,6 +608,7 @@ export namespace planmatr.Part {
             height: 60,
           },
           label: {
+            text: '',
             fill: '#000',
             'font-size': 8,
             'max-length': 28,

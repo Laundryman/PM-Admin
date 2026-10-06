@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import PlanMatrPlanner from '@/components/planner/PlanMatrPlanner.vue'
 import { AppMode } from '@/planner/models/Enumerations'
+import { useClusterStore } from '@/stores/clusterStore'
 import { usePlanogramStore } from '@/stores/planogramStore'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 
@@ -8,10 +9,10 @@ const router = useRouter()
 const appMode = AppMode.Cluster
 const clusterId = Number(router.currentRoute.value.params.id) || 0
 const planogramStore = usePlanogramStore()
-
+const clusterStore = useClusterStore()
 onBeforeRouteLeave((to, from, next) => {
   // Perform any necessary cleanup or actions before leaving the route
-  if (planogramStore.dirty) {
+  if (planogramStore.dirty || clusterStore.dirty) {
     const confirmLeave = window.confirm(
       'You have unsaved changes. Are you sure you want to leave this page?',
     )
@@ -21,6 +22,7 @@ onBeforeRouteLeave((to, from, next) => {
     }
   }
   planogramStore.dirty = false // Reset dirty state if user confirms navigation
+  clusterStore.dirty = false // Reset dirty state if user confirms navigation
   // planogramService.unlockPlanogram(planogramStore.planogram.id)
 
   next()

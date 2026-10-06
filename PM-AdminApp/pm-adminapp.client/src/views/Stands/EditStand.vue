@@ -438,7 +438,7 @@ async function onFormSubmit({ valid }: any) {
             severity: 'success',
             summary: 'Success',
             detail: 'Stand saved successfully.',
-            life: 3000,
+            life: 5000,
           })
           router.push({ name: 'stands' })
         } else {
@@ -446,7 +446,7 @@ async function onFormSubmit({ valid }: any) {
             severity: 'error',
             summary: 'Error',
             detail: 'An error occurred while creating the stand.',
-            life: 3000,
+            life: 5000,
           })
         }
       })
@@ -458,7 +458,7 @@ async function onFormSubmit({ valid }: any) {
             severity: 'success',
             summary: 'Success',
             detail: 'Stand saved successfully.',
-            life: 3000,
+            life: 5000,
           })
           router.push({ name: 'stands' })
         } else {
@@ -466,7 +466,7 @@ async function onFormSubmit({ valid }: any) {
             severity: 'error',
             summary: 'Error',
             detail: 'An error occurred while saving the stand.',
-            life: 3000,
+            life: 5000,
           })
         }
       })

@@ -44,6 +44,7 @@ import { useClusterStore } from '@/stores/clusterStore'
 import { usePlanogramStore } from '@/stores/planogramStore'
 import { useDialog } from 'primevue/usedialog'
 import { useToast } from 'primevue/usetoast'
+import { defineProps } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -223,7 +224,8 @@ onMounted(async () => {
 
     if (selection.value?.collection.length == null || selection.value?.collection.length == 0) {
       // handle empty selection case if needed
-      planogramStore.dirty = false
+      // planogramStore.dirty = false
+      clusterStore.dirty = false
     }
   })
 
@@ -274,7 +276,8 @@ onMounted(async () => {
         }
       }
     }
-    planogramStore.dirty = true
+    // planogramStore.dirty = true
+    clusterStore.dirty = true
   })
 
   validator.value = new joint.dia.Validator({
@@ -545,23 +548,26 @@ onMounted(async () => {
               cell.findView(paper.value as joint.dia.Paper).render()
             }
           }
-          if (
-            opt.propertyPath.includes('attrs/#label/save') ||
-            opt.propertyPath.includes('attrs/#label/text') ||
-            opt.propertyPath.includes('attrs/label/text')
-          ) {
-            // var labelText = opt.propertyValue;
-            setProperty('/label/text', opt.propertyValue, {}, cell)
-            cell.attributes.shelfInfo.label = opt.propertyValue
-            cell.findView(paper.value as joint.dia.Paper).render()
-          }
+          // if (
+          //   opt.propertyPath.includes('attrs/#label/save') ||
+          //   opt.propertyPath.includes('attrs/#label/text') ||
+          //   opt.propertyPath.includes('attrs/label/text')
+          // ) {
+          //   // var labelText = opt.propertyValue;
+          //   setProperty('/label/text', opt.propertyValue, {}, cell)
+          //   cell.attributes.shelfInfo.label = opt.propertyValue
+          //   cell.findView(paper.value as joint.dia.Paper).render()
+          // }
 
           if (opt.propertyPath.includes('shelfInfo/label')) {
-            cell.attributes.shelfInfo.label = opt.propertyValue
+            // cell.attributes.shelfInfo.label = opt.propertyValue
+            // shelfInfo.label = opt.propertyValue
             setProperty('/label/text', opt.propertyValue, {}, cell)
+            setProperty('/shelfInfo/label', opt.propertyValue, {}, cell)
             if (cell.attributes.attrs != undefined && cell.attributes.attrs['label'] != undefined) {
               cell.attributes.attrs['label'].text = opt.propertyValue
               cell.findView(paper.value as joint.dia.Paper).render()
+              cell.attributes.shelfInfo.label = opt.propertyValue
             }
           }
         }
@@ -854,11 +860,14 @@ function initializePlanoTitle() {
         //inspector.remove();
 
         planogramName.value = dialog.el.querySelector('input')?.value ?? planogramName.value
-        if (planogramStore.planogram) {
+        if (isCluster.value) {
+          clusterStore.cluster.name =
+            dialog.el.querySelector('input')?.value ?? planogramStore.planogram.name
+        } else if (planogramStore.planogram) {
           planogramStore.planogram.name =
             dialog.el.querySelector('input')?.value ?? planogramStore.planogram.name
         }
-        document.querySelector('.app-title h1')!.textContent = planogramName.value
+        document.querySelector('.app-title h2')!.textContent = planogramName.value
         dialog.close()
       },
     })
@@ -1622,10 +1631,13 @@ function selectPrimaryElement(elementView: joint.dia.ElementView) {
             //Need to remove label
             commandManager.value?.initBatchCommand()
             model.attributes.shelfInfo.planogramShelfId = 0
+            model.attributes.shelfInfo.Id = 0
+
             if (isCluster) {
               model.attributes.shelfInfo.clusterShelfId = 0
+              model.attributes.shelfInfo.id = 0
             }
-            model.attributes.attrs['#label'].text = ''
+            model.attributes.attrs['label'].text = ''
             var view = model.findView(paper.value as joint.dia.Paper)
             if (view) {
               view.render()
@@ -1642,39 +1654,38 @@ function selectPrimaryElement(elementView: joint.dia.ElementView) {
         }
       })
       halo.on('action:remove:pointerdown', function (this: any, evt: any) {
-        evt.stopPropagation()
-        var self = this
-        var msgContent = '<b>Are you sure you want to remove this item?</b>'
-        if (self.options.cellView.model.attributes.shapeType == 'Shelf') {
-          msgContent =
-            "<b>Are you sure you want to remove this shelf? Clicking remove will remove the shelf and it's contents.</b>"
-        }
-        var dialog = new joint.ui.Dialog({
-          width: 400,
-          title: 'Confirm',
-          content: msgContent,
-          buttons: [
-            { action: 'yes', content: 'Yes' },
-            { action: 'no', content: 'No' },
-          ],
-        })
-
-        dialog.on(
-          'action:yes',
-          function (event: any) {
-            self.options.cellView.model.remove()
-            dialog.close()
-          },
-          dialog,
-        )
-        dialog.on(
-          'action:no',
-          function (event: any) {
-            dialog.close()
-          },
-          dialog,
-        )
-        dialog.open()
+        // evt.stopPropagation()
+        // var self = this
+        // var msgContent = '<b>Are you sure you want to remove this item?</b>'
+        // if (self.options.cellView.model.attributes.shapeType == 'Shelf') {
+        //   msgContent =
+        //     "<b>Are you sure you want to remove this shelf? Clicking remove will remove the shelf and it's contents.</b>"
+        // }
+        // var dialog = new joint.ui.Dialog({
+        //   width: 400,
+        //   title: 'Confirm',
+        //   content: msgContent,
+        //   buttons: [
+        //     { action: 'yes', content: 'Yes' },
+        //     { action: 'no', content: 'No' },
+        //   ],
+        // })
+        // dialog.on(
+        //   'action:yes',
+        //   function (event: any) {
+        //     self.options.cellView.model.remove()
+        //     dialog.close()
+        //   },
+        //   dialog,
+        // )
+        // dialog.on(
+        //   'action:no',
+        //   function (event: any) {
+        //     dialog.close()
+        //   },
+        //   dialog,
+        // )
+        // dialog.open()
       })
 
       // selection.value?.collection.add(element, { silent: true });
@@ -2015,6 +2026,7 @@ async function savePlanogram() {
       )
       .then(() => {
         // handle successful save if needed
+        // planogramStore.dirty = false
         clusterStore.dirty = false
       })
       .catch((error) => {
@@ -2042,7 +2054,8 @@ async function savePlanogram() {
       )
       .then(() => {
         // handle successful save if needed
-        planogramStore.dirty = false
+        // planogramStore.dirty = false
+        clusterStore.dirty = false
       })
       .catch((error) => {
         // handle save error if needed
@@ -2771,6 +2784,11 @@ function displayItemPlanoView(cell: joint.dia.Element, option: string, index: nu
   }
 }
 
+function updateLabel(updatedCell: joint.dia.Cell) {
+  if (updatedCell.attributes.type == 'planmatr.Part.Shelf') {
+    setProperty('/shelfInfo/label', updatedCell.attributes.shelfInfo.label, {}, updatedCell)
+  }
+}
 function updateShades(updatedCell: joint.dia.Cell) {
   if (updatedCell.attributes.type == 'planmatr.Part.Cassette') {
     for (var i = 0; i < updatedCell.attributes.partInfo.facings; i++) {
@@ -2866,6 +2884,7 @@ function showToast(event: any) {
         :cell="selectedCell as joint.dia.Cell"
         :selection="selection as joint.ui.Selection"
         @shade-updated="updateShades"
+        @shelfLabel-updated="updateLabel"
         @copied-to-clip-board="showToast($event)"
       />
       <navigator-component

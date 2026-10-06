@@ -56,9 +56,11 @@ watch(brand, async (newBrand) => {
   if (newBrand) {
     let filter = new ClusterFilter()
     filter.brandId = newBrand.id
-    await clusterService.searchClusters(filter).then((response) => {
+    await clusterService.searchClusters(filter).then(async (response) => {
       clusters.value = response
       console.log('Clusters loaded for brand change', clusters.value)
+      standTypes.value = []
+      await getStandTypesFromClusters(clusters.value)
     })
 
     let rFilter = new regionFilter()

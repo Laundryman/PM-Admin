@@ -195,7 +195,12 @@ function deleteStand(stand: searchStandInfo) {
   standService.deleteStand(stand.id).then(() => {
     // Remove the deleted stand from the list
     stands.value = stands.value.filter((s) => s.id !== stand.id)
-    toast.add({ severity: 'success', summary: 'Success', detail: 'Stand deleted successfully' })
+    toast.add({
+      severity: 'success',
+      summary: 'Success',
+      detail: 'Stand deleted successfully',
+      group: 'center',
+    })
   })
 }
 function openNew() {
@@ -389,4 +394,5 @@ function copyStand(stand: searchStandInfo) {
       </DataTable>
     </div>
   </div>
+  <Toast position="center" group="center" />
 </template>

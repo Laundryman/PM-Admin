@@ -65,13 +65,13 @@ function logout() {
       </div>
     </div>
     <div class="flex flex-column gap-3">
-      <Button
+      <!-- <Button
         pButton
         type="button"
         label="Settings"
         class="p-button-text p-button-sm justify-content-start"
         icon="pi pi-cog"
-      ></Button>
+      ></Button> -->
       <Button
         pButton
         type="button"
