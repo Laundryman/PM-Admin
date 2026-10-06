@@ -15,6 +15,7 @@ using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
 using PMInfrastructure.Repositories;
 using System.Net;
+using PMApplication.Dtos.Filters.Widgets;
 using static PMApplication.Enums.StatusEnums;
 
 namespace PM_AdminApp.Server.Controllers
@@ -500,7 +501,7 @@ namespace PM_AdminApp.Server.Controllers
 
         }
         [HttpPost]
-        public async Task<IActionResult> SearchPlanograms([FromBody] PlanoWidgetFilterDto filterDto)
+        public async Task<IActionResult> SearchPlanograms([FromBody] PlanogramFilterDto filterDto)
         {
             try
             {
