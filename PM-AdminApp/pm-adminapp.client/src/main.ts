@@ -9,6 +9,7 @@ import CheckCircle from '@primeicons/vue/check-circle'
 import ExclamationTriangle from '@primeicons/vue/exclamation-triangle'
 import FileExport from '@primeicons/vue/file-export'
 import Grip from '@primeicons/vue/grip'
+import Pencil from '@primeicons/vue/pencil'
 import Search from '@primeicons/vue/search'
 import TimesCircle from '@primeicons/vue/times-circle'
 import Trash from '@primeicons/vue/trash'
@@ -42,6 +43,7 @@ import MultiSelect from 'primevue/multiselect'
 import OverlayBadge from 'primevue/overlaybadge'
 import Paginator from 'primevue/paginator'
 import Password from 'primevue/password'
+
 import Select from 'primevue/select'
 import SelectButton from 'primevue/selectbutton'
 import Skeleton from 'primevue/skeleton'
@@ -107,6 +109,7 @@ app.component('MultiSelect', MultiSelect)
 app.component('OverlayBadge', OverlayBadge)
 app.component('Paginator', Paginator)
 app.component('Password', Password)
+app.component('Pencil', Pencil)
 app.component('Search', Search)
 app.component('Select', Select)
 app.component('SelectButton', SelectButton)

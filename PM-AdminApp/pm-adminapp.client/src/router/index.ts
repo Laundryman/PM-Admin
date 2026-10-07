@@ -205,7 +205,13 @@ const routes: RouteRecordRaw[] = [
       },
       {
         path: '/users/manage',
-        name: 'manageUser',
+        name: 'editUser',
+        component: () => import('@/views/Users/ManageUser.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/users/new',
+        name: 'newUser',
         component: () => import('@/views/Users/ManageUser.vue'),
         meta: { requiresAuth: true },
       },

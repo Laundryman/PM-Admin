@@ -17,6 +17,8 @@ import { useToast } from 'primevue/usetoast'
 import { defineAsyncComponent, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+const newUser = ref(false)
+const editUser = ref(false)
 const router = useRouter()
 const userId = ref('')
 const systemStore = useSystemStore()
@@ -30,26 +32,14 @@ const countries = ref<Country[]>([])
 const roles = ref<Role[]>([])
 const permissions = ref<Permission[]>([])
 const selectedPermissions = ref<string[]>([])
-const checked = ref(false)
-const ms_selectedRegions = ref<number[] | null>(null) // MultiSelect binding
 const ms_selectedCountries = ref<number[] | null>(null) // MultiSelect binding
 const selectAllCountries = ref(false)
-const selectAllProducts = ref(false)
 const regionSelectList = ref<Region[] | null>(null)
 const countrySelectList = ref<Country[] | null>(null)
 
 const userDialog = ref()
-const passwordDialog = ref()
-const deleteUserDialog = ref()
-const deleteUsersDialog = ref()
-const selectedUser = ref()
-const selectedUsers = ref()
-const selectedCountry = ref()
 const selectedBrands = ref<number[]>([])
-const selectedRoles = ref<number[]>([])
-const lazyLoading = ref(false)
 const loading = ref(true)
-const currentUser = ref<User>(new User())
 const submitted = ref(false)
 const newPassword = ref(null)
 const initialValues = ref(new User())
@@ -74,11 +64,11 @@ onMounted(async () => {
   loading.value = true
   systemStore.layoutState.disableBrandSelect = false
   userId.value = userStore.selectedUser.id || ''
-  // if (!userId.value) {
-  //   toast.add({ severity: 'error', summary: 'Error', detail: 'No user selected', life: 3000 })
-  //   router.push({ name: 'users' })
-  //   return
-  // }
+  if (router.currentRoute.value.name === 'newUser') {
+    newUser.value = true
+  } else if (router.currentRoute.value.name === 'editUser') {
+    editUser.value = true
+  }
   await UserService.initialise()
 
   if (!userId.value) {
@@ -317,10 +307,11 @@ async function saveUser() {
             severity: 'success',
             summary: 'Successful',
             detail: 'User Updated',
-            life: 3000,
+            life: 5000,
           })
           userDialog.value = false
           submitted.value = false
+          router.push({ name: 'users' })
           // currentUser.value = {}
           // selectedBrands.value = []
           // selectedRoles.value = []
@@ -332,7 +323,7 @@ async function saveUser() {
             severity: 'error',
             summary: 'Update failed',
             detail: error.message || 'User not updated. Please try again.',
-            life: 3000,
+            life: 5000,
           })
         })
         .finally(() => {})
@@ -340,7 +331,7 @@ async function saveUser() {
       if (newPassword.value) {
         //validate password complexity
         const complexityRegex =
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!?\-@#$£%^&*()_+])[A-Za-z\d!?\-@#$£%^&*()_+]{8,}$/
         if (!complexityRegex.test(newPassword.value)) {
           toast.add({
             severity: 'error',
@@ -369,7 +360,7 @@ async function saveUser() {
             detail: 'User Created',
             life: 4000,
           })
-          //router.push({ name: 'userList' })
+          router.push({ name: 'users' })
         })
         .catch((error) => {
           console.log(error)
@@ -566,7 +557,8 @@ const resolver = ({ values }: any) => {
     } else {
       //validate password complexity
       const password = newPassword.value
-      const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+      const complexityRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!?\-@#$£%^&*()_+])[A-Za-z\d!?\-@#$£%^&*()_+]{8,}$/
       if (!complexityRegex.test(password)) {
         errors.password = [
           {
@@ -577,33 +569,7 @@ const resolver = ({ values }: any) => {
       }
     }
   }
-  // if (!values.description) {
-  //   errors.description = [{ message: 'Description is required.' }]
-  // }
-  // if (!values.categoryId) {
-  //   errors.categoryId = [{ message: 'Category is required.' }]
-  // }
-  // if (!values.parentCategoryId) {
-  //   errors.parentCategoryId = [{ message: 'Parent Category is required.' }]
-  // }
-  // if (!values.facings && values.facings !== 0) {
-  //   errors.facings = [{ message: 'Facings is required.' }]
-  // }
-  // if (!values.height && values.height !== 0) {
-  //   errors.height = [{ message: 'Height is required.' }]
-  // }
-  // if (!values.width && values.width !== 0) {
-  //   errors.width = [{ message: 'Width is required.' }]
-  // }
-  // if (!values.stock && values.stock !== 0) {
-  //   errors.stock = [{ message: 'Stock is required.' }]
-  // }
-  // if (!values.depth && values.depth !== 0) {
-  //   errors.depth = [{ message: 'Depth is required.' }]
-  // }
-  // if (!values.unitCost && values.unitCost !== 0) {
-  //   errors.unitCost = [{ message: 'Unit Cost is required.' }]
-  // }
+
   return {
     values, // (Optional) Used to pass current form values to submit event.
     errors,
@@ -632,27 +598,6 @@ async function onMFAChange(event: any) {
           life: 3000,
         })
       })
-    // } else {
-    //   //disable MFA
-    //   await UserService.disableMFA(userId.value)
-    //     .then(() => {
-    //       hasMFA.value = false
-    //       toast.add({
-    //         severity: 'success',
-    //         summary: 'Success',
-    //         detail: 'MFA disabled for user',
-    //         life: 3000,
-    //       })
-    //     })
-    //     .catch((error) => {
-    //       console.log(error)
-    //       toast.add({
-    //         severity: 'error',
-    //         summary: 'Error',
-    //         detail: 'Failed to disable MFA for user',
-    //         life: 3000,
-    //       })
-    //     })
   }
 }
 
@@ -661,7 +606,7 @@ async function onFormSubmit({ valid }: any) {
     await UserService.saveUser(user.value)
       .then(() => {
         toast.add({ severity: 'success', summary: 'Success', detail: 'User updated', life: 3000 })
-        router.push({ name: 'userList' })
+        router.push({ name: 'users' })
       })
       .catch((error) => {
         console.log(error)
@@ -689,7 +634,8 @@ async function onFormSubmit({ valid }: any) {
       />
     </div>
     <div class="w-full sticky bg-white top-16 block p-10 pb-0 z-10">
-      <h2>Edit User</h2>
+      <h2 v-if="editUser">Edit User</h2>
+      <h2 v-else-if="newUser">New User</h2>
       <div class="card flex gap-2">
         <div class="flex-1">
           <div class="flex font-bold text-xl">
@@ -826,6 +772,7 @@ async function onFormSubmit({ valid }: any) {
                         <li>At least one lowercase</li>
                         <li>At least one uppercase</li>
                         <li>At least one numeric</li>
+                        <li>At least one special character (!?-@#$£%^&*()_+)</li>
                         <li>Minimum 8 characters</li>
                       </ul>
                     </template>
@@ -905,13 +852,6 @@ async function onFormSubmit({ valid }: any) {
             v-model:value="brandTabIndex"
             @update:value="onTabChange"
           >
-            <!-- <ul class="flex gap-2 mb-5 border-b">
-              <li v-for="tab in brandTabs" :key="tab.value" class="mr-2">
-                <Button @click="onTabChange(tab.value)">
-                  {{ tab.title }}
-                </Button>
-              </li>
-            </ul> -->
             <tabList>
               <Tab v-for="tab in brandTabs" :key="tab.title" :value="tab.value">
                 {{ tab.title }}

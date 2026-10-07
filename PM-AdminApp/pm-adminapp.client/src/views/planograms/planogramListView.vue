@@ -373,7 +373,6 @@ function editPlanogram(planogram: searchPlanogramInfo) {
           'regionName',
           'lubName',
         ]"
-        showGridlines
         filterDisplay="menu"
         :paginator="true"
         :rows="10"
@@ -473,7 +472,13 @@ function editPlanogram(planogram: searchPlanogramInfo) {
             />
           </template>
         </Column>
-        <Column :exportable="false" style="min-width: 12rem" header="Actions">
+        <Column
+          :exportable="false"
+          style="min-width: 12rem"
+          header="Actions"
+          :frozen="true"
+          alignFrozen="right"
+        >
           <template #body="slotProps">
             <Button
               v-if="slotProps.data.locked"

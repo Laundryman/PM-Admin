@@ -151,7 +151,7 @@ function editUser(usr: User) {
 function manageUser(usr: User) {
   // Navigate to edit page
   userStore.loadUser(usr.id)
-  router.push({ name: 'manageUser' })
+  router.push({ name: 'editUser' })
 }
 
 const createUser = () => {
@@ -161,7 +161,7 @@ const createUser = () => {
   selectedCountry.value = null
   newPassword.value = null
   userStore.setActiveUser(currentUser.value)
-  router.push({ name: 'manageUser' })
+  router.push({ name: 'newUser' })
   // /userDialog.value = true
 }
 

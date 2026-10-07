@@ -316,7 +316,7 @@ async function onFormSubmit({ valid }: any) {
           detail: 'Product saved successfully.',
           life: 3000,
         })
-        // router.push({ name: 'products' })
+        router.push({ name: 'products' })
       } else {
         toast.add({
           severity: 'error',

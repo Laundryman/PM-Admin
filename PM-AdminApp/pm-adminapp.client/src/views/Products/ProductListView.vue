@@ -369,7 +369,13 @@ function onShowUnPublishedChange() {
             ></i>
           </template>
         </Column>
-        <Column header="Actions" :exportable="false" style="min-width: 12rem">
+        <Column
+          header="Actions"
+          :exportable="false"
+          style="min-width: 12rem"
+          :frozen="true"
+          alignFrozen="right"
+        >
           <template #body="slotProps">
             <Button
               v-tooltip="'Edit Product'"

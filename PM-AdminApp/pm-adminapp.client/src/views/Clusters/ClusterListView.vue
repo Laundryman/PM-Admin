@@ -412,7 +412,13 @@ async function saveLayout({ valid }: any) {
             {{ new Date(slotProps.data.dateUpdated).toLocaleDateString() }}
           </template>
         </Column>
-        <Column :exportable="false" style="min-width: 8rem" header="Actions">
+        <Column
+          :exportable="false"
+          style="min-width: 8rem"
+          header="Actions"
+          :frozen="true"
+          alignFrozen="right"
+        >
           <template #body="slotProps">
             <div class="flex gap-2 justify-center">
               <Button
@@ -421,7 +427,7 @@ async function saveLayout({ valid }: any) {
                 rounded
                 class="mr-2 flex"
                 @click="editCluster(slotProps.data)"
-                ><Grip />
+                ><Pencil />
               </Button>
               <!-- <Button
                 v-tooltip="'Delete Cluster'"
