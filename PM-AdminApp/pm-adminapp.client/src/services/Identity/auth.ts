@@ -64,7 +64,7 @@ export const Auth = {
     }
     return msal
       .loginPopup(request)
-      .then((result) => {
+      .then(async (result) => {
         // could do something with the AuthResult here if you need to
         if (!result.account) {
           throw new Error('No account found in authentication result')
@@ -74,8 +74,10 @@ export const Auth = {
               console.log('User has System.Admin role')
               return this.setAccount(result.account)
             }
+            await msal.logoutRedirect({ account: result.account })
             throw new Error('User does not have required System.Admin role')
           } else {
+            await msal.logoutRedirect({ account: result.account })
             throw new Error('No roles found in token claims')
           }
         }
@@ -85,9 +87,9 @@ export const Auth = {
         // if we get stuck, clear session and attempt to log in again
         if (error.errorCode === 'interaction_in_progress') {
           this.reset()
+          this.logout()
           return this.login()
         }
-        throw new Error(error.message)
       })
   },
 

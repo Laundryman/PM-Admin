@@ -65,6 +65,9 @@ watch(brand, async (newBrand) => {
     filters.value.countryId.value = null
     filters.value.regionId.value = null
     filters.value.statusName.value = null
+    selectedCountry.value = null
+    selectedRegion.value = null
+    selectedStatus.value = null
 
     let filter = new PlanogramFilter()
     filter.brandId = newBrand.id

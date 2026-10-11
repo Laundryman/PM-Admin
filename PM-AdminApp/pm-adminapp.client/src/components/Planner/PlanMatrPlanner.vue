@@ -119,6 +119,7 @@ const currentInspector = ref<joint.ui.Inspector | null>(null)
 const scratchPadHidden = ref<boolean>(false)
 const currentView = ref<number>(0)
 const skuCount = ref<number>(0)
+const shelfCount = ref<number>(0)
 const showNotesDialog = ref(false)
 const planogramNotes = ref<PlanogramNote[]>([])
 // const comCount = ref<number>(0);
@@ -294,11 +295,19 @@ onMounted(async () => {
 
   graph.value.on('add', async (cell: joint.dia.Cell, collection: any, opt: any) => {
     if (opt.stencil) {
+      const plannerGraph = graph.value as joint.dia.Graph | null
+      const plannerService = planogramService.value
+
+      if (!plannerGraph || !plannerService) {
+        return
+      }
+
       var cassetteService = new CassetteService()
       //now we must generate the product types.
       //generate product types using api
 
       if (cell.attributes.type === 'planmatr.Part.Cassette') {
+        plannerService.displaySkuCount(plannerGraph)
         var partId = cell.attributes.partInfo.partId
         if (cell.attributes.partInfo.facings > 0) {
           await cassetteService.initialise()
@@ -316,6 +325,9 @@ onMounted(async () => {
         }
       } else {
         selectedCell.value = cell
+        if (cell.attributes.type == 'planmatr.Part.Shelf') {
+          plannerService.displaySkuCount(plannerGraph)
+        }
         // currentInspector.value.on('render', function () {
         //     cell.findView(self.paper).render();
         // });
@@ -323,6 +335,18 @@ onMounted(async () => {
     }
   })
 
+  graph.value.on('remove', function (cell: joint.dia.Cell, opt: any) {
+    const plannerGraph = graph.value as joint.dia.Graph | null
+    const plannerService = planogramService.value
+
+    if (!plannerGraph || !plannerService) {
+      return
+    }
+
+    // if (cell.attributes.type === 'planmatr.Part.Cassette') {
+    plannerService.displaySkuCount(plannerGraph)
+    // }
+  })
   graph.value.on(
     'change:partInfo',
     function (this: any, cell: joint.dia.Cell, partInfo: any, opt: any) {
@@ -1266,10 +1290,11 @@ async function displayPlanogram(planogramId: number, clusterId: number) {
   const countObj = planogramService.value.getSkuCount(parts)
   skuCount.value = countObj.skuCount
   const shelfCountObj = planogramService.value.getSkuCount(planogramShelves.value)
+  shelfCount.value = shelfCountObj.shelfCount
   document.querySelector('.app-header .sku-count span.count')!.textContent =
     countObj.skuCount.toString()
   document.querySelector('.app-header .shelf-count span.count')!.textContent =
-    shelfCountObj.shelfCount.toString()
+    shelfCount.value.toString()
 
   planogramService.value.populatePlanogram(
     graph.value as joint.dia.Graph,
@@ -1552,17 +1577,8 @@ function deleteElement() {
 
 function selectPrimaryElement(elementView: joint.dia.ElementView) {
   const element = elementView.model
-  // new joint.ui.FreeTransform({
-  //     cellView: elementView,
-  //     allowRotation: false,
-  //     preserveAspectRatio: !!element.get('preserveAspectRatio'),
-  //     allowOrthogonalResize: element.get('allowOrthogonalResize') !== false,
-  //     useBordersToResize: true
-  // }).render();
+  const plannerGraph = graph.value as joint.dia.Graph | null
 
-  // haloService.create(elementView);
-
-  // if (!selection.value?.collection.models.includes(element)) {
   if (
     element.attributes.type !== 'planmatr.Carcass' &&
     element.attributes.type !== 'planmatr.Column' &&
@@ -1593,6 +1609,8 @@ function selectPrimaryElement(elementView: joint.dia.ElementView) {
         var model = clone.data[Object.keys(clone.data)[0]].delegatedView.model
         if (model.isElement()) {
           if (model.attributes.type == 'planmatr.Part.Cassette') {
+            planogramService.value.displaySkuCount(plannerGraph)
+
             model.attributes.partInfo.planogramPartId = 0
             model.attributes.partInfo.notes = ''
             model.attributes.partInfo.hasNotes = false
@@ -1628,6 +1646,7 @@ function selectPrimaryElement(elementView: joint.dia.ElementView) {
             displayItemPlanoView(currElement, '', currentView.value)
           }
           if (model.attributes.type == 'planmatr.Part.Shelf') {
+            planogramService.value.displaySkuCount(graph.value as joint.dia.Graph)
             //Need to remove label
             commandManager.value?.initBatchCommand()
             model.attributes.shelfInfo.planogramShelfId = 0

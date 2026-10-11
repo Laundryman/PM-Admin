@@ -300,18 +300,37 @@ async function saveUser() {
   }
 }
 
-const deleteUser = () => {
-  users.value = users.value.filter((val: any) => val.id !== currentUser.value.id)
-  deleteUserDialog.value = false
-  currentUser.value = {}
-  toast.add({ severity: 'success', summary: 'Successful', detail: 'Product Deleted', life: 3000 })
+const showDeleteUserDialog = (usr: any) => {
+  // users.value = users.value.filter((val: any) => val.id !== usr.id)
+  currentUser.value = usr
+  deleteUserDialog.value = true
+  // currentUser.value = {}
+  // toast.add({ severity: 'success', summary: 'Successful', detail: 'User Deleted', life: 5000 })
 }
 
-const deleteSelectedUsers = () => {
-  users.value = users.value.filter((val: any) => !selectedUsers.value.includes(val))
-  deleteUsersDialog.value = false
-  selectedUsers.value = null
-  toast.add({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 })
+async function deleteSelectedUser(usr: any) {
+  users.value = users.value.filter((val: any) => val.id !== usr.id)
+  await UserService.deleteUser(usr.id)
+    .then(() => {
+      // User successfully deleted
+      deleteUserDialog.value = false
+      currentUser.value = {}
+      toast.add({
+        severity: 'success',
+        summary: 'Successful',
+        detail: 'User ' + usr.name + ' Deleted',
+        life: 5000,
+      })
+    })
+    .catch((error) => {
+      console.log(error)
+      toast.add({
+        severity: 'error',
+        summary: 'Delete failed',
+        detail: error.message || 'User not deleted. Please try again.',
+        life: 5000,
+      })
+    })
 }
 
 const confirmDeleteUser = (usr: any) => {
@@ -349,13 +368,13 @@ const getCountryName = (countryId: string) => {
     <Toolbar class="mb-4">
       <template #start>
         <Button label="New" icon="pi pi-plus" severity="success" class="mr-2" @click="createUser" />
-        <Button
+        <!-- <Button
           label="Delete"
           icon="pi pi-trash"
           severity="danger"
           @click="confirmDeleteSelected"
           :disabled="!selectedUsers || !selectedUsers.length"
-        />
+        /> -->
       </template>
     </Toolbar>
 
@@ -447,7 +466,7 @@ const getCountryName = (countryId: string) => {
         </template>
       </Column>
 
-      <Column :exportable="false" style="min-width: 12rem">
+      <Column :exportable="false" style="min-width: 12rem" :frozen="true" alignFrozen="right">
         <template #body="slotProps">
           <span>&nbsp;</span>
           <!-- <Button
@@ -474,6 +493,15 @@ const getCountryName = (countryId: string) => {
             severity="warning"
             class="mr-2"
             @click="changePassword(slotProps.data)"
+          />
+          <Button
+            v-tooltip="'delete user'"
+            icon="pi pi-trash"
+            outlined
+            rounded
+            severity="danger"
+            class="mr-2"
+            @click="showDeleteUserDialog(slotProps.data)"
           />
         </template>
       </Column>
@@ -667,17 +695,22 @@ const getCountryName = (countryId: string) => {
     <div class="confirmation-content">
       <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
       <span v-if="currentUser"
-        >Are you sure you want to delete <b>{{ currentUser.UserName }}</b
-        >?</span
+        >Are you sure you want to delete
+        <span class="font-bold">{{ currentUser.userName }}</span> ?</span
       >
     </div>
     <template #footer>
-      <Button label="No" icon="pi pi-times" text @click="deleteUserDialog = false" />
-      <Button label="Yes" icon="pi pi-check" text @click="deleteUser" />
+      <Button label="No" severity="success" icon="pi pi-times" @click="deleteUserDialog = false" />
+      <Button
+        label="Yes"
+        severity="danger"
+        icon="pi pi-check"
+        @click="deleteSelectedUser(currentUser)"
+      />
     </template>
   </Dialog>
 
-  <Dialog
+  <!-- <Dialog
     v-model:visible="deleteUsersDialog"
     :style="{ width: '450px' }"
     header="Confirm"
@@ -689,9 +722,9 @@ const getCountryName = (countryId: string) => {
     </div>
     <template #footer>
       <Button label="No" icon="pi pi-times" text @click="deleteUsersDialog = false" />
-      <Button label="Yes" icon="pi pi-check" text @click="deleteSelectedUsers" />
+      <Button label="Yes" icon="pi pi-check" text @click="deleteSelectedUser" />
     </template>
-  </Dialog>
+  </Dialog> -->
 </template>
 
 <style scoped>

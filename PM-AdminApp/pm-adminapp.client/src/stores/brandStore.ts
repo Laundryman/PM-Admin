@@ -14,7 +14,7 @@ export const useBrandStore = defineStore('brandStore', () => {
 
   async function loadBrands() {
     if (!brandService.isInitialised) await brandService.initialise()
-    console.log('Fetching brands...')
+    // console.log('Fetching brands...')
     await brandService
       .getBrands()
       .then((data) => {
@@ -27,16 +27,16 @@ export const useBrandStore = defineStore('brandStore', () => {
         // }
         // console.log('Brand Options:', brandOptionsLocal)
         // brandOptions.value = brandOptionsLocal
-        console.log('active brand before check:', activeBrand.value)
+        // console.log('active brand before check:', activeBrand.value)
         loadingBrands.value = false
         brandsLoaded.value = true
         selectBrandPH.value = 'Select a Brand'
-        console.log('Brands:', brands.value)
+        // console.log('Brands:', brands.value)
       })
       .catch((error) => {
         console.error('Error fetching brands:', error)
       })
-    console.log('Completed fetching brands.')
+    // console.log('Completed fetching brands.')
   }
 
   return {

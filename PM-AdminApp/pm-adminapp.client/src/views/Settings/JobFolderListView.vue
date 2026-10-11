@@ -14,12 +14,15 @@ import { default as jobsService } from '@/services/Jobs/JobsService'
 import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
 
+import JobForm from '@/components/Forms/JobForm.component.vue'
 import { FilterMatchMode } from '@primevue/core/api/'
+import type { FormInstance } from '@primevue/forms'
+import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
-
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { z } from 'zod'
 
 const jobFolderFilter = ref(new JobFolderFilter())
 const selectedJobFolder = ref<JobFolder | null>(null)
@@ -67,9 +70,21 @@ const filters = ref({
   name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   description: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
 })
+const initialJobValues = ref({
+  jobCode: '',
+  jobDescription: '',
+  jobFolderId: null,
+  jobFolderName: '',
+  brandId: null,
+  jobDateRange: [] as Date[] | null,
+})
 
-function formatDate(date: string): string {
+function formatDate(date: any): string {
   if (!date) return ''
+  if (typeof date !== 'string') {
+    // date = date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear()
+    return date.toLocaleDateString('en-GB')
+  }
   const [dateString, timeString] = date.split(' ')
   const [day, month, year] = dateString.split('/')
   const [hour, minute, second] = timeString.split(':')
@@ -307,41 +322,46 @@ const hideJobDialog = () => {
   jobDialog.value = false
   submitted.value = false
 }
-async function saveJob() {
+async function saveJob(currentJob: Job) {
   submitted.value = true
 
   const formData = new FormData()
 
-  if (job?.value.jobCode?.trim()) {
-    if (jobDateRange.value && jobDateRange.value.length === 2) {
-      job.value.dateFrom = jobDateRange.value[0]
-      job.value.dateTo = jobDateRange.value[1]
-    }
-    job.value.uploadedBy = 0 // Replace with actual user info
-    job.value.uploadedOn = new Date()
-    job.value.brandId = brandStore.activeBrand?.id ?? 0
-    job.value.brandName = brandStore.activeBrand?.name ?? ''
+  if (currentJob.jobCode?.trim()) {
+    currentJob.uploadedBy = 0 // Replace with actual user info
+    currentJob.uploadedOn = new Date()
+    currentJob.brandId = brandStore.activeBrand?.id ?? 0
+    currentJob.brandName = brandStore.activeBrand?.name ?? ''
 
-    if (job.value.id) {
+    if (currentJob.id) {
       await jobsService
-        .updateJob(job.value)
+        .updateJob(currentJob)
         .then((response) => {
-          if (response && response.data) {
-            console.log(response.data)
+          // console.log(response.data)
+          job.value = { ...currentJob }
+          const jfolder = jobFolders.value.find((jf) => jf.id == currentJob.jobFolderId)
+          const updateJob = jfolder.jobs.find((j) => j.id === currentJob.id)
+          if (updateJob) {
+            updateJob.jobCode = currentJob.jobCode
+            updateJob.description = currentJob.description
+            updateJob.dateFrom = currentJob.dateFrom
+            updateJob.dateTo = currentJob.dateTo
+            updateJob.uploadedOn = currentJob.uploadedOn
           }
+
+          toast.add({
+            severity: 'success',
+            summary: 'Successful',
+            detail: 'Job Updated',
+            life: 3000,
+          })
         })
         .catch((error) => {
-          console.error('Error updating job:', error)
+          console.log('Error updating job:', error)
         })
-      toast.add({
-        severity: 'success',
-        summary: 'Successful',
-        detail: 'Job Updated',
-        life: 3000,
-      })
     } else {
-      job.value.id = 0
-      var newJob = await jobsService.createJob(job.value).then((response) => {
+      currentJob.id = 0
+      var newJob = await jobsService.createJob(currentJob).then((response) => {
         return response
       })
       if (jobFolder.value.jobs) {
@@ -366,16 +386,18 @@ function editJob(jobModel: Job) {
     // ukDateFrom = formatDate(jobModel.dateFrom)
     jobDateRange.value = [jobModel.dateFrom, jobModel.dateTo]
   } else {
-    if (jobModel.uploadedOn != null) {
-      const startDate = formatDateTime(jobModel.uploadedOn.toString())
-      const endDateMonth = startDate.getMonth() + 1
-      const endDate = startDate
-      endDate.setMonth(endDateMonth)
-      jobDateRange.value = [startDate, endDate]
-    } else {
-      jobDateRange.value = [new Date(), new Date()]
-    }
+    // if (jobModel.uploadedOn != null) {
+    //   const startDate = formatDateTime(jobModel.uploadedOn.toString())
+    //   const endDateMonth = startDate.getMonth() + 1
+    //   const endDate = startDate
+    //   endDate.setMonth(endDateMonth)
+    //   jobDateRange.value = [startDate, endDate]
+    // } else {
+    //   jobDateRange.value = [new Date(), new Date()]
+    // }
   }
+  job.value.dateFrom = jobModel.dateFrom
+  job.value.dateTo = jobModel.dateTo
   job.value.jobFolderId = jobFolder?.value.id ?? 0
   job.value.jobFolderName = jobFolder?.value.name ?? ''
   jobDialog.value = true
@@ -386,7 +408,77 @@ function addJob(folder: JobFolder) {
   job.value.jobFolderName = folder.name
   job.value.brandId = brandStore.activeBrand?.id ?? 0
   jobDateRange.value = [new Date(), new Date()]
+  initialJobValues.value = { ...job.value }
+
   jobDialog.value = true
+  setInitialJobFormValues()
+}
+
+const dateRangeSchema = z.object({
+  jobDateRange: z.array(z.date()).refine(
+    (data) => {
+      return data[1] > data[0]
+    },
+    {
+      message: 'Job date range requires a start and end date',
+      path: ['jobDateRange'],
+    },
+  ),
+})
+const resolver = zodResolver(
+  z.object({
+    jobFolder: z.string().min(1, 'Name is required'),
+    jobCode: z.string().nonempty({ message: 'Job code is required' }),
+    jobDescription: z.string().optional(),
+    jobDateRange: dateRangeSchema.shape.jobDateRange.optional(),
+  }),
+)
+// const resolver = ({ values }: any) => {
+//   const errors = {} as any
+
+//   if (!values.jobCode) {
+//     errors.jobCode = [{ message: 'Job Code is required.' }]
+//   }
+//   if (!values.jobDateRange) {
+//     errors.jobDateRange = [{ message: 'Job Date Range is required.' }]
+//   }
+//   if (values.jobDateRange && values.jobDateRange.length === 2) {
+//     if (values.jobDateRange[1] <= values.jobDateRange[0]) {
+//       errors.jobDateRange = [
+//         { message: 'Job Date Range must have an end date after the start date.' },
+//       ]
+//     }
+//   }
+
+//   return {
+//     values, // (Optional) Used to pass current form values to submit event.
+//     errors,
+//   }
+// }
+// function submitJobForm({ valid, values }: any) {
+//   // resolver.call(jobFormTemplateRef.value)
+//   if (valid) {
+//     saveJob()
+//   }
+// }
+
+function setInitialJobFormValues() {
+  const jobFormTemplateRef = useTemplateRef<FormInstance>('job-form')
+
+  jobFormTemplateRef.value?.setValues({ ...initialJobValues.value })
+  initialJobValues.value.jobCode = job.value.jobCode
+  initialJobValues.value.jobDescription = job.value.jobDescription
+  initialJobValues.value.jobFolderId = job.value.jobFolderId
+  initialJobValues.value.jobFolderName = job.value.jobFolderName
+  initialJobValues.value.brandId = job.value.brandId
+  initialJobValues.value.jobDateRange = [job.value.dateFrom, job.value.dateTo]
+
+  // jobFormTemplateRef.value.setFieldValue('jobCode', initialJobValues.value.jobCode)
+  // jobFormTemplateRef.value.setFieldValue('jobDescription', initialJobValues.value.jobDescription)
+  // jobFormTemplateRef.value.setFieldValue('jobFolderId', initialJobValues.value.jobFolderId)
+  // jobFormTemplateRef.value.setFieldValue('jobFolderName', initialJobValues.value.jobFolderName)
+  // jobFormTemplateRef.value.setFieldValue('brandId', initialJobValues.value.brandId)
+  // jobFormTemplateRef.value.setFieldValue('jobDateRange', initialJobValues.value.jobDateRange)
 }
 </script>
 
@@ -662,56 +754,72 @@ function addJob(folder: JobFolder) {
       :style="{ width: '450px' }"
       header="Job Details"
       :modal="true"
+      @show="setInitialJobFormValues"
     >
-      <div class="flex flex-col gap-6">
-        <div>
-          <label for="JobFolder" class="block font-bold mb-3">JobFolder</label>
-          <InputText id="JobFolder" v-model.trim="job.jobFolderName" disabled fluid />
+      <JobForm
+        v-model:visible="jobDialog"
+        :job="job"
+        :jobFolder="selectedJobFolder"
+        @save="saveJob"
+        @cancel="hideJobDialog"
+      />
+      <!-- <Form v-slot="$form" @submit="submitJobForm" ref="job-form" :resolver>
+        <div class="flex flex-col gap-6">
+          <div>
+            <label for="JobFolder" class="block font-bold mb-3">JobFolder</label>
+            <InputText name="jobFolder" v-model.trim="job.jobFolderName" disabled fluid />
+          </div>
+          <div>
+            <label for="jobCode" class="block font-bold mb-3">Job Code</label>
+            <InputText name="jobCode" :value="job.jobCode" v-model="job.jobCode" autofocus fluid />
+            <Message v-if="$form.jobCode?.invalid" severity="error" size="small" variant="simple">{{
+              $form.jobCode.error?.message
+            }}</Message>
+          </div>
+          <div>
+            <label for="jobDescription" class="block font-bold mb-3">Description</label>
+            <InputText
+              name="jobDescription"
+              :value="initialJobValues.jobDescription"
+              autofocus
+              :invalid="submitted && !job.description"
+              fluid
+            />
+            <Message
+              v-if="$form.description?.invalid"
+              severity="error"
+              size="small"
+              variant="simple"
+              >{{ $form.description.error?.message }}</Message
+            >
+          </div>
+          <div>
+            <label for="jobDateRange" class="w-full block font-bold mb-3">Date Range</label>
+            <DatePicker
+              name="jobDateRange"
+              v-model="initialJobValues.jobDateRange"
+              v-tooltip="'Select the date range by selecting the start date, then the end date'"
+              selectionMode="range"
+              :manualInput="false"
+              dateFormat="dd/mm/yy"
+              class="w-full"
+              placeHolder="Select Date Range"
+            />
+            <Message
+              v-if="$form.jobDateRange?.invalid"
+              severity="error"
+              size="small"
+              variant="simple"
+              >{{ $form.jobDateRange.error?.message }}</Message
+            >
+          </div>
         </div>
-        <div>
-          <label for="jobCode" class="block font-bold mb-3">Job Code</label>
-          <InputText
-            id="jobCode"
-            v-model.trim="job.jobCode"
-            required="true"
-            autofocus
-            :invalid="submitted && !job.jobCode"
-            fluid
-          />
-          <small v-if="submitted && !job.jobCode" class="text-red-500">Job Code is required.</small>
+        <div class="mt-4 justify-end flex">
+          <Button label="Cancel" icon="pi pi-times" text @click="hideJobDialog" />
+          <Button label="Save" icon="pi pi-check" type="submit" />
         </div>
-        <div>
-          <label for="description" class="block font-bold mb-3">Description</label>
-          <InputText
-            id="description"
-            v-model.trim="job.description"
-            required="true"
-            autofocus
-            :invalid="submitted && !job.description"
-            fluid
-          />
-          <small v-if="submitted && !job.description" class="text-red-500"
-            >Description is required.</small
-          >
-        </div>
-        <div>
-          <label for="description" class="w-full block font-bold mb-3">Date Range</label>
-          <DatePicker
-            v-model="jobDateRange"
-            selectionMode="range"
-            :manualInput="false"
-            dateFormat="dd/mm/yy"
-            class="w-full"
-          />
-          <small v-if="submitted && !jobDateRange" class="text-red-500"
-            >Date Range is required.</small
-          >
-        </div>
-      </div>
-      <template #footer>
-        <Button label="Cancel" icon="pi pi-times" text @click="hideJobDialog" />
-        <Button label="Save" icon="pi pi-check" @click="saveJob" />
-      </template>
+      </Form> -->
+      <template #footer> </template>
     </Dialog>
   </div>
 </template>

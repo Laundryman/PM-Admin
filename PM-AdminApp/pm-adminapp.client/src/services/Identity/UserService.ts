@@ -246,11 +246,7 @@ export default {
   },
 
   deleteUser(id: string) {
-    return apiClient.delete('/delete-user', {
-      params: {
-        id: id,
-      },
-    })
+    return apiClient.delete(`/users/${id}`)
   },
   changePassword(userInfo: User) {
     if (token.value) {

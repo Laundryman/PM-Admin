@@ -42,7 +42,7 @@ namespace PM_AdminApp.Server.Mappings
             CreateMap<JobFolderDto, JobFolder>();
             CreateMap<JobFolder, JobFolderDto>();
             CreateMap<JobDto, Job>();
-            CreateMap<Job, JobDto>();
+            //CreateMap<Job, JobDto>();
 
             CreateMap<Order, OrderDto>();
 

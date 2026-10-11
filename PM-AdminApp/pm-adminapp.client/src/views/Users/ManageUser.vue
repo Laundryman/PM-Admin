@@ -13,9 +13,12 @@ import UserService from '@/services/Identity/UserService.js'
 import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
 import { useUserStore } from '@/stores/userStore'
+import type { FormInstance } from '@primevue/forms'
+import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { useToast } from 'primevue/usetoast'
-import { defineAsyncComponent, onMounted, ref } from 'vue'
+import { defineAsyncComponent, onMounted, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
+import { z } from 'zod'
 
 const newUser = ref(false)
 const editUser = ref(false)
@@ -59,6 +62,7 @@ const currentRegionProps = ref({
   selectedRegions: [] as number[] | null,
 })
 const tabComponent = defineAsyncComponent(() => import('@/components/userBrandTab.vue'))
+const userFormTemplateRef = useTemplateRef<FormInstance>('user-form')
 
 onMounted(async () => {
   loading.value = true
@@ -85,7 +89,7 @@ onMounted(async () => {
         console.log(error)
       })
   }
-
+  userFormTemplateRef.value?.setValues({ ...userModel.value })
   //get user's authentication method - check if they have been setup with mfa
   if (userId.value && userId.value !== '') {
     try {
@@ -322,7 +326,7 @@ async function saveUser() {
           toast.add({
             severity: 'error',
             summary: 'Update failed',
-            detail: error.message || 'User not updated. Please try again.',
+            detail: 'User not updated. Please try again.',
             life: 5000,
           })
         })
@@ -527,54 +531,67 @@ function onPermissionsChange(event: any) {
 /////////////////////////////////////////////////////
 // Form Handlers
 /////////////////////////////////////////////////////
-const resolver = ({ values }: any) => {
-  const errors = {} as any
+const resolver = zodResolver(
+  z.object({
+    FirstName: z.string().nonempty({ message: 'First Name is required.' }),
+    LastName: z.string().nonempty({ message: 'Last Name is required.' }),
+    userEmailAddress: z
+      .email({ error: 'Invalid email address.' })
+      .nonempty({ message: 'Email is required.' }),
+    userName: z.string().nonempty({ message: 'User Name is required.' }),
+    diamCountryId: z.number().min(1, { message: 'User Country is required.' }),
+    brandIds: z.array(z.number()).min(1, { message: 'At least one Brand must be selected.' }),
+    roleIds: z.array(z.number()).min(1, { message: 'At least one Role must be selected.' }),
+  }),
+)
+// const resolver = ({ values }: any) => {
+//   const errors = {} as any
 
-  if (!values.FirstName) {
-    errors.FirstName = [{ message: 'First Name is required.' }]
-  }
-  if (!values.LastName) {
-    errors.LastName = [{ message: 'Last Name is required.' }]
-  }
-  if (!values.userEmailAddress) {
-    errors.userEmailAddress = [{ message: 'Email is required.' }]
-  }
-  if (!values.userName) {
-    errors.userName = [{ message: 'User Name is required.' }]
-  }
-  if (!values.diamCountryId) {
-    errors.diamCountryId = [{ message: 'User Country is required.' }]
-  }
-  if (values.brandIds == null || values.brandIds.length === 0) {
-    errors.brandIds = [{ message: 'At least one Brand must be selected.' }]
-  }
-  if (values.roleIds == null || values.roleIds.length === 0) {
-    errors.roleIds = [{ message: 'At least one Role must be selected.' }]
-  }
-  if (!values.id) {
-    if (!newPassword.value) {
-      errors.password = [{ message: 'Password is required for new users.' }]
-    } else {
-      //validate password complexity
-      const password = newPassword.value
-      const complexityRegex =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!?\-@#$£%^&*()_+])[A-Za-z\d!?\-@#$£%^&*()_+]{8,}$/
-      if (!complexityRegex.test(password)) {
-        errors.password = [
-          {
-            message:
-              'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
-          },
-        ]
-      }
-    }
-  }
+//   if (!values.FirstName) {
+//     errors.FirstName = [{ message: 'First Name is required.' }]
+//   }
+//   if (!values.LastName) {
+//     errors.LastName = [{ message: 'Last Name is required.' }]
+//   }
+//   if (!values.userEmailAddress) {
+//     errors.userEmailAddress = [{ message: 'Email is required.' }]
+//   }
+//   if (!values.userName) {
+//     errors.userName = [{ message: 'User Name is required.' }]
+//   }
+//   if (!values.diamCountryId) {
+//     errors.diamCountryId = [{ message: 'User Country is required.' }]
+//   }
+//   if (values.brandIds == null || values.brandIds.length === 0) {
+//     errors.brandIds = [{ message: 'At least one Brand must be selected.' }]
+//   }
+//   if (values.roleIds == null || values.roleIds.length === 0) {
+//     errors.roleIds = [{ message: 'At least one Role must be selected.' }]
+//   }
+//   if (!values.id) {
+//     if (!newPassword.value) {
+//       errors.password = [{ message: 'Password is required for new users.' }]
+//     } else {
+//       //validate password complexity
+//       const password = newPassword.value
+//       const complexityRegex =
+//         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!?\-@#$£%^&*()_+])[A-Za-z\d!?\-@#$£%^&*()_+]{8,}$/
+//       if (!complexityRegex.test(password)) {
+//         errors.password = [
+//           {
+//             message:
+//               'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
+//           },
+//         ]
+//       }
+//     }
+//   }
 
-  return {
-    values, // (Optional) Used to pass current form values to submit event.
-    errors,
-  }
-}
+//   return {
+//     values, // (Optional) Used to pass current form values to submit event.
+//     errors,
+//   }
+// }
 
 async function onMFAChange(event: any) {
   if (hasMFA.value === true) {
@@ -603,9 +620,9 @@ async function onMFAChange(event: any) {
 
 async function onFormSubmit({ valid }: any) {
   if (valid) {
-    await UserService.saveUser(user.value)
+    await saveUser()
       .then(() => {
-        toast.add({ severity: 'success', summary: 'Success', detail: 'User updated', life: 3000 })
+        toast.add({ severity: 'success', summary: 'Success', detail: 'User updated', life: 5000 })
         router.push({ name: 'users' })
       })
       .catch((error) => {
@@ -614,7 +631,7 @@ async function onFormSubmit({ valid }: any) {
           severity: 'error',
           summary: 'Error',
           detail: 'Failed to update user',
-          life: 3000,
+          life: 5000,
         })
       })
   }
@@ -668,7 +685,7 @@ async function onFormSubmit({ valid }: any) {
     </div>
     <div class="card grid grid-cols-1 gap-4 justify-center">
       <Form
-        ref="part-form"
+        ref="user-form"
         v-slot="$form"
         :initialValues
         :resolver
@@ -726,6 +743,13 @@ async function onFormSubmit({ valid }: any) {
                   fluid
                   length="255"
                 />
+                <Message
+                  v-if="$form.userName?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.userName.error?.message }}</Message
+                >
               </div>
               <div class="flex flex-col gap-1">
                 <label for="userEmailAddress">Email:</label>
@@ -737,6 +761,13 @@ async function onFormSubmit({ valid }: any) {
                   fluid
                   length="255"
                 />
+                <Message
+                  v-if="$form.userEmailAddress?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.userEmailAddress.error?.message }}</Message
+                >
               </div>
               <div class="flex flex-col gap-1">
                 <label for="ddCountries" class="font-semibold">User Country</label>
@@ -876,7 +907,7 @@ async function onFormSubmit({ valid }: any) {
             </TabPanels>
           </Tabs>
         </div>
-        <Button label="Save" @click="saveUser" />
+        <Button type="submit" label="Save" />
       </Form>
     </div>
   </div>

@@ -25,7 +25,6 @@ import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
-
 const cassetteRenderUrl = import.meta.env.VITE_APP_CASSETTERENDER_URL
 const cassettePhotoUrl = import.meta.env.VITE_APP_CASSETTEPHOTO_URL
 const cassetteIconUrl = import.meta.env.VITE_APP_CASSETTEICON_URL
@@ -98,6 +97,23 @@ onMounted(async () => {
   var partFilter = new PartFilter()
   partFilter.Id = Number(router.currentRoute.value.params.id) || 0
   await partStore.initialize(partFilter)
+
+  if (part.value.brandId != brandStore.activeBrand?.id) {
+    const wrongBrand = brandStore.brands.find((b) => b.id === part.value.brandId)?.name ?? ''
+    toast.add({
+      severity: 'error',
+      summary: 'Brand Mismatch',
+      detail:
+        'The part does not belong to the active brand. Please switch to ' +
+        wrongBrand +
+        ' to edit this part.',
+      life: 5000,
+    })
+    router.push({ name: 'parts' }) // Stop further execution if brand mismatch occurs
+    layout.toggleLoading()
+    return
+  }
+
   partModel.value = { ...part.value } as Part //clone(part.value)
 
   if (router.currentRoute.value.name === 'copyPart') {

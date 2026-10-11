@@ -86,12 +86,27 @@ const { shades, shade, shadeDialog, submitted, shade_countrySelectList, shade_se
 /////////////////////////////////////////////////////
 // Lifecycle Hooks
 /////////////////////////////////////////////////////
+
+
 onMounted(async () => {
   layout.toggleLoading()
   layout.layoutState.disableBrandSelect = true
   var productFilter = new ProductFilter()
   productFilter.id = Number(router.currentRoute.value.params.id) || 0
   await productStore.initialize(productFilter.id)
+  if (product.value.brandId != brandStore.activeBrand?.id) {
+    const wrongBrand = brandStore.brands.find(b => b.id === product.value.brandId)?.name ?? ''
+    toast.add({
+      severity: 'error',
+      summary: 'Brand Mismatch',
+      detail: 'The product does not belong to the active brand. Please switch to ' + wrongBrand + ' to edit this product.',
+      life: 5000
+    })
+      router.push({ name: 'products' }); // Stop further execution if brand mismatch occurs
+      layout.toggleLoading()
+      return;
+
+  }
   if (productFilter.id != 0) {
     newProduct.value = false;
     await productStore.getShadesForProduct(productFilter.id).then((response) => {

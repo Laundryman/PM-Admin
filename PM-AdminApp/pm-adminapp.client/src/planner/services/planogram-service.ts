@@ -129,9 +129,8 @@ export class PlanogramService {
     })
     shelfCount = shelves.length
 
-    document.querySelector('.app-title .plan-x-type .sku-count span.count')!.textContent =
-      skuCount.toString()
-    document.querySelector('.app-title .plan-x-type .shelf-count span.count')!.textContent =
+    document.querySelector('.app-header .sku-count span.count')!.textContent = skuCount.toString()
+    document.querySelector('.app-header .shelf-count span.count')!.textContent =
       shelfCount.toString()
     // $('.app-title .plan-x-type .sku-count span.count').text(skuCount.toString());
     // $('.app-title .plan-x-type .shelf-count span.count').text(shelfCount.toString());

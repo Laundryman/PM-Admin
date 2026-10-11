@@ -36,6 +36,7 @@ const layout = useSystemStore()
 const brandStore = useBrandStore()
 const brand = storeToRefs(brandStore).activeBrand
 const standStore = useStandStore()
+const { stand } = storeToRefs(standStore)
 const colsCount = ref<number>(0)
 const pitchCount = ref<number>(0)
 const colsTable = ref<Column[] | null>(null)
@@ -128,6 +129,22 @@ onMounted(async () => {
   var standFilter = new StandFilter()
   standFilter.id = Number(router.currentRoute.value.params.id) || 0
   await standStore.initialize(standFilter.id)
+  if (stand.value.brandId != brandStore.activeBrand?.id) {
+    const wrongBrand = brandStore.brands.find((b) => b.id === stand.value.brandId)?.name ?? ''
+    toast.add({
+      severity: 'error',
+      summary: 'Brand Mismatch',
+      detail:
+        'The stand does not belong to the active brand. Please switch to ' +
+        wrongBrand +
+        ' to edit this stand.',
+      life: 5000,
+    })
+    router.push({ name: 'stands' }) // Stop further execution if brand mismatch occurs
+    loading.value = false
+    return
+  }
+
   standModel.value = { ...standStore.stand } as Stand //clone(product.value)
 
   if (

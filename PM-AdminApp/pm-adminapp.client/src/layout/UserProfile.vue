@@ -55,13 +55,13 @@ function logout() {
           {{ auth.currentlyLoggedInUser?.displayName }}
         </div>
         <div class="text-sm text-600 mb-3">{{ auth.currentlyLoggedInUser?.mail }}</div>
-        <button
+        <!-- <button
           pButton
           type="button"
           label="View Profile"
           class="p-button-outlined p-button-sm"
           icon="pi pi-user"
-        ></button>
+        ></button> -->
       </div>
     </div>
     <div class="flex flex-column gap-3">
