@@ -50,6 +50,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout() {
     return Auth.logout().then(() => {
       account.value = null
+      router.push({ name: 'Welcome' })
     })
   }
 

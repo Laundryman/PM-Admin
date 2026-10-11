@@ -77,9 +77,14 @@ export default {
     if (!authStore.initialized) {
       await authStore.initialize()
     }
-    const t = await Auth.getToken()
-    token.value = t
-    console.log('BrandService initialized with token:', token.value)
-    initialized.value = true
+    try {
+      const t = await Auth.getToken()
+      token.value = t
+      console.log('BrandService initialized with token:', token.value)
+      initialized.value = true
+    } catch (error) {
+      console.error('Failed to initialize BrandService:', error)
+      throw error
+    }
   },
 }

@@ -2,9 +2,11 @@
 import userService from '@/services/Identity/UserService'
 import { useAuthStore } from '@/stores/auth'
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const auth = useAuthStore()
 const currentUser = ref<any | null>(null)
+const router = useRouter()
 
 onMounted(async () => {
   if (auth.initialized === true) {

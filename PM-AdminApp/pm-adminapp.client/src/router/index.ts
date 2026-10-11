@@ -283,8 +283,15 @@ router.beforeEach(async (to, from, next) => {
 
   // unguarded
   if (auth.account) {
-    await brands.initialise()
-    return next({ name: 'home' })
+    try {
+      await brands.initialise()
+      return next({ name: 'home' })
+    } catch (err) {
+      console.log('Failed to initialize BrandService:', err)
+      auth.account = null
+      auth.setCurrentlyLoggedInUserInfo(null)
+      return next({ name: 'Welcome' })
+    }
   }
   next()
 })
