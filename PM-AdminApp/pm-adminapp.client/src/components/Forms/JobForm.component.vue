@@ -162,7 +162,10 @@ const baseSchema = z.object({
 const dateRangeSchema = baseSchema.refine(
   (data) => {
     console.log(data.jobDateRange[0], data.jobDateRange[1])
-    return data.jobDateRange[0] != null && data.jobDateRange[1] != null
+    if (data.jobDateRange[0] != null && data.jobDateRange[1] == null) {
+      return false
+    }
+    return true
   },
   {
     message: 'Job date range requires a start and end date',
@@ -243,7 +246,10 @@ function setInitialJobFormValues() {
   initialJobValues.value.jobCode = props.job.jobCode
   initialJobValues.value.jobDescription = props.job.description
   initialJobValues.value.jobFolder = props.job.jobFolderName
-  initialJobValues.value.jobDateRange = [props.job.dateFrom, props.job.dateTo]
+  if (props.job.dateFrom && props.job.dateTo) {
+    initialJobValues.value.jobDateRange = [props.job.dateFrom, props.job.dateTo]
+  }
+
   jobFormTemplateRef.value?.setValues({ ...initialJobValues.value })
 
   // jobFormTemplateRef.value.setFieldValue('jobCode', initialJobValues.value.jobCode)
