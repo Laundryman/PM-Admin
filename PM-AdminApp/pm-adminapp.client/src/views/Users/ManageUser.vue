@@ -295,6 +295,7 @@ async function saveUser() {
     userModel.value.userName = userModel.value.newUserName
   }
   if (userModel?.value?.userName?.trim()) {
+    await UserService.initialise()
     // if (selectedBrands.value !== undefined) {
     //   userModel.value.brandIds = selectedBrands.value.join(',')
     // }
@@ -302,7 +303,6 @@ async function saveUser() {
     //   userModel.value.roleIds = selectedRoles.value.join(',')
     // }
     if (userModel.value.id) {
-      await UserService.initialise()
       await UserService.saveUser(userModel.value)
         .then(async (response) => {
           var updatedUser = userModel.value
@@ -329,6 +329,7 @@ async function saveUser() {
             detail: 'User not updated. Please try again.',
             life: 5000,
           })
+          return Promise.reject(error)
         })
         .finally(() => {})
     } else {
@@ -353,10 +354,10 @@ async function saveUser() {
           detail: 'Password is required for new users.',
           life: 4000,
         })
-        return
+        return Promise.reject(new Error('Password is required for new users.'))
       }
       userModel.value.password = newPassword.value
-      UserService.createUser(userModel.value)
+      await UserService.createUser(userModel.value)
         .then((response) => {
           toast.add({
             severity: 'success',
@@ -371,6 +372,12 @@ async function saveUser() {
           var errMessage = 'Could not create user'
           if (error.response.data.error.message) {
             errMessage = error.response.data.error.message
+            if (
+              errMessage.includes('user principal name', 0) ||
+              errMessage.includes('userPrincipalName', 0)
+            ) {
+              errMessage = 'User name is already in use.'
+            }
           }
 
           toast.add({
@@ -379,6 +386,7 @@ async function saveUser() {
             detail: errMessage,
             life: 4000,
           })
+          return Promise.reject(error)
         })
         .finally(() => {})
     }
@@ -621,19 +629,6 @@ async function onMFAChange(event: any) {
 async function onFormSubmit({ valid }: any) {
   if (valid) {
     await saveUser()
-      .then(() => {
-        toast.add({ severity: 'success', summary: 'Success', detail: 'User updated', life: 5000 })
-        router.push({ name: 'users' })
-      })
-      .catch((error) => {
-        console.log(error)
-        toast.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to update user',
-          life: 5000,
-        })
-      })
   }
 }
 </script>

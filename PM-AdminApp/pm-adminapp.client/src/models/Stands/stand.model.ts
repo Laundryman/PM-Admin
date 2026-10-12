@@ -27,7 +27,7 @@ export class Stand {
   footerWidth!: number
   horizontalPitchCount!: number
   horizontalPitchSize!: number
-  cols!: number
+  cols: number | null = 0
   columnList!: Column[] | null
   rowList!: Row[] | null
   equalCols!: boolean
@@ -35,7 +35,7 @@ export class Stand {
   standAssemblyNumber!: string
   layoutStyle!: number
   spanShelves!: boolean
-  rows!: number
+  rows: number | null = 0
   equalRows!: boolean
   defaultRowHeight!: number
   shelfIncrement!: number

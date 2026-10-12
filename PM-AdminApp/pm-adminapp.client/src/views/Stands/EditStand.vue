@@ -79,6 +79,7 @@ const baseSchema = z.object({
   merchHeight: z.number({ message: 'Merch height is required.' }),
   msregions: z.array(z.number()).min(1, { message: 'At least one region is required.' }),
   countries: z.array(z.number()).min(1, { message: 'At least one country is required.' }),
+  cols: z.number().min(0, { message: 'Columns must be greater than or equal to 0.' }),
 })
 
 const schema = baseSchema
@@ -98,6 +99,20 @@ const schema = baseSchema
         .safeParse(payload.value).success
     },
   })
+  .refine(
+    (data) => {
+      console.log(data)
+      if (data.layoutStyle != 2 && data.cols == 0) return false
+      return true
+    },
+    {
+      message: 'Columns must be greater than 0 when layout style is not Pitch.',
+      path: ['cols'],
+      when(payload) {
+        return baseSchema.pick({ layoutStyle: true, cols: true }).safeParse(payload.value).success
+      },
+    },
+  )
 const resolver = ref(zodResolver(schema))
 
 // const resolver = ({ values }: any) => {
@@ -129,24 +144,27 @@ onMounted(async () => {
   var standFilter = new StandFilter()
   standFilter.id = Number(router.currentRoute.value.params.id) || 0
   await standStore.initialize(standFilter.id)
-  if (stand.value.brandId != brandStore.activeBrand?.id) {
-    const wrongBrand = brandStore.brands.find((b) => b.id === stand.value.brandId)?.name ?? ''
-    toast.add({
-      severity: 'error',
-      summary: 'Brand Mismatch',
-      detail:
-        'The stand does not belong to the active brand. Please switch to ' +
-        wrongBrand +
-        ' to edit this stand.',
-      life: 5000,
-    })
-    router.push({ name: 'stands' }) // Stop further execution if brand mismatch occurs
-    loading.value = false
-    return
+  if (router.currentRoute.value.name !== 'newStand') {
+    if (stand.value.brandId != brandStore.activeBrand?.id) {
+      const wrongBrand = brandStore.brands.find((b) => b.id === stand.value.brandId)?.name ?? ''
+      toast.add({
+        severity: 'error',
+        summary: 'Brand Mismatch',
+        detail:
+          'The stand does not belong to the active brand. Please switch to ' +
+          wrongBrand +
+          ' to edit this stand.',
+        life: 5000,
+      })
+      router.push({ name: 'stands' }) // Stop further execution if brand mismatch occurs
+      loading.value = false
+      return
+    }
   }
 
   standModel.value = { ...standStore.stand } as Stand //clone(product.value)
-
+  standModel.value.cols = standModel.value.cols ?? 0
+  standModel.value.rows = standModel.value.rows ?? 0
   if (
     router.currentRoute.value.name === 'editStand' ||
     router.currentRoute.value.name === 'copyStand'
@@ -160,6 +178,8 @@ onMounted(async () => {
     standform.value.setFieldValue('merchWidth', standStore.stand.merchWidth)
     standform.value.setFieldValue('footerHeight', standStore.stand.footerHeight)
     standform.value.setFieldValue('headerHeight', standStore.stand.headerHeight)
+    standform.value.setFieldValue('cols', standStore.stand.cols)
+    standform.value.setFieldValue('rows', standStore.stand.rows)
     colsCount.value = standStore.stand.cols ?? 0
     rowsCount.value = standStore.stand.rows ?? 0
   }
@@ -180,6 +200,8 @@ onMounted(async () => {
   if (router.currentRoute.value.name === 'newStand') {
     newStand.value = true
     standModel.value.brandId = brandStore.activeBrand?.id ?? 0
+    standform.value?.setFieldValue('cols', standModel.value.cols)
+    standform.value?.setFieldValue('rows', standModel.value.rows)
   }
 
   if (router.currentRoute.value.name !== 'newStand')
@@ -305,6 +327,11 @@ function clearCountrySelection() {
   ms_selectedCountries.value = []
   standModel.value.countries = []
   standModel.value.countriesList = ''
+}
+function onLayoutStyleChange(evt: any) {
+  standModel.value.layoutStyle = evt.value
+  standModel.value.cols = 0
+  standform.value?.setFieldValue('cols', 0)
 }
 
 function onStandTypeChange(evt: any) {
@@ -433,20 +460,61 @@ function changeRowLayout(event: any) {
 }
 
 async function changeTab(tab: string) {
+  //need to accomodate the fact that the cols and rows might be null as not loaded until tab change
+  if (standModel.value.cols > 0) {
+    if (standform.value.fields['cols'].states.value == 0) {
+      standform.value.setFieldValue('cols', standModel.value.cols)
+    }
+  } else {
+    standform.value.setFieldValue('cols', 1)
+    standModel.value.cols = 1
+  }
+  if (standModel.value.rows > 0) {
+    if (standform.value.fields['rows'].states.value == 0) {
+      standform.value.setFieldValue('rows', standModel.value.rows)
+    }
+  } else {
+    standform.value.setFieldValue('rows', 1)
+    standModel.value.rows = 1
+  }
   const valid = await standform.value?.validate()
   if (valid.values) {
     tabId.value = tab
   }
 }
 
+async function validateColumnWidths() {
+  const cols = colsTable.value ?? []
+  for (const col of cols) {
+    if (!col.width || col.width == 0) {
+      let colField = standform.value.fields['cols']
+      colField.states.invalid = true
+      colField.states.error = {
+        message: `Column at position ${col.position} must have a width greater than 0.`,
+      }
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Column at position ${col.position} must have a width greater than 0.`,
+        life: 5000,
+      })
+      return false
+    }
+  }
+  return true
+}
 async function onFormSubmit({ valid }: any) {
-  if (valid) {
+  // await AddColumnsAndRowsToModel()
+  //need to validate the cols have proper widths
+  const colsValid = await validateColumnWidths()
+  if (valid && colsValid) {
     standModel.value.brandId = brandStore.activeBrand?.id ?? 0
     standModel.value.standTypeId = selectedStandType.value ?? 0
     standModel.value.regionsList = ms_selectedRegions.value?.join(',') ?? ''
     standModel.value.countriesList = ms_selectedCountries.value?.join(',') ?? ''
     standModel.value.footerHeight = standModel.value.footerHeight ?? 0
     standModel.value.footerWidth = standModel.value.footerWidth ?? 0
+
     await AddColumnsAndRowsToModel()
     if (newStand.value == true) {
       await standStore.createStand(standModel.value).then((response) => {
@@ -556,7 +624,7 @@ async function updateUprightWidth(newUpright: Upright, columnPosition: number) {
             @click="router.back()"
           />
         </div>
-        <div :class="{ 'z-10': !loading }" class="w-full sticky bg-white top-16 block p-10">
+        <div :class="{ 'z-1003': !loading }" class="w-full sticky bg-white top-16 block p-10">
           <h2><span v-if="!newStand">Edit Stand</span><span v-else>New Stand</span></h2>
           <div class="m-5 p-5 mb-0 pb-0 grid gap-2 grid-cols-3">
             <div class="flex flex-col gap-1">
@@ -693,6 +761,7 @@ async function updateUprightWidth(newUpright: Upright, columnPosition: number) {
                             class="w-full"
                             option-label="name"
                             option-value="id"
+                            @change="onLayoutStyleChange"
                           >
                             <template #option="option">
                               <div class="flex align-items-center">
@@ -1044,6 +1113,15 @@ async function updateUprightWidth(newUpright: Upright, columnPosition: number) {
                                 v-model="standModel.defaultColWidth"
                               />
                             </div>
+                            <div class="col-span-4">
+                              <Message
+                                v-if="$form.cols?.invalid"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                                >{{ $form.cols.error?.message }}</Message
+                              >
+                            </div>
                           </div>
 
                           <div class="flex gap-2 flex-wrap pt-1">
@@ -1066,6 +1144,7 @@ async function updateUprightWidth(newUpright: Upright, columnPosition: number) {
                                     <div class="p-2 shrink">
                                       <FloatLabel variant="in" class="w-50">
                                         <InputNumber
+                                          name="col-width{{ col.position }}"
                                           type="number"
                                           v-model="col.width"
                                           inputId="col-w"

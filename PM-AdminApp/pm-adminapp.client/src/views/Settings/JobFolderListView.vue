@@ -364,8 +364,15 @@ async function saveJob(currentJob: Job) {
       var newJob = await jobsService.createJob(currentJob).then((response) => {
         return response
       })
-      if (jobFolder.value.jobs) {
-        jobFolder.value.jobs.push(newJob)
+      job.value = { ...currentJob }
+      const jfolder = jobFolders.value.find((jf) => jf.id == newJob.jobFolderId)
+      const updateJob = jfolder.jobs.find((j) => j.id === newJob.id)
+      if (updateJob) {
+        updateJob.jobCode = newJob.jobCode
+        updateJob.description = newJob.description
+        updateJob.dateFrom = newJob.dateFrom
+        updateJob.dateTo = newJob.dateTo
+        updateJob.uploadedOn = newJob.uploadedOn
       }
       toast.add({
         severity: 'success',
@@ -381,6 +388,7 @@ async function saveJob(currentJob: Job) {
 }
 function editJob(jobModel: Job) {
   job.value = jobModel
+  const jobFolder = jobFolders.value.find((jf) => jf.id == jobModel.jobFolderId)
   if (jobModel.dateTo != null && jobModel.dateFrom != null) {
     // ukDateTo = formatDate(jobModel.dateTo)
     // ukDateFrom = formatDate(jobModel.dateFrom)
@@ -398,17 +406,19 @@ function editJob(jobModel: Job) {
   }
   job.value.dateFrom = jobModel.dateFrom
   job.value.dateTo = jobModel.dateTo
-  job.value.jobFolderId = jobFolder?.value.id ?? 0
-  job.value.jobFolderName = jobFolder?.value.name ?? ''
+  job.value.jobFolderId = jobModel.id ?? 0
+  job.value.jobFolderName = jobFolder?.name ?? ''
   jobDialog.value = true
 }
 function addJob(folder: JobFolder) {
+  // const jobFolder = jobFolders.value.find((jf) => jf.id == jobModel.jobFolderId)
+
   job.value = new Job()
   job.value.jobFolderId = folder.id
   job.value.jobFolderName = folder.name
   job.value.brandId = brandStore.activeBrand?.id ?? 0
   jobDateRange.value = [new Date(), new Date()]
-  initialJobValues.value = { ...job.value }
+  // initialJobValues.value = { ...job.value }
 
   jobDialog.value = true
   setInitialJobFormValues()

@@ -183,7 +183,7 @@ export default {
       })
   },
 
-  async createUser(user: User) {
+  async createUser(user: User): Promise<any> {
     let newUser = new Object() as any
     let mailNickname = user.userEmailAddress.substring(0, user.userEmailAddress.indexOf('@'))
     newUser = {
@@ -192,7 +192,7 @@ export default {
       mailNickname: mailNickname,
       givenName: user.givenName,
       surname: user.surname,
-      userPrincipalName: mailNickname + '@' + import.meta.env.VITE_APP_TENANT_NAME,
+      userPrincipalName: user.userName + '@' + import.meta.env.VITE_APP_TENANT_NAME,
       // userPrincipalName: user.userEmailAddress,
       identities: [
         {
@@ -240,7 +240,7 @@ export default {
         return response
       })
       .catch((error) => {
-        throw error
+        return Promise.reject(error)
       })
     return resp
   },

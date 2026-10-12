@@ -97,21 +97,22 @@ onMounted(async () => {
   var partFilter = new PartFilter()
   partFilter.Id = Number(router.currentRoute.value.params.id) || 0
   await partStore.initialize(partFilter)
-
-  if (part.value.brandId != brandStore.activeBrand?.id) {
-    const wrongBrand = brandStore.brands.find((b) => b.id === part.value.brandId)?.name ?? ''
-    toast.add({
-      severity: 'error',
-      summary: 'Brand Mismatch',
-      detail:
-        'The part does not belong to the active brand. Please switch to ' +
-        wrongBrand +
-        ' to edit this part.',
-      life: 5000,
-    })
-    router.push({ name: 'parts' }) // Stop further execution if brand mismatch occurs
-    layout.toggleLoading()
-    return
+  if (router.currentRoute.value.name !== 'newPart') {
+    if (part.value.brandId != brandStore.activeBrand?.id) {
+      const wrongBrand = brandStore.brands.find((b) => b.id === part.value.brandId)?.name ?? ''
+      toast.add({
+        severity: 'error',
+        summary: 'Brand Mismatch',
+        detail:
+          'The part does not belong to the active brand. Please switch to ' +
+          wrongBrand +
+          ' to edit this part.',
+        life: 5000,
+      })
+      router.push({ name: 'parts' }) // Stop further execution if brand mismatch occurs
+      layout.toggleLoading()
+      return
+    }
   }
 
   partModel.value = { ...part.value } as Part //clone(part.value)

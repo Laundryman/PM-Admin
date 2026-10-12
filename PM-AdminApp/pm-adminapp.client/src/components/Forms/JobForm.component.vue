@@ -154,7 +154,7 @@ onMounted(async () => {
 // }
 
 const baseSchema = z.object({
-  jobFolder: z.string().min(1, 'Name is required'),
+  jobFolder: z.string()!,
   jobCode: z.string().nonempty({ message: 'Job code is required' }),
   jobDescription: z.string().nullable().optional(),
   jobDateRange: z.array(z.date()).optional(),
@@ -231,9 +231,9 @@ async function submitJobForm({ valid }: any) {
 
     const newJob = {
       ...props.job,
-      jobCode: jobCodeField.states.value,
-      description: jobDescriptionField.states.value,
-      jobFolderName: jobFolderField.states.value,
+      jobCode: jobCodeField.states.value ?? '',
+      description: jobDescriptionField.states.value ?? '',
+      jobFolderName: jobFolderField.states.value ?? '',
       dateFrom: jobDateRangeField.states.value?.[0] ?? null,
       dateTo: jobDateRangeField.states.value?.[1] ?? null,
       // uploadedOn: props.job.uploadedOn
@@ -243,15 +243,20 @@ async function submitJobForm({ valid }: any) {
 }
 
 function setInitialJobFormValues() {
-  initialJobValues.value.jobCode = props.job.jobCode
-  initialJobValues.value.jobDescription = props.job.description
-  initialJobValues.value.jobFolder = props.job.jobFolderName
-  if (props.job.dateFrom && props.job.dateTo) {
-    initialJobValues.value.jobDateRange = [props.job.dateFrom, props.job.dateTo]
+  if (props.job.id) {
+    initialJobValues.value.jobCode = props.job.jobCode ?? ''
+    initialJobValues.value.jobDescription = props.job.description ?? ''
+    initialJobValues.value.jobFolder = props.job.jobFolderName ?? ''
+    if (props.job.dateFrom && props.job.dateTo) {
+      initialJobValues.value.jobDateRange = [props.job.dateFrom, props.job.dateTo]
+    }
+    jobFormTemplateRef.value?.setValues({ ...initialJobValues.value })
+  } else {
+    initialJobValues.value.jobFolder = props.job.jobFolderName
+    const jobFolderField = jobFormTemplateRef.value.fields?.['jobFolder']
+
+    jobFolderField.states.value = initialJobValues.value.jobFolder ?? ''
   }
-
-  jobFormTemplateRef.value?.setValues({ ...initialJobValues.value })
-
   // jobFormTemplateRef.value.setFieldValue('jobCode', initialJobValues.value.jobCode)
   // jobFormTemplateRef.value.setFieldValue('jobDescription', initialJobValues.value.jobDescription)
   // jobFormTemplateRef.value.setFieldValue('jobFolderId', initialJobValues.value.jobFolderId)
@@ -266,7 +271,7 @@ function setInitialJobFormValues() {
     <div class="flex flex-col gap-6">
       <div>
         <label for="JobFolder" class="block font-bold mb-3">JobFolder</label>
-        <InputText name="jobFolder" disabled fluid />
+        <InputText name="jobFolder" v-model="job.jobFolderName" disabled fluid />
       </div>
       <div>
         <label for="jobCode" class="block font-bold mb-3">Job Code</label>
