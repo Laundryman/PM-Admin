@@ -366,7 +366,7 @@ const getCountryName = (countryId: string) => {
 
   <div class="card">
     <Toolbar class="mb-4">
-      <template #start>
+      <template #end>
         <Button label="New" icon="pi pi-plus" severity="success" class="mr-2" @click="createUser" />
         <!-- <Button
           label="Delete"

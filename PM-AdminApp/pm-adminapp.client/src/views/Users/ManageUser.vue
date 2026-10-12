@@ -354,7 +354,7 @@ async function saveUser() {
           detail: 'Password is required for new users.',
           life: 4000,
         })
-        return Promise.reject(new Error('Password is required for new users.'))
+        return Promise.reject()
       }
       userModel.value.password = newPassword.value
       await UserService.createUser(userModel.value)
@@ -377,6 +377,9 @@ async function saveUser() {
               errMessage.includes('userPrincipalName', 0)
             ) {
               errMessage = 'User name is already in use.'
+            }
+            if (errMessage.includes('proxyAddresses', 0)) {
+              errMessage = 'Email address is already in use.'
             }
           }
 

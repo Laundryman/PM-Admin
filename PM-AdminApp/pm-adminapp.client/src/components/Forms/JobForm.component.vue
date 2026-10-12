@@ -254,8 +254,9 @@ function setInitialJobFormValues() {
   } else {
     initialJobValues.value.jobFolder = props.job.jobFolderName
     const jobFolderField = jobFormTemplateRef.value.fields?.['jobFolder']
-
+    const jobDateRangeField = jobFormTemplateRef.value.fields?.['jobDateRange']
     jobFolderField.states.value = initialJobValues.value.jobFolder ?? ''
+    jobDateRangeField.states.value = initialJobValues.value.jobDateRange ?? []
   }
   // jobFormTemplateRef.value.setFieldValue('jobCode', initialJobValues.value.jobCode)
   // jobFormTemplateRef.value.setFieldValue('jobDescription', initialJobValues.value.jobDescription)

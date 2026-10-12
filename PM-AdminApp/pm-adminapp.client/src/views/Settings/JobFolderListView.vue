@@ -366,14 +366,10 @@ async function saveJob(currentJob: Job) {
       })
       job.value = { ...currentJob }
       const jfolder = jobFolders.value.find((jf) => jf.id == newJob.jobFolderId)
-      const updateJob = jfolder.jobs.find((j) => j.id === newJob.id)
-      if (updateJob) {
-        updateJob.jobCode = newJob.jobCode
-        updateJob.description = newJob.description
-        updateJob.dateFrom = newJob.dateFrom
-        updateJob.dateTo = newJob.dateTo
-        updateJob.uploadedOn = newJob.uploadedOn
+      if (!jfolder.jobs) {
+        jfolder.jobs = []
       }
+      jfolder.jobs.push(currentJob)
       toast.add({
         severity: 'success',
         summary: 'Successful',
