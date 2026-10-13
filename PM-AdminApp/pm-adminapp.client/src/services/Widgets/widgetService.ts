@@ -1,5 +1,6 @@
 import type { Planogram } from '@/models/Planograms/planogram.model'
 import type { PlanoWidgetFilter } from '@/models/Widgets/planoWidgetFilter.model'
+import type { PopularPartDto } from '@/models/Widgets/PopularPartDto'
 import type { StatsDto } from '@/models/Widgets/statsDto'
 import { Auth, msal } from '@/services/Identity/auth'
 import { useAuthStore } from '@/stores/auth'
@@ -426,6 +427,24 @@ export default {
 
     let response = await apiClient
       .get('/getStats')
+      .then((res) => {
+        return res.data
+      })
+      .catch((error) => {
+        throw error
+      })
+    return response
+  },
+  async getPopularParts(brandId: number): Promise<PopularPartDto[]> {
+    // if (initialized.value !== false) {
+    if (token.value) {
+      apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+      apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
+      apiClient.defaults.headers['Content-Type'] = 'application/json'
+    }
+
+    let response = await apiClient
+      .get('/getPopularParts', { params: { brandId } })
       .then((res) => {
         return res.data
       })

@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import BestSellingWidget from '@/components/dashboard/BestSellingWidget.vue'
-import NotificationsWidget from '@/components/dashboard/NotificationsWidget.vue'
 import RecentStatsWidget from '@/components/dashboard/PMStatsWidget.vue'
 import RecentPlanogramWidget from '@/components/dashboard/RecentPlanogramWidget.vue'
-import RevenueStreamWidget from '@/components/dashboard/RevenueStreamWidget.vue'
 import { msal } from '@/services/Identity/auth'
 import { onMounted } from 'vue'
 
@@ -25,13 +22,15 @@ onMounted(async () => {
     <!-- <StatsWidget /> -->
     <RecentStatsWidget />
 
-    <div class="col-span-12 xl:col-span-6">
+    <div class="col-span-12">
       <RecentPlanogramWidget />
-      <BestSellingWidget />
+      <!-- <BestSellingWidget /> -->
     </div>
-    <div class="col-span-12 xl:col-span-6">
-      <RevenueStreamWidget />
-      <NotificationsWidget />
+    <div class="col-span-12">
+      <PopularPartsWidget />
+
+      <!-- <RevenueStreamWidget />
+            <NotificationsWidget /> -->
     </div>
   </div>
 </template>

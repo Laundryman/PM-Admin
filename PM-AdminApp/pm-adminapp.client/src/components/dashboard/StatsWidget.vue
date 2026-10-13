@@ -31,7 +31,7 @@
           <i class="pi pi-dollar text-orange-500 !text-xl"></i>
         </div>
       </div>
-      <span class="text-primary font-medium">%52+ </span>
+      <span class="font-bold">%52+ </span>
       <span class="text-muted-color">since last quarter</span>
     </div>
   </div>

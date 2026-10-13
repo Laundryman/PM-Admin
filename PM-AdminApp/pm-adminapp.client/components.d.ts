@@ -56,6 +56,7 @@ declare module 'vue' {
     Password: typeof import('primevue/password')['default']
     PlanMatrPlanner: typeof import('./src/components/planner/PlanMatrPlanner.vue')['default']
     PMStatsWidget: typeof import('./src/components/dashboard/PMStatsWidget.vue')['default']
+    PopularPartsWidget: typeof import('./src/components/dashboard/PopularPartsWidget.vue')['default']
     PricingWidget: typeof import('./src/components/landing/PricingWidget.vue')['default']
     ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RecentPlanogramWidget: typeof import('./src/components/dashboard/RecentPlanogramWidget.vue')['default']

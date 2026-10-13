@@ -7,15 +7,16 @@ using PMApplication.Dtos.Filters.Widgets;
 using PMApplication.Dtos.PlanModels;
 using PMApplication.Entities;
 using PMApplication.Entities.CountriesAggregate;
+using PMApplication.Entities.PartAggregate;
 using PMApplication.Entities.PlanogramAggregate;
 using PMApplication.Interfaces;
 using PMApplication.Interfaces.RepositoryInterfaces;
 using PMApplication.Interfaces.ServiceInterfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
+using PMApplication.Specifications.Widgets;
 using PMInfrastructure.Repositories;
 using System.Net;
-using PMApplication.Specifications.Widgets;
 using static PMApplication.Enums.StatusEnums;
 
 namespace PM_AdminApp.Server.Controllers
@@ -89,6 +90,20 @@ namespace PM_AdminApp.Server.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while fetching recent planograms.");
+                return StatusCode((int)HttpStatusCode.InternalServerError, "An error occurred while processing your request.");
+            }
+        }
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<PopularPart>>> GetPopularParts(int BrandId)
+        {
+            try
+            {
+                var popularParts = await _partRepository.GetMostPopularParts(BrandId);
+                return Ok(popularParts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while fetching popular parts.");
                 return StatusCode((int)HttpStatusCode.InternalServerError, "An error occurred while processing your request.");
             }
         }

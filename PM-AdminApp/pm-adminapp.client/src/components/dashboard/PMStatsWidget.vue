@@ -90,7 +90,7 @@ onMounted(async () => {
           <i class="pi pi-building text-blue-500 !text-xl"></i>
         </div>
       </div>
-      <span class="text-primary font-medium">{{ stats?.recentPlanogramsCount ?? 0 }} new </span>
+      <span class="font-semibold">{{ stats?.recentPlanogramsCount ?? 0 }} new </span>
       <span class="text-muted-color">in last month</span>
     </div>
   </div>
@@ -110,7 +110,7 @@ onMounted(async () => {
           <i class="pi pi-objects-column text-orange-500 !text-xl"></i>
         </div>
       </div>
-      <span class="text-primary font-medium">{{ stats?.recentPartsCount ?? 0 }} new </span>
+      <span class="font-semibold">{{ stats?.recentPartsCount ?? 0 }} new </span>
       <span class="text-muted-color">in last month</span>
     </div>
   </div>
@@ -130,7 +130,7 @@ onMounted(async () => {
           <i class="pi pi-briefcase text-cyan-500 !text-xl"></i>
         </div>
       </div>
-      <span class="text-primary font-medium">{{ stats?.recentProductsCount ?? 0 }} added </span>
+      <span class="font-semibold">{{ stats?.recentProductsCount ?? 0 }} added </span>
       <span class="text-muted-color">since last month</span>
     </div>
   </div>
@@ -150,7 +150,7 @@ onMounted(async () => {
           <i class="pi pi-circle-fill text-purple-500 !text-xl"></i>
         </div>
       </div>
-      <span class="text-primary font-medium">{{ stats?.recentShadesCount ?? 0 }} new </span>
+      <span class="font-semibold">{{ stats?.recentShadesCount ?? 0 }} new </span>
       <span class="text-muted-color">in last month</span>
     </div>
   </div>
