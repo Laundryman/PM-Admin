@@ -34,7 +34,7 @@ namespace PM_AdminApp.Server.Controllers
                 try
                 {
                     var specification = new UsageReportSpecification(filterDto);
-                var result = await _auditLogRepository.ListAsync(specification);
+                    var result = await _auditLogRepository.ListAsync(specification);
                 //var result = await _auditLogRepository.ListAllAsync();
                 return Ok(result);
                 }

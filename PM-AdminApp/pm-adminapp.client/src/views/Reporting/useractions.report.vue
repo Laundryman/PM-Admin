@@ -281,13 +281,13 @@ const exportCSV = () => {
       </div>
     </Form>
     <div class="card">
-      <div class="flex items-center justify-between gap-3 mb-3">
-        <span class="text-sm text-surface-500 dark:text-surface-400"
+      <div class="flex items-center justify-end gap-3 mb-3">
+        <!-- <span class="text-sm text-surface-500 dark:text-surface-400"
           >Export visible rows to CSV with custom column headers.</span
-        >
+        > -->
         <Button type="button" size="small" @click="exportCSV()">
           <FileExport />
-          Export CSV
+          Download CSV
         </Button>
       </div>
       <DataTable
