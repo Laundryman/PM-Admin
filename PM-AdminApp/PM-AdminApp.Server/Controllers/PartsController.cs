@@ -185,6 +185,7 @@ namespace PM_AdminApp.Server.Controllers
                 }
 
                 part.Status = (int)ItemStatusEnum.Deleted;
+                part.Published = false;
                 await _partAsyncRepository.UpdateAsync(part);
                 return Ok();
             }
@@ -224,7 +225,6 @@ namespace PM_AdminApp.Server.Controllers
                 var spec = new GetPartSpecification(partFilter);
                 var partEdit = await _partAsyncRepository.FirstAsync(spec);
 
-
                 if (partEdit == null)
                 {
                     _logger.LogError($"Part with id: {id}, hasn't been found in db.");
@@ -233,7 +233,15 @@ namespace PM_AdminApp.Server.Controllers
 
                 //map updates to part
                 _mapper.Map(partUpload, partEdit);
+                if (partEdit.Published)
+                {
+                    partEdit.Status = (int)(ItemStatusEnum.Published);
+                }
 
+                if (partEdit.Discontinued)
+                {
+                    partEdit.Status = (int)(ItemStatusEnum.Discontinued);
+                }
                 await _partAsyncRepository.UpdateAsync(partEdit);
 
 

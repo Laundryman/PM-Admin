@@ -44,6 +44,7 @@ watch(brand, async (newBrand) => {
   if (newBrand) {
     let filter = new PartFilter()
     filter.brandId = newBrand.id
+    filter.includeDeleted = false
     await partService.searchParts(filter).then((response) => {
       parts.value = response
       console.log('Parts loaded for brand change', parts.value)
@@ -74,6 +75,7 @@ onMounted(async () => {
 
   var filter = new PartFilter()
   filter.brandId = brandid
+  filter.includeDeleted = false
   await partService.searchParts(filter).then(async (response) => {
     parts.value = response
     await getCategoriesFromParts(parts.value)
@@ -102,6 +104,7 @@ async function onRegionChange() {
     let filter = new PartFilter()
     filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.regionId = selectedRegion.value
+    filter.includeDeleted = false
     await partService.searchParts(filter).then((response) => {
       parts.value = response
       console.log('Parts loaded', parts.value)
@@ -116,6 +119,7 @@ async function onCountryChange() {
     let filter = new PartFilter()
     filter.brandId = brandStore.activeBrand?.id ?? 0
     filter.countryId = selectedCountry.value
+    filter.includeDeleted = false
     await partService.searchParts(filter).then((response) => {
       parts.value = response
       console.log('Parts loaded', parts.value)
@@ -138,6 +142,7 @@ async function clearFilters() {
   countries.value = []
   let filter = new PartFilter()
   filter.brandId = brandStore.activeBrand?.id ?? 0
+  filter.includeDeleted = false
   await partService.searchParts(filter).then((response) => {
     parts.value = response
     console.log('Parts loaded', parts.value)

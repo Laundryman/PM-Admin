@@ -106,7 +106,9 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 {
                     BrandId = brandId,
                     ClusterId = id,
-                    StandTypeId = standTypeId
+                    StandTypeId = standTypeId,
+                    Published = true,
+                    IncludeDeleted = false
                 };
                 var menuParts = await _partService.GetPlanmClusterMenu(partFilter);
                 var menuCats = new List<Category>();
