@@ -14,6 +14,7 @@ using PMApplication.Services;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
 using PMInfrastructure.Repositories;
+using PMApplication.Helpers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Page = PMApplication.Dtos.Page;
@@ -379,7 +380,8 @@ namespace PM_AdminApp.Server.Controllers
             var storeName = _configuration["AzureBlob:StoreName"];
             var blobServiceClient = blobService.GetBlobServiceClient(storeName);
 
-            var fileName = origProduct.Id + "_" + origProduct.Name.Replace(" ", "");
+            var cleanName = StringFunctions.RemoveSpecialCharacters(origProduct.Name).Replace(" ", "");
+            var fileName = origProduct.Id + "_" + cleanName;
 
 
             if (updateProduct.ImageFile != null && updateProduct.ImageFile.Length > 0)

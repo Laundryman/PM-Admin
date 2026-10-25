@@ -294,7 +294,7 @@ function onShowUnPublishedChange() {
             severity="primary"
             class="mr-2"
             @click="openNew"
-            v-tooltip="'Create a product'"
+            v-tooltip.left="'Create a product'"
           />
         </template>
       </Toolbar>

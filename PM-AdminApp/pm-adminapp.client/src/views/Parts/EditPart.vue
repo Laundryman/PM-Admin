@@ -98,6 +98,18 @@ onMounted(async () => {
   partFilter.Id = Number(router.currentRoute.value.params.id) || 0
   await partStore.initialize(partFilter)
   if (router.currentRoute.value.name !== 'newPart') {
+    if (part.value == null) {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Part not found.',
+        life: 5000,
+      })
+      router.push({ name: 'parts' })
+      layout.toggleLoading()
+      return
+    }
+
     if (part.value.brandId != brandStore.activeBrand?.id) {
       const wrongBrand = brandStore.brands.find((b) => b.id === part.value.brandId)?.name ?? ''
       toast.add({

@@ -312,6 +312,11 @@ const exportCSV = () => {
             </IconField>
           </div>
         </template>
+        <template #empty>
+          No results found for the current filters. Try widening the filters to include more
+          results.
+        </template>
+
         <Column field="userName" header="User Name" sortable style="min-width: 12rem"></Column>
         <Column field="actionName" header="Action Name" sortable style="min-width: 12rem"></Column>
         <Column field="date" header="Timestamp" sortable style="min-width: 12rem">

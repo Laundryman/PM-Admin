@@ -145,6 +145,17 @@ onMounted(async () => {
   standFilter.id = Number(router.currentRoute.value.params.id) || 0
   await standStore.initialize(standFilter.id)
   if (router.currentRoute.value.name !== 'newStand') {
+    if (stand.value == null) {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Stand not found.',
+        life: 5000,
+      })
+      router.push({ name: 'stands' })
+      loading.value = false
+      return
+    }
     if (stand.value.brandId != brandStore.activeBrand?.id) {
       const wrongBrand = brandStore.brands.find((b) => b.id === stand.value.brandId)?.name ?? ''
       toast.add({

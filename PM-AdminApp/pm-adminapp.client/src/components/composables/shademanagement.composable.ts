@@ -3,7 +3,10 @@ import { useMultiSelectLists } from '@/components/composables/multiSelectList.co
 import { Country } from '@/models/Countries/country.model'
 import { Region } from '@/models/Countries/region.model'
 import { Shade } from '@/models/Products/shade.model'
+import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { ref } from 'vue'
+import { z } from 'zod'
+
 export function useShadeManagement() {
   const shadeDialog = ref(false)
   const shade = ref(new Shade())
@@ -16,6 +19,18 @@ export function useShadeManagement() {
   const shade_selectAllCountries = ref(false)
   const multiSelectLists = useMultiSelectLists()
   const locationFilters = useLocationFilters()
+
+  const resolver = ref(
+    zodResolver(
+      z.object({
+        shadeNumber: z.string().min(1, { message: 'Shade number is required.' }),
+        shadeDescription: z.string().min(1, { message: 'Shade description is required.' }),
+        countries: z
+          .array(z.string())
+          .nonempty({ message: 'At least one country must be selected.' }),
+      }),
+    ),
+  )
   ////////////////////////////////////////////////////
   // Location Handlers
   ////////////////////////////////////////////////////
@@ -48,7 +63,7 @@ export function useShadeManagement() {
   // }
 
   function setCountrySelectList(countries: Country[], productSelectedCountryIds: number[]) {
-    //shade_countrySelectList.value = [...countries]
+    shade_countrySelectList.value = []
     for (const country of countries) {
       if (productSelectedCountryIds.includes(country.id)) {
         shade_countrySelectList.value?.push(country)
@@ -90,6 +105,7 @@ export function useShadeManagement() {
   }
 
   return {
+    resolver,
     shadeDialog,
     shade,
     shades,

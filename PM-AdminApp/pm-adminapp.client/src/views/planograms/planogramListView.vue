@@ -13,10 +13,12 @@ import Lock from '@primeicons/vue/lock'
 import LockOpen from '@primeicons/vue/lock-open'
 import { FilterMatchMode } from '@primevue/core/api/'
 import { storeToRefs } from 'pinia'
+import ConfirmPopup from 'primevue/confirmpopup'
+import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-
+const confirm = useConfirm()
 const router = useRouter()
 const toast = useToast()
 const layout = useSystemStore()
@@ -247,25 +249,32 @@ function lock(planogram: searchPlanogramInfo) {
 }
 
 function restore(planogram: searchPlanogramInfo) {
-  planogramService
-    .restorePlanogram(planogram.id, PlanogramStatusEnum.Editing)
-    .then(() => {
-      console.log('Planogram restored', planogram)
-      // Refresh the planogram list after restoring
-      planograms.value = planograms.value.map((p) =>
-        p.id === planogram.id ? { ...p, statusId: 1, statusName: 'Editing' } : p,
-      )
-      toast.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Planogram restored successfully.',
-        group: 'center',
-        life: 3000,
-      })
-    })
-    .catch((error) => {
-      console.error('Error restoring planogram', error)
-    })
+  confirm.require({
+    message: 'Are you sure you want to restore this planogram?',
+    header: 'Confirmation',
+    icon: 'pi pi-exclamation-triangle',
+    accept: () => {
+      planogramService
+        .restorePlanogram(planogram.id, PlanogramStatusEnum.Editing)
+        .then(() => {
+          console.log('Planogram restored', planogram)
+          // Refresh the planogram list after restoring
+          planograms.value = planograms.value.map((p) =>
+            p.id === planogram.id ? { ...p, statusId: 1, statusName: 'Editing' } : p,
+          )
+          toast.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Planogram restored successfully.',
+            group: 'center',
+            life: 3000,
+          })
+        })
+        .catch((error) => {
+          console.error('Error restoring planogram', error)
+        })
+    },
+  })
   // console.log('Restore planogram', planogram)
   // layout.setActivePart(part)
   // Navigate to edit page
@@ -539,4 +548,5 @@ function editPlanogram(planogram: searchPlanogramInfo) {
     </div>
   </div>
   <Toast position="center" group="center" />
+  <ConfirmPopup />
 </template>

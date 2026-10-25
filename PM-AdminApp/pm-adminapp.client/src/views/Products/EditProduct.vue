@@ -78,11 +78,19 @@ const newProduct = ref(false);
 const editProduct = ref(false)
 const copyProduct = ref(false)
 const shadeEditable = ref(false)
-
+const shadeNotEditableMessage = ref('Please select a country first')
 // Shade Management
+const shadeForm = useTemplateRef<FormInstance>('shade-form')
 const shademanagement = useShadeManagement()
 
 const { shades, shade, shadeDialog, submitted, shade_countrySelectList, shade_selectedCountries, shade_selectAllCountries } = shademanagement
+const shadeResolver = shademanagement.resolver.value
+const initialShadeValues = ref({
+  shadeNumber: '',
+  shadeDescription: '',
+  countries: [] as number[],
+})
+
 /////////////////////////////////////////////////////
 // Lifecycle Hooks
 /////////////////////////////////////////////////////
@@ -94,26 +102,38 @@ onMounted(async () => {
   var productFilter = new ProductFilter()
   productFilter.id = Number(router.currentRoute.value.params.id) || 0
   await productStore.initialize(productFilter.id)
+
   if (router.currentRoute.value.name !== 'newProduct') {
-    if (product.value.brandId != brandStore.activeBrand?.id) {
-      const wrongBrand = brandStore.brands.find(b => b.id === product.value.brandId)?.name ?? ''
+    if (product.value == null) {
       toast.add({
         severity: 'error',
-        summary: 'Brand Mismatch',
-        detail: 'The product does not belong to the active brand. Please switch to ' + wrongBrand + ' to edit this product.',
+        summary: 'Error',
+        detail: 'Product not found.',
         life: 5000
       })
-        router.push({ name: 'products' }); // Stop further execution if brand mismatch occurs
-        layout.toggleLoading()
-        return;
-
+      router.push({ name: 'products' })
+      layout.toggleLoading()
+      return;
     }
+    if (product.value.brandId != brandStore.activeBrand?.id) {
+        const wrongBrand = brandStore.brands.find(b => b.id === product.value.brandId)?.name ?? ''
+        toast.add({
+          severity: 'error',
+          summary: 'Brand Mismatch',
+          detail: 'The product does not belong to the active brand. Please switch to ' + wrongBrand + ' to edit this product.',
+          life: 5000
+        })
+          router.push({ name: 'products' }); // Stop further execution if brand mismatch occurs
+          layout.toggleLoading()
+          return;
+
+      }
   }
   if (productFilter.id != 0) {
     newProduct.value = false;
     await productStore.getShadesForProduct(productFilter.id).then((response) => {
       shades.value = response
-      console.log('Shades loaded', shades.value)
+      // console.log('Shades loaded', shades.value)
     })
   }
   else {
@@ -123,8 +143,10 @@ onMounted(async () => {
 
 
   if (router.currentRoute.value.name === 'newProduct') {
+    shadeNotEditableMessage.value = 'Please save the product before adding shades'
     productModel.value.brandId = brandStore.activeBrand?.id ?? 0
     newProduct.value = true
+    shadeEditable.value = false
   }
     if (router.currentRoute.value.name === 'editProduct') {
     editProduct.value = true
@@ -160,7 +182,7 @@ onMounted(async () => {
   if (selectedParentCategoryId.value) {
     await categoryFilters.getChildCategories(selectedParentCategoryId.value).then((response) => {
       childCategories.value = response
-      console.log('Child Categories loaded', childCategories.value)
+      // console.log('Child Categories loaded', childCategories.value)
     })
   }
   selectedChildCategory.value = productModel.value.categoryId || null
@@ -173,8 +195,15 @@ onMounted(async () => {
 
   await categoryFilters.getParentCategories().then((response) => {
     parentCategories.value = response
-    console.log('Parent Categories loaded', parentCategories.value)
+    // console.log('Parent Categories loaded', parentCategories.value)
   })
+
+
+    shadeForm.value?.setFieldValue(
+      'countries',
+      countrySelectList.value?.map((item) => item.id) ?? [],
+    )
+
 
   layout.toggleLoading()
 })
@@ -273,7 +302,7 @@ async function onParentCategoryChange() {
     await categoryFilters.getChildCategories(selectedParentCategoryId.value).then((response) => {
       childCategories.value = response
       selectedChildCategory.value = null
-      console.log('Child Categories loaded', childCategories.value)
+      // console.log('Child Categories loaded', childCategories.value)
     })
   } else {
     childCategories.value = []
@@ -353,6 +382,7 @@ async function onFormSubmit({ valid }: any) {
 
 const addShade = () => {
   shade.value = new Shade()
+  shade.value.id = 0
   shade.value.productId = productModel.value.id
   submitted.value = false
   shademanagement.setCountrySelectList(countrySelectList.value, ms_selectedCountries.value) // pass country list to shade management composable - need to filter only selected contries on the product
@@ -366,11 +396,41 @@ const hideDialog = () => {
 }
 
 function editShade(sh: Shade) {
-  shade.value = sh
+  shade.value = new Shade()
+  shade.value.id = sh.id
+  shade.value.productId = sh.productId
+  shade.value.shadeNumber = sh.shadeNumber
+  shade.value.shadeDescription = sh.shadeDescription
+  shade.value.countries = sh.countries
+  shade.value.countriesList = sh.countriesList
+    shademanagement.setSelectedCountries([]) // clear selected countries for new shade
+    // shademanagement.setCountrySelectList(countrySelectList.value, sh.countries?.map((c) => c.id) ?? []) // set country select list based on the shade's countries
 
+  initialShadeValues.value = {
+    shadeNumber: sh.shadeNumber ?? '',
+    shadeDescription: sh.shadeDescription ?? '',
+    countries: sh.countries?.map((c) => c.id) ?? [],
+  }
   shadeDialog.value = true
 }
 
+
+async function saveShadeForm({ valid }: any) {
+  if (!valid) {
+    return
+  }
+  await shadeService.initialise();
+  if (shade.value.id == 0) {
+    shade.value.countries = shade_selectedCountries.value?.map((countryId) => {
+      return countrySelectList.value?.find((c) => c.id === countryId)
+    }) as Country[]
+    shade.value.countriesList = shade.value.countries?.map((c) => c.id).join(',') || ''
+    shade.value.shadeNumber = shadeForm.value.fields['shadeNumber'].states.value
+    shade.value.shadeDescription = shadeForm.value.fields['shadeDescription'].states.value
+  }
+
+  await saveShade(shade.value)
+}
 
 async function saveShade(updateShade: Shade) {
   submitted.value = true
@@ -378,25 +438,28 @@ async function saveShade(updateShade: Shade) {
 
 
   if (updateShade.shadeNumber?.trim()) {
-    if (updateShade.id) {
+    if (updateShade.id != 0) {
       await shadeService
         .updateShade(updateShade)
         .then((response) => {
-          if (response && response) {
-            console.log(response)
+          //update the shade list with the updated shade
+          const index = shades.value?.findIndex((s) => s.id === updateShade.id)
+          if (index !== undefined && index >= 0) {
+            shades.value[index] = updateShade
           }
+
+          toast.add({
+            severity: 'success',
+            summary: 'Successful',
+            detail: 'Shade Updated',
+            life: 3000,
+          })
+
         })
         .catch((error) => {
-          console.log('Error updating shade:', error)
+          // console.log('Error updating shade:', error)
         })
-      toast.add({
-        severity: 'success',
-        summary: 'Successful',
-        detail: 'Shade Updated',
-        life: 3000,
-      })
     } else {
-      updateShade.id = 0
       updateShade.countries = shade_selectedCountries.value?.map((countryId) => {
         return countrySelectList.value?.find((c) => c.id === countryId)
       }) as Country[]
@@ -407,19 +470,20 @@ async function saveShade(updateShade: Shade) {
           if (response ) {
             // shade.value.id = response.data.id
             shade.value = response
-            console.log(response)
+            //  console.log(response)
             shades.value?.push(shade.value)
           }
+          toast.add({
+            severity: 'success',
+            summary: 'Successful',
+            detail: 'Shade Created',
+            life: 3000,
+          })
+
         })
         .catch((error) => {
-          console.log('Error creating shade:', error)
+          // console.log('Error creating shade:', error)
         })
-      toast.add({
-        severity: 'success',
-        summary: 'Successful',
-        detail: 'Shade Created',
-        life: 3000,
-      })
     }
 
     shadeDialog.value = false
@@ -459,7 +523,7 @@ async function saveShade(updateShade: Shade) {
     <div class="w-full p-10 flex gap-2">
 
           <Button @click="tabId = '0'"  label="Product Details" class="" :outlined="tabId !== '0'" />
-          <Button @click="tabId = '1'"  label="Shades" class="" :outlined="tabId !== '1'" :disabled="!shadeEditable" v-tooltip="!shadeEditable ? 'Please select a country first' : ''" />
+          <Button @click="tabId = '1'"  label="Shades" class="" :outlined="tabId !== '1'" :disabled="!shadeEditable" v-tooltip="!shadeEditable ? shadeNotEditableMessage : ''" />
           <Button v-if="tabId == '1'" label="New" icon="pi pi-plus"  severity="secondary" class="mr-2" @click="addShade" />
     </div>
     </div>
@@ -752,36 +816,47 @@ async function saveShade(updateShade: Shade) {
       header="Shade Details"
       :modal="true"
     >
+      <Form ref="shade-form" v-slot="$shadeForm" :initialValues="initialShadeValues" :resolver="shadeResolver" @submit="saveShadeForm">
       <div class="flex flex-col gap-6">
           <div>
-          <label for="name" class="block font-bold mb-3">Name</label>
+          <label for="shadeNumber" class="block font-bold mb-3">Name</label>
           <InputText
-            id="name"
+            id="shadeNumber"
+            name="shadeNumber"
             v-model.trim="shade.shadeNumber"
-            required="true"
             autofocus
-            :invalid="submitted && !shade.shadeNumber"
             fluid
           />
-          <small v-if="submitted && !shade.shadeNumber" class="text-red-500">Name is required.</small>
+                  <Message
+                    v-if="$shadeForm.shadeNumber?.invalid"
+                    severity="error"
+                    size="small"
+                    variant="simple"
+                    >{{ $shadeForm.shadeNumber.error?.message ?? '&nbsp;' }}</Message
+                  >
         </div>
                   <div>
           <label for="description" class="block font-bold mb-3">Description</label>
           <InputText
             id="description"
+            name="shadeDescription"
             v-model.trim="shade.shadeDescription"
-            required="true"
             autofocus
-            :invalid="submitted && !shade.shadeDescription"
             fluid
           />
-          <small v-if="submitted && !shade.shadeDescription" class="text-red-500">Description is required.</small>
+          <Message
+            v-if="$shadeForm.shadeDescription?.invalid"
+            severity="error"
+            size="small"
+            variant="simple"
+            >{{ $shadeForm.shadeDescription.error?.message ?? '&nbsp;' }}</Message
+          >
         </div>
         <div>
           <label for="published" class="block font-bold mb-3">Published</label>
           <ToggleSwitch name="published" v-model="shade.published" />
         </div>
-              <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2">
                 <div>
                 <label for="country">Country:</label>
                 <MultiSelect
@@ -802,13 +877,13 @@ async function saveShade(updateShade: Shade) {
                     </div>
                   </template>
                 </MultiSelect>
-                <!-- <Message
-                  v-if="shade_selectedCountries?.invalid"
-                  severity="error"
-                  size="small"
-                  variant="simple"
-                  >{{ $form.countries.error?.message }}</Message
-                >-->
+                  <Message
+                    v-if="$shadeForm.countries?.invalid"
+                    severity="error"
+                    size="small"
+                    variant="simple"
+                    >{{ $shadeForm.countries.error?.message ?? '&nbsp;' }}</Message
+                  >
               </div>
               <div class="flex gap-2 flex-wrap max-h-40 overflow-auto">
                 <Button
@@ -821,11 +896,16 @@ async function saveShade(updateShade: Shade) {
                 </template>
               </div>
             </div>
-
+                <div class="flex gap-2 justify-between">
+                  <Button type="submit" severity="primary" class="w-60" :fluid="false"
+                    >Save Shade</Button
+                  >
+                </div>
       </div>
+      </Form>
       <template #footer>
-        <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
-        <Button label="Save" icon="pi pi-check" @click="saveShade(shade)" />
+        <!-- <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" /> -->
+        <!-- <Button label="Save" icon="pi pi-check" @click="saveShade(shade)" /> -->
       </template>
     </Dialog>
     </div>
