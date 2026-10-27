@@ -1,4 +1,4 @@
-import { config, graphScopes, scopes } from '@/config/auth'
+import { config, scopes } from '@/config/auth'
 import type {
   AccountInfo,
   AuthenticationResult,
@@ -160,9 +160,19 @@ export const Auth = {
    * Get token for Graph API
    */
   async getGraphToken() {
+    // const request: SilentRequest = {
+    //   scopes: graphScopes,
+    // }
     const request: SilentRequest = {
-      scopes: graphScopes,
+      scopes: [
+        'https://graph.microsoft.com/user.read',
+        'https://graph.microsoft.com/offline_access',
+        'https://graph.microsoft.com/openid',
+        'https://graph.microsoft.com/profile',
+      ],
+      account: msal.getActiveAccount() || undefined,
     }
+
     return (
       msal
         // try getting the token silently

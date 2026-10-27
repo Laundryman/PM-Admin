@@ -22,6 +22,7 @@ namespace PM_AdminApp.Server.Mappings
     {
         public MappingProfile()
         {
+            CreateMap<AuditLog, ActionReportDto>();
             CreateMap<BrandFilterDto, BrandFilter>();
             CreateMap<Brand, BrandDto>();
             CreateMap<BrandDto, Brand>();

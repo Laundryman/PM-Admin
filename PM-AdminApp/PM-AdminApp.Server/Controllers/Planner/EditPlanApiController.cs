@@ -1,10 +1,9 @@
-﻿using System.Net;
-using System.Text.RegularExpressions;
-using System.Web;
-using AutoMapper;
+﻿using AutoMapper;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PM_AdminApp.Server.Exceptions;
+using PM_AdminApp.Server.Extensions;
 using PMApplication.Dtos;
 using PMApplication.Dtos.PlanModels;
 using PMApplication.Entities;
@@ -14,8 +13,10 @@ using PMApplication.Enums;
 using PMApplication.Interfaces.ServiceInterfaces;
 using PMApplication.Services;
 using PMApplication.Specifications.Filters;
-using PM_AdminApp.Server.Extensions;
-using PM_AdminApp.Server.Exceptions;
+using System.Diagnostics.Metrics;
+using System.Net;
+using System.Text.RegularExpressions;
+using System.Web;
 namespace PM_AdminApp.Server.Controllers.Planner
 {
     [Authorize]
@@ -31,7 +32,9 @@ namespace PM_AdminApp.Server.Controllers.Planner
         private readonly IProductService _productService;
         private readonly IPlanogramService _planogramService;
         private readonly ICountryService _countryService;
+        private readonly IRegionService _regionService;
         private readonly IAuditService _auditService;
+
         private readonly IConfiguration _config;
         private readonly IWebHostEnvironment _env;
         private readonly ICategoryService _categoryService;
@@ -43,7 +46,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 IStandService standService,
                 IBrandService brandService,
                 IPlanogramService planogramService,
-                IMapper mapper, ILogger<EditPlanApiController> logger, ICountryService countryService, IAuditService auditService, IConfiguration config, IProductService productService, IWebHostEnvironment env, ICategoryService categoryService, BlobServiceClient blobServiceClient, IConfiguration configuration)
+                IMapper mapper, ILogger<EditPlanApiController> logger, ICountryService countryService, IAuditService auditService, IConfiguration config, IProductService productService, IWebHostEnvironment env, ICategoryService categoryService, BlobServiceClient blobServiceClient, IConfiguration configuration, IRegionService regionService)
         {
             this._partService = partService;
             this._standService = standService;
@@ -59,6 +62,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
             _categoryService = categoryService;
             _blobServiceClient = blobServiceClient;
             _configuration = configuration;
+            _regionService = regionService;
         }
 
 
@@ -505,7 +509,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 //    }
                 //}
 
-                var brand = _brandService.GetBrand((int)brandId);
+                var brand = await _brandService.GetBrand((int)brandId);
 
                 //////////////////////////////////////////////////////////////////
                 //Finish user checks
@@ -529,6 +533,10 @@ namespace PM_AdminApp.Server.Controllers.Planner
                     //planogram.Status = status; //redundant?
                 }
                 await _planogramService.SavePlanogram(planogram);
+
+                var country = await _countryService.GetCountry(planogram.CountryId ?? 0);
+                var region = await _regionService.GetRegion(planogram.RegionId ?? 0);
+
                 //Audit the action
                 var audit = new AuditLog
                 {
@@ -536,10 +544,21 @@ namespace PM_AdminApp.Server.Controllers.Planner
                     Date = DateTime.Now,
                     BrandId = planogram.BrandId,
                     Roles = userProfile.RoleIds,
-                    UserName = userProfile.DisplayName,
-                    Action = (int)LogActionEnum.EditPlano,
-                    Message = userProfile.DisplayName + " edited planogram with Id " + planogramId.ToString(),
-                    PlanoId = (int)planogramId
+
+                    RoleId = int.Parse(userProfile?.RoleId ?? "0"),
+                    UserName = userProfile?.DisplayName,
+                    Action = (int)LogActionEnum.CreatePlanogramViewImage,
+                    ActionName = nameof(LogActionEnum.CreatePlanogramViewImage),
+                    ActionType = (int)LogActionTypeEnum.PlanoAction,
+
+                    Message = userProfile.DisplayName + " created planogram view image for planogram with Id " + planogramId,
+                    PlanoId = planogram.Id,
+                    PlanoName = planogram.Name,
+
+                    BrandName = brand.Name,
+                    CountryName = country?.Name,
+                    RegionName = region?.Name
+
                 };
 
                 await _auditService.AuditEvent(audit);
@@ -641,6 +660,10 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 }
                     //_planogramService.SavePlanogram(planogram);
                 var userProfile = await this.MappedUser();
+                var brand = await _brandService.GetBrand(planogram.BrandId ?? 0);
+                var country = await _countryService.GetCountry(planogram.CountryId ?? 0);
+                var region = await _regionService.GetRegion(planogram.RegionId ?? 0);
+
                 HttpResponseMessage message = new HttpResponseMessage(HttpStatusCode.OK);
                 var audit = new AuditLog
                 {
@@ -648,10 +671,21 @@ namespace PM_AdminApp.Server.Controllers.Planner
                     Date = DateTime.Now,
                     BrandId = planogram.BrandId,
                     Roles = userProfile.RoleIds,
-                    UserName = userProfile.DisplayName,
+
+                    RoleId = int.Parse(userProfile?.RoleId ?? "0"),
+                    UserName = userProfile?.DisplayName,
                     Action = (int)LogActionEnum.EditPlano,
-                    Message = userProfile.DisplayName + " edited planogram with Id " + planogram.Id,
-                    PlanoId = planogram.Id
+                    ActionName = nameof(LogActionEnum.EditPlano),
+                    ActionType = (int)LogActionTypeEnum.PlanoAction,
+
+                    Message = userProfile?.DisplayName + " created planogram view image for planogram with Id " + planogram.Id,
+                    PlanoId = planogram.Id,
+                    PlanoName = planogram.Name,
+
+                    BrandName = brand.Name,
+                    CountryName = country?.Name,
+                    RegionName = region?.Name
+
                 };
 
                 var auditEvent = await _auditService.AuditEvent(audit);

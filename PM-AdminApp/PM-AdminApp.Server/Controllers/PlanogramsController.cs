@@ -1,13 +1,16 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Graph.Models;
 using PM_AdminApp.Server.Extensions;
 using PMApplication.Dtos;
 using PMApplication.Dtos.Filters;
+using PMApplication.Dtos.Filters.Widgets;
 using PMApplication.Dtos.PlanModels;
 using PMApplication.Entities;
 using PMApplication.Entities.CountriesAggregate;
 using PMApplication.Entities.PlanogramAggregate;
+using PMApplication.Enums;
 using PMApplication.Interfaces;
 using PMApplication.Interfaces.RepositoryInterfaces;
 using PMApplication.Interfaces.ServiceInterfaces;
@@ -15,7 +18,6 @@ using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
 using PMInfrastructure.Repositories;
 using System.Net;
-using PMApplication.Dtos.Filters.Widgets;
 using static PMApplication.Enums.StatusEnums;
 
 namespace PM_AdminApp.Server.Controllers
@@ -148,6 +150,9 @@ namespace PM_AdminApp.Server.Controllers
             var userProfile = await this.MappedUser();
             string? userId = userProfile?.Id;
             var planogram = await _planogramService.GetPlanogram(planogramId);
+            var brand = await _brandService.GetBrand(planogram.BrandId ?? 0);
+            var country = await _countryService.GetCountry(planogram.CountryId ?? 0);
+            var region = await _regionService.GetRegion(planogram.RegionId ?? 0);
 
             planogram.Name = name;
             await _planogramService.SavePlanogram(planogram);
@@ -158,11 +163,22 @@ namespace PM_AdminApp.Server.Controllers
                 UserId = userId,
                 Date = DateTime.Now,
                 BrandId = planogram.BrandId,
-                Roles = userProfile?.RoleIds,
+                Roles = userProfile?.Permissions,
+                RoleId = int.Parse(userProfile?.RoleId ?? "0"),
+                RoleName = ((RoleEnum)int.Parse(userProfile?.RoleId ?? "0")).ToString(),
+
                 UserName = userProfile?.DisplayName,
                 Action = (int)LogActionEnum.RenamePlano,
+                ActionName = nameof(LogActionEnum.RenamePlano),
+                ActionType = (int)LogActionTypeEnum.PlanoAction,
+
                 Message = userProfile?.DisplayName + " renamed planogram with Id " + planogramId.ToString() + " to " + name,
-                PlanoId = planogramId
+                PlanoId = planogramId,
+                PlanoName = planogram.Name,
+
+                BrandName = brand.Name,
+                CountryName = country?.Name,
+                RegionName = region?.Name
             };
             await _auditService.AuditEvent(audit);
 
@@ -180,6 +196,9 @@ namespace PM_AdminApp.Server.Controllers
             var planogram = await _planogramService.GetPlanogram(planogramId);
             planogram.StatusId = (int)PlanogramStatusEnum.Submitted;
             await _planogramService.SavePlanogram(planogram);
+            var brand = await _brandService.GetBrand(planogram.BrandId ?? 0);
+            var country = await _countryService.GetCountry(planogram.CountryId ?? 0);
+            var region = await _regionService.GetRegion(planogram.RegionId ?? 0);
 
             //Audit the action
             var audit = new AuditLog
@@ -187,11 +206,22 @@ namespace PM_AdminApp.Server.Controllers
                 UserId = userId,
                 Date = DateTime.Now,
                 BrandId = planogram.BrandId,
-                Roles = userProfile?.RoleIds,
+                Roles = userProfile?.Permissions,
+                RoleId = int.Parse(userProfile?.RoleId ?? "0"),
+                RoleName = ((RoleEnum)int.Parse(userProfile?.RoleId ?? "0")).ToString(),
+
                 UserName = userProfile?.DisplayName,
                 Action = (int)LogActionEnum.SubmitPlano,
+                ActionName = nameof(LogActionEnum.SubmitPlano),
+                ActionType = (int)LogActionTypeEnum.PlanoAction,
+
                 Message = userProfile?.DisplayName + " submitted planogram with Id " + planogramId.ToString(),
-                PlanoId = planogramId
+                PlanoId = planogramId,
+                PlanoName = planogram.Name,
+
+                BrandName = brand.Name,
+                CountryName = country?.Name,
+                RegionName = region?.Name
             };
             await _auditService.AuditEvent(audit);
 
@@ -209,6 +239,9 @@ namespace PM_AdminApp.Server.Controllers
             var planogram = await _planogramService.GetPlanogram(planogramId);
             planogram.StatusId = (int)PlanogramStatusEnum.Deleted;
             await _planogramService.SavePlanogram(planogram);
+            var brand = await _brandService.GetBrand(planogram.BrandId ?? 0);
+            var country = await _countryService.GetCountry(planogram.CountryId ?? 0);
+            var region = await _regionService.GetRegion(planogram.RegionId ?? 0);
 
             //Audit the action
             var audit = new AuditLog
@@ -216,11 +249,22 @@ namespace PM_AdminApp.Server.Controllers
                 UserId = userId,
                 Date = DateTime.Now,
                 BrandId = planogram.BrandId,
-                Roles = userProfile?.RoleIds,
+                Roles = userProfile?.Permissions,
+                RoleId = int.Parse(userProfile?.RoleId ?? "0"),
+                RoleName = ((RoleEnum)int.Parse(userProfile?.RoleId ?? "0")).ToString(),
+
                 UserName = userProfile?.DisplayName,
                 Action = (int)LogActionEnum.EditPlano,
+                ActionName = nameof(LogActionEnum.EditPlano),
+                ActionType = (int)LogActionTypeEnum.PlanoAction,
+
                 Message = userProfile?.DisplayName + " deleted planogram with Id " + planogramId.ToString(),
-                PlanoId = planogramId
+                PlanoId = planogramId,
+                PlanoName = planogram.Name,
+
+                BrandName = brand.Name,
+                CountryName = country?.Name,
+                RegionName = region?.Name
             };
             await _auditService.AuditEvent(audit);
 
@@ -235,6 +279,10 @@ namespace PM_AdminApp.Server.Controllers
             var userProfile = await this.MappedUser();
             string? userId = userProfile?.Id;
             var planogram = await _planogramService.GetPlanogram(planogramId);
+            var brand = await _brandService.GetBrand(planogram.BrandId ?? 0);
+            var country = await _countryService.GetCountry(planogram.CountryId ?? 0);
+            var region = await _regionService.GetRegion(planogram.RegionId ?? 0);
+
             planogram.Archived = true;
             planogram.ArchivedBy = userProfile?.DisplayName;
             planogram.ArchivedDate = DateTime.Now;
@@ -249,11 +297,22 @@ namespace PM_AdminApp.Server.Controllers
                 UserId = userId,
                 Date = DateTime.Now,
                 BrandId = planogram.BrandId,
-                Roles = userProfile?.RoleIds,
+                Roles = userProfile?.Permissions,
+                RoleId = int.Parse(userProfile?.RoleId ?? "0"),
+                RoleName = ((RoleEnum)int.Parse(userProfile?.RoleId ?? "0")).ToString(),
+
                 UserName = userProfile?.DisplayName,
                 Action = (int)LogActionEnum.ArchivePlano,
+                ActionName = nameof(LogActionEnum.ArchivePlano),
+                ActionType = (int)LogActionTypeEnum.PlanoAction,
+
                 Message = userProfile?.DisplayName + " archived planogram with Id " + planogramId.ToString(),
-                PlanoId = planogramId
+                PlanoId = planogramId,
+                PlanoName = planogram.Name,
+
+                BrandName = brand.Name,
+                CountryName = country?.Name,
+                RegionName = region?.Name
             };
             await _auditService.AuditEvent(audit);
 
@@ -268,6 +327,10 @@ namespace PM_AdminApp.Server.Controllers
             var userProfile = await this.MappedUser();
             string? userId = userProfile?.Id;
             var planogram = await _planogramService.GetPlanogram(planogramId);
+            var brand = await _brandService.GetBrand(planogram.BrandId ?? 0);
+            var country = await _countryService.GetCountry(planogram.CountryId ?? 0);
+            var region = await _regionService.GetRegion(planogram.RegionId ?? 0);
+
             planogram.StatusId = (int)PlanogramStatusEnum.Approved;
             await _planogramService.SavePlanogram(planogram);
 
@@ -277,11 +340,21 @@ namespace PM_AdminApp.Server.Controllers
                 UserId = userId,
                 Date = DateTime.Now,
                 BrandId = planogram.BrandId,
-                Roles = userProfile?.RoleIds,
+                Roles = userProfile?.Permissions,
+                RoleId = int.Parse(userProfile?.RoleId ?? "0"),
+                RoleName = ((RoleEnum)int.Parse(userProfile?.RoleId ?? "0")).ToString(),
                 UserName = userProfile?.DisplayName,
                 Action = (int)LogActionEnum.ApprovePlano,
+                ActionName = nameof(LogActionEnum.ApprovePlano),
+                ActionType = (int)LogActionTypeEnum.PlanoAction,
+
                 Message = userProfile?.DisplayName + " approved planogram with Id " + planogramId.ToString(),
-                PlanoId = planogramId
+                PlanoId = planogramId,
+                PlanoName = planogram.Name,
+
+                BrandName = brand.Name,
+                CountryName = country?.Name,
+                RegionName = region?.Name
             };
             await _auditService.AuditEvent(audit);
 
@@ -306,19 +379,35 @@ namespace PM_AdminApp.Server.Controllers
             planogram.LubName = userProfile.DisplayName;
             planogram.DateUpdated = DateTime.Now;
 
+
+            var brand = await _brandService.GetBrand(planogram.BrandId ?? 0);
+            var country = await _countryService.GetCountry(planogram.CountryId ?? 0);
+            var region = await _regionService.GetRegion(planogram.RegionId ?? 0);
+
             await _planogramService.SavePlanogram(planogram);
 
             //Audit the action
             var audit = new AuditLog
             {
                 UserId = userId,
+                PlanoName= planogram.Name,
                 Date = DateTime.Now,
                 BrandId = planogram.BrandId,
-                Roles = userProfile?.RoleIds,
+                BrandName = brand.Name,
+                Roles = userProfile?.Permissions,
+                RoleId = int.Parse(userProfile?.RoleId ?? "0"),
+                RoleName = ((RoleEnum)int.Parse(userProfile?.RoleId ?? "0")).ToString(),
+
                 UserName = userProfile?.DisplayName,
                 Action = (int)LogActionEnum.RestorePlano,
-                Message = userProfile?.DisplayName + " approved planogram with Id " + planogramId.ToString(),
-                PlanoId = planogramId
+                ActionName = nameof(LogActionEnum.RestorePlano),
+                ActionType = (int)LogActionTypeEnum.PlanoAction,
+
+                Message = userProfile?.DisplayName + " restored planogram with Id " + planogramId.ToString(),
+                PlanoId = planogramId,
+                CountryName = country?.Name,
+                RegionName = region?.Name,
+
             };
             await _auditService.AuditEvent(audit);
 
@@ -334,6 +423,10 @@ namespace PM_AdminApp.Server.Controllers
             var userProfile = await this.MappedUser();
             string? userId = userProfile?.Id;
             var planogram = await _planogramService.GetPlanogram(planogramId);
+            var brand = await _brandService.GetBrand(planogram.BrandId ?? 0);
+            var country = await _countryService.GetCountry(planogram.CountryId ?? 0);
+            var region = await _regionService.GetRegion(planogram.RegionId ?? 0);
+
             planogram.StatusId = (int)PlanogramStatusEnum.Validated;
             await _planogramService.SavePlanogram(planogram);
 
@@ -343,11 +436,22 @@ namespace PM_AdminApp.Server.Controllers
                 UserId = userId,
                 Date = DateTime.Now,
                 BrandId = planogram.BrandId,
-                Roles = userProfile?.RoleIds,
+                Roles = userProfile?.Permissions,
+                RoleId = int.Parse(userProfile?.RoleId ?? "0"),
+                RoleName = ((RoleEnum)int.Parse(userProfile?.RoleId ?? "0")).ToString(),
+
                 UserName = userProfile?.DisplayName,
                 Action = (int)LogActionEnum.ValidatePlano,
+                ActionName = nameof(LogActionEnum.ValidatePlano),
+                ActionType = (int)LogActionTypeEnum.PlanoAction,
+
                 Message = userProfile?.DisplayName + " validated planogram with Id " + planogramId.ToString(),
-                PlanoId = planogramId
+                PlanoId = planogramId,
+                PlanoName = planogram.Name,
+
+                BrandName = brand.Name,
+                CountryName = country?.Name,
+                RegionName = region?.Name
             };
             await _auditService.AuditEvent(audit);
 
@@ -363,6 +467,10 @@ namespace PM_AdminApp.Server.Controllers
             var userProfile = await this.MappedUser();
             string? userId = userProfile?.Id;
             var planogram = await _planogramService.GetPlanogram(planogramId);
+            var brand = await _brandService.GetBrand(planogram.BrandId ?? 0);
+            var country = await _countryService.GetCountry(planogram.CountryId ?? 0);
+            var region = await _regionService.GetRegion(planogram.RegionId ?? 0);
+
             planogram.StatusId = (int)PlanogramStatusEnum.Edit;
             await _planogramService.SavePlanogram(planogram);
 
@@ -372,11 +480,22 @@ namespace PM_AdminApp.Server.Controllers
                 UserId = userId,
                 Date = DateTime.Now,
                 BrandId = planogram.BrandId,
-                Roles = userProfile?.RoleIds,
+                Roles = userProfile?.Permissions,
+                RoleId = int.Parse(userProfile?.RoleId ?? "0"),
+                RoleName = ((RoleEnum)int.Parse(userProfile?.RoleId ?? "0")).ToString(),
+
                 UserName = userProfile?.DisplayName,
                 Action = (int)LogActionEnum.RejectPlano,
+                ActionName = nameof(LogActionEnum.RejectPlano),
+                ActionType = (int)LogActionTypeEnum.PlanoAction,
+
                 Message = userProfile?.DisplayName + " rejected planogram with Id " + planogramId.ToString(),
-                PlanoId = planogramId
+                PlanoId = planogramId,
+                PlanoName = planogram.Name,
+
+                BrandName = brand.Name,
+                CountryName = country?.Name,
+                RegionName = region?.Name
             };
             await _auditService.AuditEvent(audit);
 

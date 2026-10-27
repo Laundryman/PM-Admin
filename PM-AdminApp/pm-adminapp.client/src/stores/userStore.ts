@@ -13,7 +13,6 @@ export const useUserStore = defineStore('userStore', () => {
 
   async function loadUser(id: string) {
     if (!userService.isInitialised) await userService.initialise()
-    console.log('Fetching users...')
     await userService
       .getUser(id)
       .then((data) => {

@@ -513,8 +513,11 @@ async function saveShade(updateShade: Shade) {
     </h2>
       <div class="grid gap-2 grid-cols-2 ml-10">
         <div class="flex flex-col gap-1">
-          <span class="font-bold text-xl">{{ productModel.name }}</span>
-          <span class="text-gray-600">Description: {{ productModel.fullDescription }}</span>
+          <span v-if="router.currentRoute.value.name !== 'newProduct'" class="font-bold text-xl">{{ product?.name }}</span>
+          <span v-else class="font-bold text-xl">{{ productModel?.name }}</span>
+
+          <span v-if="router.currentRoute.value.name !== 'newProduct' && product?.fullDescription" class="text-gray-600">Description: {{ product?.fullDescription }}</span>
+          <span v-else-if="productModel?.fullDescription" class="text-gray-600">Description: {{ productModel?.fullDescription }}</span>
         </div>
         <div class="flex flex-col gap-1">
             <img :src="productImageSrc" class="cassette-icon max-w-40"></img>

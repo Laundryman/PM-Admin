@@ -1,6 +1,5 @@
 import type { MaybeAccount } from '@/services/Identity/auth'
 import { Auth } from '@/services/Identity/auth'
-import userService from '@/services/Identity/UserService'
 import type { NavigationClient } from '@azure/msal-browser'
 import type { User } from '@microsoft/microsoft-graph-types-beta'
 import { defineStore } from 'pinia'
@@ -34,8 +33,8 @@ export const useAuthStore = defineStore('auth', () => {
     return Auth.login()
       .then(async (data) => {
         account.value = data
-        await userService.initialise()
-        await userService.getCurrentUserInfo()
+        // await userService.initialise()
+        // await userService.getCurrentUserInfo()
         initialized.value = true
         error.value = ''
         router.push({ name: 'home' })

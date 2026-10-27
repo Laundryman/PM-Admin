@@ -655,8 +655,11 @@ async function onFormSubmit({ valid }: any) {
         <span v-else-if="newPart">New Part</span>
       </h2>
       <div class="card flex flex-col gap-2">
-        <span class="font-bold text-xl">{{ partModel.name }}</span>
-        <span class="text-gray-600">Part No: {{ partModel.partNumber }}</span>
+        <span v-if="router.currentRoute.value.name !== 'newPart'" class="font-bold text-xl">{{
+          part?.name
+        }}</span>
+        <span v-else class="font-bold text-xl">{{ partModel?.name }}</span>
+        <span class="text-gray-600">Part No: {{ partModel?.partNumber }}</span>
       </div>
     </div>
     <div class="card grid grid-cols-1 gap-4 justify-center">

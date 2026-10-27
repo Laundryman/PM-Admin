@@ -318,7 +318,7 @@ function deletePart(part: SearchPartInfo) {
             severity="primary"
             class="mr-2"
             @click="openNew"
-            v-tooltip="'Create a part'"
+            v-tooltip.left="'Create a part'"
           />
         </template>
       </Toolbar>

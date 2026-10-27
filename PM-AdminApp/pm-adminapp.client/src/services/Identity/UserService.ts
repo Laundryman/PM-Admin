@@ -1,7 +1,6 @@
 import { User } from '@/models/Identity/user.model'
 import { Auth, msal } from '@/services/Identity/auth'
 
-import { useAuthStore } from '@/stores/auth'
 import axios from 'axios'
 import { ref } from 'vue'
 const token = ref()
@@ -32,19 +31,43 @@ export default {
   get isInitialised() {
     return initialized.value
   },
+  // async getCurrentUserInfo() {
+  //   if (token.value) {
+  //     apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+  //   }
+  //   await apiClient
+  //     .get('/me', {})
+  //     .then((response) => {
+  //       console.log('Graph user info response:', response.data)
+  //       authStore.value.setCurrentlyLoggedInUserInfo(response.data)
+  //     })
+  //     .catch((error) => {
+  //       throw error
+  //     })
+  // },
+
   async getCurrentUserInfo() {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
     }
-    await apiClient
-      .get('/me', {})
+    const userInfo = await apiClient
+      .get('/me', {
+        params: {
+          $select:
+            'identities,id,displayname,userName, givenName,surname,mail,mailNickname,userPrincipalName,country,' +
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_DiamCountryId,extension_ff5105e3fc0248fbad7979cfe9b62e1a_Brands,' +
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_UserEmailAddress,extension_ff5105e3fc0248fbad7979cfe9b62e1a_RegionList,extension_ff5105e3fc0248fbad7979cfe9b62e1a_CountryList,' +
+            'extension_ff5105e3fc0248fbad7979cfe9b62e1a_RoleId, extension_ff5105e3fc0248fbad7979cfe9b62e1a_Shopper, extension_ff5105e3fc0248fbad7979cfe9b62e1a_OrderManager, extension_ff5105e3fc0248fbad7979cfe9b62e1a_Permissions',
+        },
+      })
       .then((response) => {
         console.log('Graph user info response:', response.data)
-        authStore.value.setCurrentlyLoggedInUserInfo(response.data)
+        return response.data
       })
       .catch((error) => {
         throw error
       })
+    return userInfo
   },
 
   async getUser(id: string): Promise<User> {
@@ -326,10 +349,10 @@ export default {
   },
 
   async initialise() {
-    authStore.value = useAuthStore()
-    if (!authStore.value.initialized) {
-      await authStore.value.initialize()
-    }
+    // authStore.value = useAuthStore()
+    // if (!authStore.value.initialized) {
+    //   await authStore.value.initialize()
+    // }
     const t = await Auth.getGraphToken()
     token.value = t
     console.log('UserService initialized with token:', token.value)

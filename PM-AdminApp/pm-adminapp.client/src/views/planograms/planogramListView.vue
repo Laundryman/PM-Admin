@@ -6,9 +6,9 @@ import type { searchPlanogramInfo } from '@/models/Planograms/searchPlanogramnfo
 import { PlanogramStatusEnum } from '@/planner/models/Enumerations'
 import { default as countryService } from '@/services/Countries/CountryService'
 import { default as planogramService } from '@/services/Planograms/PlanogramService'
-
 import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
+import { useUserStore } from '@/stores/userStore'
 import Lock from '@primeicons/vue/lock'
 import LockOpen from '@primeicons/vue/lock-open'
 import { FilterMatchMode } from '@primevue/core/api/'
@@ -18,6 +18,8 @@ import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+
+const userStore = useUserStore()
 const confirm = useConfirm()
 const router = useRouter()
 const toast = useToast()
@@ -249,6 +251,7 @@ function lock(planogram: searchPlanogramInfo) {
 }
 
 function restore(planogram: searchPlanogramInfo) {
+  const currentUser = userStore.activeUser
   confirm.require({
     message: 'Are you sure you want to restore this planogram?',
     header: 'Confirmation',
@@ -257,7 +260,7 @@ function restore(planogram: searchPlanogramInfo) {
       planogramService
         .restorePlanogram(planogram.id, PlanogramStatusEnum.Editing)
         .then(() => {
-          console.log('Planogram restored', planogram)
+          // console.log('Planogram restored', planogram)
           // Refresh the planogram list after restoring
           planograms.value = planograms.value.map((p) =>
             p.id === planogram.id ? { ...p, statusId: 1, statusName: 'Editing' } : p,
@@ -271,7 +274,7 @@ function restore(planogram: searchPlanogramInfo) {
           })
         })
         .catch((error) => {
-          console.error('Error restoring planogram', error)
+          console.log('Error restoring planogram', error)
         })
     },
   })
@@ -280,6 +283,7 @@ function restore(planogram: searchPlanogramInfo) {
   // Navigate to edit page
 }
 function deletePlanogram(planogram: searchPlanogramInfo) {
+  const currentUser = userStore.activeUser
   planogramService
     .deletePlanogram(planogram.id)
     .then(() => {

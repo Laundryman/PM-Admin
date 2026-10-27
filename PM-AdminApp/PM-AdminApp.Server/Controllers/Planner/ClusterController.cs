@@ -507,7 +507,7 @@ namespace PM_AdminApp.Server.Controllers.Planner
                 await _clusterService.SaveCluster(layout);
                 var role = (RoleEnum)int.Parse(userProfile?.RoleId ?? "0");
 
-                var audit = new AuditLog
+                var audit = new AuditLog()
                 {
                     Message = userProfile.DisplayName + " updated layout details for layout with Id " + layout.Id,
                     Action = (int)LogActionEnum.EditLayout,
