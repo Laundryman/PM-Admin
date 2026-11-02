@@ -174,6 +174,15 @@ const exportCSV = () => {
   // dt.value.exportCSV()
 
   var rows = reportData.value
+  if (!rows || rows.length === 0) {
+    toast.add({
+      severity: 'warn',
+      summary: 'No Data',
+      detail: 'No data available to export.',
+      life: 3000,
+    })
+    return
+  }
   const worksheet = utils.json_to_sheet(rows)
   const workbook = utils.book_new()
   utils.book_append_sheet(workbook, worksheet, 'UserActionsReport')

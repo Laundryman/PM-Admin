@@ -143,21 +143,21 @@ async function createDynamic(cell: joint.dia.Cell): Promise<joint.ui.Inspector> 
     if (cell.attributes.partInfo.partType == 'Accessory') {
       //we need to add the label attribute.
       inputs.attrs = {
-        text: {
-          text: {
-            type: 'pm-textarea',
-            label: 'Label',
-            group: 'partInfo',
-            max: 47,
-            index: 1,
-          },
-          save: {
-            type: 'pm-textarea',
-            label: 'save',
-            group: 'partInfo',
-            index: 2,
-          },
-        },
+        // text: {
+        //   text: {
+        //     type: 'textarea',
+        //     label: 'Label',
+        //     group: 'partInfo',
+        //     max: 47,
+        //     index: 1,
+        //   },
+        //   save: {
+        //     type: 'pm-textarea',
+        //     label: 'save',
+        //     group: 'partInfo',
+        //     index: 2,
+        //   },
+        // },
       }
     }
     //var prodInputs: any;
@@ -313,21 +313,41 @@ function getInspectorConfig(): { [key: string]: any } {
 
       renderFieldContent: function (options: any, path: any, value: any, inspector: any) {
         switch (options.type) {
+          // case 'pm-textarea':
+          //   let buttonSet = document.createElement('div')
+          //   buttonSet.style.margin = '20px 0 20px 20px'
+          //   buttonSet.style.textAlign = 'center'
+          //   buttonSet.style.overflow = 'auto'
+
+          //   let addLabel = document.createElement('label')
+          //   addLabel.className = 'bg-blue-500 text-white font-bold py-2 px-4 rounded'
+          //   addLabel.textContent = 'Add Label'
+          //   addLabel.style.margin = 'auto'
+          //   addLabel.style.fontSize = '0.75rem'
+          //   buttonSet.appendChild(addLabel)
+
+          //   return buttonSet
           case 'pm-textarea':
             let buttonSet = document.createElement('div')
             buttonSet.style.margin = '20px 0 20px 20px'
-            buttonSet.style.textAlign = 'center'
             buttonSet.style.overflow = 'auto'
 
-            let addLabel = document.createElement('label')
-            addLabel.className = 'bg-blue-500 text-white font-bold py-2 px-4 rounded'
-            addLabel.textContent = 'Add Label'
-            addLabel.style.margin = 'auto'
-            addLabel.style.fontSize = '0.75rem'
-            buttonSet.appendChild(addLabel)
+            let textAreaLabel = document.createElement('button')
+            textAreaLabel.type = 'button'
+            textAreaLabel.className = 'p-button p-component mr-2'
+            textAreaLabel.textContent = 'Add Label'
+            textAreaLabel.style.float = 'right'
+            textAreaLabel.style.fontSize = '0.75rem'
+            buttonSet.appendChild(textAreaLabel)
+
+            textAreaLabel.addEventListener('click', function () {
+              //let cell = inspector.options.cell
+              // inspector.options.cell.attributes.shelfInfo.label = value
+              inspector.options.cell.prop('shelfInfo/label', value)
+              emit('shelflabelUpdated', inspector.options.cell)
+            })
 
             return buttonSet
-
           case 'pm-saveNote':
             let noteButtonSet = document.createElement('div')
             noteButtonSet.style.margin = '20px 0 20px 20px'

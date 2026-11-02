@@ -363,7 +363,7 @@ async function saveLayout({ valid }: any) {
             </IconField>
           </div>
         </template>
-        <template #empty> No clusters found. </template>
+        <template #empty> No clusters found for the current filters. </template>
         <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
         <Column field="standName" header="Stand Name" sortable style="min-width: 12rem"></Column>
         <Column

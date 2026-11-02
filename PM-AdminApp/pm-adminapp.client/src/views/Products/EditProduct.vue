@@ -403,6 +403,7 @@ function editShade(sh: Shade) {
   shade.value.shadeDescription = sh.shadeDescription
   shade.value.countries = sh.countries
   shade.value.countriesList = sh.countriesList
+  shade.value.published = sh.published
     shademanagement.setSelectedCountries([]) // clear selected countries for new shade
     // shademanagement.setCountrySelectList(countrySelectList.value, sh.countries?.map((c) => c.id) ?? []) // set country select list based on the shade's countries
 
@@ -772,11 +773,15 @@ async function saveShade(updateShade: Shade) {
                 <DataTable :value="shades" scrollable scrollHeight="400px" tableStyle="min-width: 50rem">
                     <Column field="shadeNumber" header="Name"></Column>
                     <Column field="shadeDescription" header="Description"></Column>
-                    <Column field="published" header="Published">
-                      <template #body="slotProps">
-                        <div class="flex align>-items-center gap-2">
-                          <span>{{ slotProps.data.published ? 'Yes' : 'No' }}</span>
-                          </div>
+                    <Column field="published" header="Published" data-type="boolean" style="min-width: 5rem">
+                      <template #body="{data}">
+                        <i
+                          class="pi"
+                          :class="{
+                            'pi-check-circle text-green-500 ': data.published,
+                            'pi-times-circle text-red-500': !data.published,
+                          }"
+                        ></i>
                       </template>
                     </Column>
                     <Column field="countries" header="Countries">
