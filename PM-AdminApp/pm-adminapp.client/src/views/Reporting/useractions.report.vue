@@ -1,10 +1,10 @@
 <script lang="ts" setup>
+import type { ActionReportDto } from '@/models/Reporting/ActionReportDto.model'
 import { onMounted, ref, watch } from 'vue'
 // import UserService from '@/services/UserService.js'
 import { useLocationFilters } from '@/components/composables/locationFilters'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
 import { ActionTypeEnum } from '@/models/Reporting/actions.model'
-import { AuditLog } from '@/models/Reporting/AuditLog.model'
 import { ReportingFilter } from '@/models/Reporting/reportingFilter.model'
 import { default as countryService } from '@/services/Countries/CountryService'
 import { default as auditService } from '@/services/Reporting/AuditService'
@@ -49,12 +49,16 @@ const searchText = ref('')
 const startDate = ref(null)
 const endDate = ref(null)
 // const reportData = ref(null)
-const reportData = ref<AuditLog[]>([])
+const reportData = ref<ActionReportDto[]>([])
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   userName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   actionName: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  message: { value: null, matchMode: FilterMatchMode.EQUALS },
+  planoName: { value: null, matchMode: FilterMatchMode.EQUALS },
+  roleName: { value: null, matchMode: FilterMatchMode.EQUALS },
+  regionName: { value: null, matchMode: FilterMatchMode.EQUALS },
+  countryName: { value: null, matchMode: FilterMatchMode.EQUALS },
+  permissions: { value: null, matchMode: FilterMatchMode.EQUALS },
 })
 
 const resolver = ref(
@@ -287,12 +291,24 @@ const exportCSV = () => {
         > -->
         <Button type="button" size="small" @click="exportCSV()">
           <FileExport />
-          Download CSV
+          Download Report
         </Button>
       </div>
       <DataTable
         ref="dt"
         :value="reportData"
+        v-model:filters="filters"
+        :globalFilterFields="[
+          //'categoryName',
+          'userName',
+          'actionName',
+          'date',
+          'roleName',
+          'regionName',
+          'countryName',
+          'permissions',
+          'planoName',
+        ]"
         exportFilename="usageReport"
         tableStyle="min-width: 50rem"
         :paginator="true"
@@ -317,14 +333,61 @@ const exportCSV = () => {
           results.
         </template>
 
-        <Column field="userName" header="User Name" sortable style="min-width: 12rem"></Column>
-        <Column field="actionName" header="Action Name" sortable style="min-width: 12rem"></Column>
+        <Column
+          filterField="userName"
+          field="userName"
+          header="User Name"
+          sortable
+          style="min-width: 12rem"
+        ></Column>
+        <Column
+          filterField="actionName"
+          field="actionName"
+          header="Action Name"
+          sortable
+          style="min-width: 12rem"
+        ></Column>
         <Column field="date" header="Timestamp" sortable style="min-width: 12rem">
           <template #body="slotProps">
             {{ new Date(slotProps.data.date).toLocaleDateString() }}
           </template>
         </Column>
-        <Column field="planoName" header="Plano Name" sortable style="min-width: 12rem"></Column>
+        <Column
+          filterField="roleName"
+          field="roleName"
+          header="Role Name"
+          sortable
+          style="min-width: 12rem"
+        ></Column>
+        <Column
+          filterField="regionName"
+          field="regionName"
+          header="Region Name"
+          sortable
+          style="min-width: 12rem"
+        ></Column>
+        <Column
+          filterField="countryName"
+          field="countryName"
+          header="Country Name"
+          sortable
+          style="min-width: 12rem"
+        ></Column>
+        <Column
+          filterField="permissions"
+          field="permissions"
+          header="Permissions"
+          sortable
+          style="min-width: 12rem"
+        ></Column>
+        <!-- <Column field="message" header="Message" sortable style="min-width: 12rem"></Column> -->
+        <Column
+          filterField="planoName"
+          field="planoName"
+          header="Plano Name"
+          sortable
+          style="min-width: 12rem"
+        ></Column>
 
         <!-- <Column field="orderName" header="orderName" sortable style="min-width: 12rem"></Column> -->
       </DataTable>

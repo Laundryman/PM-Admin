@@ -40,7 +40,7 @@ namespace PM_AdminApp.Server.Mappings
             CreateMap<Country, CountryDto>();
             CreateMap<CountryDto, Country>();
 
-            CreateMap<JobFolderDto, JobFolder>();
+            //CreateMap<JobFolderDto, JobFolder>();
             CreateMap<JobFolder, JobFolderDto>();
             CreateMap<JobDto, Job>();
             //CreateMap<Job, JobDto>();

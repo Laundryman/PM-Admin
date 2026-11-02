@@ -67,6 +67,8 @@ export function useFolderManagement() {
       folder_countrySelectList.value ?? [],
       jobFolderEdit.value.countries ?? [],
     )
+    console.log('Managed selected values response:', jobFolderEdit.value.countries)
+    // jobFolderEdit.value.countries = response
     // jobFolder.value.countriesList = jobFolder.value.countries?.map((c) => c.id).join(',') || ''
   }
 

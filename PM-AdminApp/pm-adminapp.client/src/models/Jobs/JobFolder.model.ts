@@ -8,10 +8,10 @@ export class JobFolder {
   name!: string
   description!: string
   regionId!: number
-  countryId!: number
   brandId!: number
   brand!: Brand
   countries!: Country[]
+  countryIds!: string
   region!: Region
   jobs!: Job[]
 }

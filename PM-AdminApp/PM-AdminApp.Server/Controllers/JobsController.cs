@@ -188,9 +188,14 @@ namespace PM_AdminApp.Server.Controllers
                 //jobFolder.Brand = null;
                 //jobFolder.Region = null;
 
-                await UpdateCountryCollection(jobFolder, jobFolderDto);
                 var createdFolder = await _jobFolderRepository.AddAsync(jobFolder);
-                var responseFolder = _mapper.Map<JobFolderDto>(createdFolder);
+                await UpdateCountryCollection(jobFolder, jobFolderDto);
+                await _jobFolderRepository.UpdateAsync(jobFolder);
+
+                var region = await _regionRepository.GetByIdAsync((int)jobFolder.RegionId);
+                jobFolder.Region = region;
+                var responseFolder = _mapper.Map<JobFolderDto>(jobFolder);
+
                 return Ok(responseFolder);
             }
             catch (Exception ex)
@@ -373,6 +378,7 @@ namespace PM_AdminApp.Server.Controllers
                 origJobFolder.Countries.Remove(country);
             }
 
+            origJobFolder.CountriesList = string.Join(",", origJobFolder.Countries.Select(c => c.Id));
             //update Part.CountryList string
             //origJobFolder.CountriesList = string.Join(",", origJobFolder.Countries.Select(c => c.Id));
         }

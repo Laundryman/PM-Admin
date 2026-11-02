@@ -44,6 +44,7 @@ declare module 'vue' {
     InputIcon: typeof import('primevue/inputicon')['default']
     InputNumber: typeof import('primevue/inputnumber')['default']
     InputText: typeof import('primevue/inputtext')['default']
+    'JobFolderForm.component': typeof import('./src/components/Forms/JobFolderForm.component.vue')['default']
     'JobForm.component': typeof import('./src/components/Forms/JobForm.component.vue')['default']
     Listbox: typeof import('primevue/listbox')['default']
     LoadingSpinner: typeof import('./src/components/loading/loadingSpinner.vue')['default']

@@ -11,6 +11,7 @@ using PMApplication.Entities;
 using PMApplication.Entities.CountriesAggregate;
 using PMApplication.Entities.PlanogramAggregate;
 using PMApplication.Enums;
+using PMApplication.Helpers;
 using PMApplication.Interfaces;
 using PMApplication.Interfaces.RepositoryInterfaces;
 using PMApplication.Interfaces.ServiceInterfaces;
@@ -158,28 +159,18 @@ namespace PM_AdminApp.Server.Controllers
             await _planogramService.SavePlanogram(planogram);
 
             //Audit the action
-            var audit = new AuditLog
-            {
-                UserId = userId,
-                Date = DateTime.Now,
-                BrandId = planogram.BrandId,
-                Roles = userProfile?.Permissions,
-                RoleId = int.Parse(userProfile?.RoleId ?? "0"),
-                RoleName = ((RoleEnum)int.Parse(userProfile?.RoleId ?? "0")).ToString(),
-
-                UserName = userProfile?.DisplayName,
-                Action = (int)LogActionEnum.RenamePlano,
-                ActionName = nameof(LogActionEnum.RenamePlano),
-                ActionType = (int)LogActionTypeEnum.PlanoAction,
-
-                Message = userProfile?.DisplayName + " renamed planogram with Id " + planogramId.ToString() + " to " + name,
-                PlanoId = planogramId,
-                PlanoName = planogram.Name,
-
-                BrandName = brand.Name,
-                CountryName = country?.Name,
-                RegionName = region?.Name
-            };
+            var audit = AuditLogHelper.BuildPlanoAuditLog(
+                userId,
+                userProfile,
+                planogram.BrandId,
+                brand.Name,
+                country?.Name,
+                region?.Name,
+                planogramId,
+                planogram.Name,
+                LogActionEnum.RenamePlano,
+                LogActionTypeEnum.PlanoAction,
+                (userProfile?.DisplayName ?? string.Empty) + " renamed planogram with Id " + planogramId.ToString() + " to " + name);
             await _auditService.AuditEvent(audit);
 
             return planogramId;
@@ -201,28 +192,18 @@ namespace PM_AdminApp.Server.Controllers
             var region = await _regionService.GetRegion(planogram.RegionId ?? 0);
 
             //Audit the action
-            var audit = new AuditLog
-            {
-                UserId = userId,
-                Date = DateTime.Now,
-                BrandId = planogram.BrandId,
-                Roles = userProfile?.Permissions,
-                RoleId = int.Parse(userProfile?.RoleId ?? "0"),
-                RoleName = ((RoleEnum)int.Parse(userProfile?.RoleId ?? "0")).ToString(),
-
-                UserName = userProfile?.DisplayName,
-                Action = (int)LogActionEnum.SubmitPlano,
-                ActionName = nameof(LogActionEnum.SubmitPlano),
-                ActionType = (int)LogActionTypeEnum.PlanoAction,
-
-                Message = userProfile?.DisplayName + " submitted planogram with Id " + planogramId.ToString(),
-                PlanoId = planogramId,
-                PlanoName = planogram.Name,
-
-                BrandName = brand.Name,
-                CountryName = country?.Name,
-                RegionName = region?.Name
-            };
+            var audit = AuditLogHelper.BuildPlanoAuditLog(
+                userId,
+                userProfile,
+                planogram.BrandId,
+                brand.Name,
+                country?.Name,
+                region?.Name,
+                planogramId,
+                planogram.Name,
+                LogActionEnum.SubmitPlano,
+                LogActionTypeEnum.PlanoAction,
+                (userProfile?.DisplayName ?? string.Empty) + " submitted planogram with Id " + planogramId.ToString());
             await _auditService.AuditEvent(audit);
 
             return planogramId;
@@ -244,28 +225,18 @@ namespace PM_AdminApp.Server.Controllers
             var region = await _regionService.GetRegion(planogram.RegionId ?? 0);
 
             //Audit the action
-            var audit = new AuditLog
-            {
-                UserId = userId,
-                Date = DateTime.Now,
-                BrandId = planogram.BrandId,
-                Roles = userProfile?.Permissions,
-                RoleId = int.Parse(userProfile?.RoleId ?? "0"),
-                RoleName = ((RoleEnum)int.Parse(userProfile?.RoleId ?? "0")).ToString(),
-
-                UserName = userProfile?.DisplayName,
-                Action = (int)LogActionEnum.EditPlano,
-                ActionName = nameof(LogActionEnum.EditPlano),
-                ActionType = (int)LogActionTypeEnum.PlanoAction,
-
-                Message = userProfile?.DisplayName + " deleted planogram with Id " + planogramId.ToString(),
-                PlanoId = planogramId,
-                PlanoName = planogram.Name,
-
-                BrandName = brand.Name,
-                CountryName = country?.Name,
-                RegionName = region?.Name
-            };
+            var audit = AuditLogHelper.BuildPlanoAuditLog(
+                userId,
+                userProfile,
+                planogram.BrandId,
+                brand.Name,
+                country?.Name,
+                region?.Name,
+                planogramId,
+                planogram.Name,
+                LogActionEnum.EditPlano,
+                LogActionTypeEnum.PlanoAction,
+                (userProfile?.DisplayName ?? string.Empty) + " deleted planogram with Id " + planogramId.ToString());
             await _auditService.AuditEvent(audit);
 
             return planogramId;
@@ -292,28 +263,18 @@ namespace PM_AdminApp.Server.Controllers
             await _planogramService.SavePlanogram(planogram);
 
             //Audit the action
-            var audit = new AuditLog
-            {
-                UserId = userId,
-                Date = DateTime.Now,
-                BrandId = planogram.BrandId,
-                Roles = userProfile?.Permissions,
-                RoleId = int.Parse(userProfile?.RoleId ?? "0"),
-                RoleName = ((RoleEnum)int.Parse(userProfile?.RoleId ?? "0")).ToString(),
-
-                UserName = userProfile?.DisplayName,
-                Action = (int)LogActionEnum.ArchivePlano,
-                ActionName = nameof(LogActionEnum.ArchivePlano),
-                ActionType = (int)LogActionTypeEnum.PlanoAction,
-
-                Message = userProfile?.DisplayName + " archived planogram with Id " + planogramId.ToString(),
-                PlanoId = planogramId,
-                PlanoName = planogram.Name,
-
-                BrandName = brand.Name,
-                CountryName = country?.Name,
-                RegionName = region?.Name
-            };
+            var audit = AuditLogHelper.BuildPlanoAuditLog(
+                userId,
+                userProfile,
+                planogram.BrandId,
+                brand.Name,
+                country?.Name,
+                region?.Name,
+                planogramId,
+                planogram.Name,
+                LogActionEnum.ArchivePlano,
+                LogActionTypeEnum.PlanoAction,
+                (userProfile?.DisplayName ?? string.Empty) + " archived planogram with Id " + planogramId.ToString());
             await _auditService.AuditEvent(audit);
 
             return planogramId;
@@ -335,27 +296,18 @@ namespace PM_AdminApp.Server.Controllers
             await _planogramService.SavePlanogram(planogram);
 
             //Audit the action
-            var audit = new AuditLog
-            {
-                UserId = userId,
-                Date = DateTime.Now,
-                BrandId = planogram.BrandId,
-                Roles = userProfile?.Permissions,
-                RoleId = int.Parse(userProfile?.RoleId ?? "0"),
-                RoleName = ((RoleEnum)int.Parse(userProfile?.RoleId ?? "0")).ToString(),
-                UserName = userProfile?.DisplayName,
-                Action = (int)LogActionEnum.ApprovePlano,
-                ActionName = nameof(LogActionEnum.ApprovePlano),
-                ActionType = (int)LogActionTypeEnum.PlanoAction,
-
-                Message = userProfile?.DisplayName + " approved planogram with Id " + planogramId.ToString(),
-                PlanoId = planogramId,
-                PlanoName = planogram.Name,
-
-                BrandName = brand.Name,
-                CountryName = country?.Name,
-                RegionName = region?.Name
-            };
+            var audit = AuditLogHelper.BuildPlanoAuditLog(
+                userId,
+                userProfile,
+                planogram.BrandId,
+                brand.Name,
+                country?.Name,
+                region?.Name,
+                planogramId,
+                planogram.Name,
+                LogActionEnum.ApprovePlano,
+                LogActionTypeEnum.PlanoAction,
+                (userProfile?.DisplayName ?? string.Empty) + " approved planogram with Id " + planogramId.ToString());
             await _auditService.AuditEvent(audit);
 
             return planogramId;
@@ -387,28 +339,18 @@ namespace PM_AdminApp.Server.Controllers
             await _planogramService.SavePlanogram(planogram);
 
             //Audit the action
-            var audit = new AuditLog
-            {
-                UserId = userId,
-                PlanoName= planogram.Name,
-                Date = DateTime.Now,
-                BrandId = planogram.BrandId,
-                BrandName = brand.Name,
-                Roles = userProfile?.Permissions,
-                RoleId = int.Parse(userProfile?.RoleId ?? "0"),
-                RoleName = ((RoleEnum)int.Parse(userProfile?.RoleId ?? "0")).ToString(),
-
-                UserName = userProfile?.DisplayName,
-                Action = (int)LogActionEnum.RestorePlano,
-                ActionName = nameof(LogActionEnum.RestorePlano),
-                ActionType = (int)LogActionTypeEnum.PlanoAction,
-
-                Message = userProfile?.DisplayName + " restored planogram with Id " + planogramId.ToString(),
-                PlanoId = planogramId,
-                CountryName = country?.Name,
-                RegionName = region?.Name,
-
-            };
+            var audit = AuditLogHelper.BuildPlanoAuditLog(
+                userId,
+                userProfile,
+                planogram.BrandId,
+                brand.Name,
+                country?.Name,
+                region?.Name,
+                planogramId,
+                planogram.Name,
+                LogActionEnum.RestorePlano,
+                LogActionTypeEnum.PlanoAction,
+                (userProfile?.DisplayName ?? string.Empty) + " restored planogram with Id " + planogramId.ToString());
             await _auditService.AuditEvent(audit);
 
             return planogramId;
@@ -431,28 +373,18 @@ namespace PM_AdminApp.Server.Controllers
             await _planogramService.SavePlanogram(planogram);
 
             //Audit the action
-            var audit = new AuditLog
-            {
-                UserId = userId,
-                Date = DateTime.Now,
-                BrandId = planogram.BrandId,
-                Roles = userProfile?.Permissions,
-                RoleId = int.Parse(userProfile?.RoleId ?? "0"),
-                RoleName = ((RoleEnum)int.Parse(userProfile?.RoleId ?? "0")).ToString(),
-
-                UserName = userProfile?.DisplayName,
-                Action = (int)LogActionEnum.ValidatePlano,
-                ActionName = nameof(LogActionEnum.ValidatePlano),
-                ActionType = (int)LogActionTypeEnum.PlanoAction,
-
-                Message = userProfile?.DisplayName + " validated planogram with Id " + planogramId.ToString(),
-                PlanoId = planogramId,
-                PlanoName = planogram.Name,
-
-                BrandName = brand.Name,
-                CountryName = country?.Name,
-                RegionName = region?.Name
-            };
+            var audit = AuditLogHelper.BuildPlanoAuditLog(
+                userId,
+                userProfile,
+                planogram.BrandId,
+                brand.Name,
+                country?.Name,
+                region?.Name,
+                planogramId,
+                planogram.Name,
+                LogActionEnum.ValidatePlano,
+                LogActionTypeEnum.PlanoAction,
+                (userProfile?.DisplayName ?? string.Empty) + " validated planogram with Id " + planogramId.ToString());
             await _auditService.AuditEvent(audit);
 
             return planogramId;
@@ -475,28 +407,18 @@ namespace PM_AdminApp.Server.Controllers
             await _planogramService.SavePlanogram(planogram);
 
             //Audit the action
-            var audit = new AuditLog
-            {
-                UserId = userId,
-                Date = DateTime.Now,
-                BrandId = planogram.BrandId,
-                Roles = userProfile?.Permissions,
-                RoleId = int.Parse(userProfile?.RoleId ?? "0"),
-                RoleName = ((RoleEnum)int.Parse(userProfile?.RoleId ?? "0")).ToString(),
-
-                UserName = userProfile?.DisplayName,
-                Action = (int)LogActionEnum.RejectPlano,
-                ActionName = nameof(LogActionEnum.RejectPlano),
-                ActionType = (int)LogActionTypeEnum.PlanoAction,
-
-                Message = userProfile?.DisplayName + " rejected planogram with Id " + planogramId.ToString(),
-                PlanoId = planogramId,
-                PlanoName = planogram.Name,
-
-                BrandName = brand.Name,
-                CountryName = country?.Name,
-                RegionName = region?.Name
-            };
+            var audit = AuditLogHelper.BuildPlanoAuditLog(
+                userId,
+                userProfile,
+                planogram.BrandId,
+                brand.Name,
+                country?.Name,
+                region?.Name,
+                planogramId,
+                planogram.Name,
+                LogActionEnum.RejectPlano,
+                LogActionTypeEnum.PlanoAction,
+                (userProfile?.DisplayName ?? string.Empty) + " rejected planogram with Id " + planogramId.ToString());
             await _auditService.AuditEvent(audit);
 
             return planogramId;

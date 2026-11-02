@@ -1,4 +1,4 @@
-import type { AuditLog } from '@/models/Reporting/AuditLog.model'
+import type { ActionReportDto } from '@/models/Reporting/ActionReportDto.model'
 import { ReportingFilter } from '@/models/Reporting/reportingFilter.model'
 import { Auth, msal } from '@/services/Identity/auth'
 import { useAuthStore } from '@/stores/auth'
@@ -22,7 +22,7 @@ const apiClient = axios.create({
 })
 
 export default {
-  async getUserActionsReport(filter: ReportingFilter): Promise<AuditLog[]> {
+  async getUserActionsReport(filter: ReportingFilter): Promise<ActionReportDto[]> {
     if (token.value) {
       apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
       apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''

@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import { useFolderManagement } from '@/components/composables/jobManagement.composable'
 import { useLocationFilters } from '@/components/composables/locationFilters'
 import { useMultiSelectLists } from '@/components/composables/multiSelectList.composable'
-import { regionFilter } from '@/models/Countries/regionFilter.model'
-import { JobFolderFilter } from '@/models/Jobs/JobFolderFilter.model'
-
+import JobFolderForm from '@/components/Forms/JobFolderForm.component.vue'
 import { Country } from '@/models/Countries/country.model'
 import { Region } from '@/models/Countries/region.model'
+import { regionFilter } from '@/models/Countries/regionFilter.model'
 import { Job } from '@/models/Jobs/Job.model'
 import { JobFolder } from '@/models/Jobs/JobFolder.model'
+import { JobFolderFilter } from '@/models/Jobs/JobFolderFilter.model'
 import { default as countryService } from '@/services/Countries/CountryService'
 import { default as jobsService } from '@/services/Jobs/JobsService'
 import { useBrandStore } from '@/stores/brandStore'
@@ -17,12 +16,10 @@ import { useSystemStore } from '@/stores/systemStore'
 import JobForm from '@/components/Forms/JobForm.component.vue'
 import { FilterMatchMode } from '@primevue/core/api/'
 import type { FormInstance } from '@primevue/forms'
-import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { z } from 'zod'
 
 const jobFolderFilter = ref(new JobFolderFilter())
 const selectedJobFolder = ref<JobFolder | null>(null)
@@ -34,17 +31,17 @@ const router = useRouter()
 const { regions, countries } = useLocationFilters()
 const multiSelectLists = useMultiSelectLists()
 
-const folderManagement = useFolderManagement()
-const {
-  folderDialog,
-  jobFolder,
-  jobFolderEdit,
-  folderSelectedRegion,
-  folder_regionSelectList,
-  folder_countrySelectList,
-  folder_selectedCountries,
-  folder_selectAllCountries,
-} = folderManagement
+// const folderManagement = useFolderManagement()
+// const {
+//   folderDialog,
+//   jobFolder,
+//   jobFolderEdit,
+//   folderSelectedRegion,
+//   folder_regionSelectList,
+//   folder_countrySelectList,
+//   folder_selectedCountries,
+//   folder_selectAllCountries,
+// } = folderManagement
 const toast = useToast()
 const loading = ref(true)
 const layout = useSystemStore()
@@ -52,6 +49,7 @@ const brandStore = useBrandStore()
 const brand = storeToRefs(brandStore).activeBrand
 
 const jobDialog = ref(false)
+const folderDialog = ref(false)
 const submitted = ref(false)
 const job = ref()
 const locationFilters = useLocationFilters()
@@ -177,7 +175,7 @@ async function clearFilters() {
 ////////////////////////////////////////////////////
 function onRowExpand(event: any) {
   console.log('Row expanded', event.data)
-  jobFolder.value = event.data
+  selectedJobFolder.value = event.data
 }
 
 ////////////////////////////////////////////////////
@@ -235,7 +233,7 @@ async function onCountryFilterChange() {
 
 function clearCountryFilterSelection() {
   ms_selectedCountries.value = []
-  jobFolder.value.countries = []
+  // jobFolder.value.countries = []
   // jobFolder.value.countriesList = ''
 }
 
@@ -246,23 +244,13 @@ const hideFolderDialog = () => {
   folderDialog.value = false
   submitted.value = false
 }
-async function saveFolder() {
-  //folderManagement.saveUpdate()
-  // jobFolder.value = jobFolderEdit.value
-  // const isNewFolder = jobFolder.value.id === 0
-  jobFolder.value.name = jobFolderEdit.value.name
-  jobFolder.value.description = jobFolderEdit.value.description
-  jobFolder.value.regionId = jobFolderEdit.value.regionId
-  jobFolder.value.countries = jobFolderEdit.value.countries
-  jobFolder.value.region = jobFolderEdit.value.region
-  jobFolder.value.id = jobFolderEdit.value.id
-  jobFolder.value.brandId = brandStore.activeBrand?.id ?? 0
+async function saveJobFolder(jobFolder: JobFolder) {
   submitted.value = true
 
-  if (jobFolder?.value.name?.trim()) {
-    if (jobFolder?.value.id) {
+  if (jobFolder.name?.trim()) {
+    if (jobFolder.id && jobFolder.id > 0) {
       await jobsService
-        .updateJobFolder(jobFolder.value)
+        .updateJobFolder(jobFolder)
         .then((response) => {
           toast.add({
             severity: 'success',
@@ -275,9 +263,9 @@ async function saveFolder() {
           console.error('Error updating job folder:', error)
         })
     } else {
-      jobFolder.value.id = 0
+      jobFolder.id = 0
 
-      await jobsService.createJobFolder(jobFolder.value).then((response) => {
+      await jobsService.createJobFolder(jobFolder).then((response) => {
         // console.log('Job Folder created', response)
         let newJobFolder = response
         const tempFolderList = [...jobFolders.value]
@@ -294,25 +282,23 @@ async function saveFolder() {
     }
 
     folderDialog.value = false
-    jobFolder.value = new JobFolder()
+    jobFolder = new JobFolder()
   }
 }
 function editFolder(folder: JobFolder) {
-  jobFolder.value = folder
-  jobFolderEdit.value = Object.assign({}, folder)
-  folderSelectedRegion.value = folder.regionId ?? null
-  folder_selectedCountries.value = folder.countries?.map((c) => c.id) ?? []
-  folderManagement.setRegionSelectList(regions.value ?? [])
-  folderManagement.onFolderRegionChange(folder.regionId ?? null)
-  folder_regionSelectList.value = regions.value ?? []
+  selectedJobFolder.value = folder
+  // selectedJobFolder.value = Object.assign({}, folder)
+  // selectedJobFolder.value.regionId = folder.regionId ?? null
+  // selectedJobFolder.value.countries = folder.countries?.map((c) => c.id) ?? []
+  // folder_selectedCountries.value = folder.countries?.map((c) => c.id) ?? []
+  // folderManagement.setRegionSelectList(regions.value ?? [])
+  // folderManagement.onFolderRegionChange(folder.regionId ?? null)
+  // folder_regionSelectList.value = regions.value ?? []
   folderDialog.value = true
 }
 function addJobFolder() {
-  folderManagement.setRegionSelectList(regions.value ?? [])
-  jobFolder.value = new JobFolder()
-  jobFolderEdit.value = new JobFolder()
-  jobFolder.value.brandId = brandStore.activeBrand?.id ?? 0
-  jobFolderEdit.value.brandId = brandStore.activeBrand?.id ?? 0
+  // folderManagement.setRegionSelectList(regions.value ?? [])
+  selectedJobFolder.value = new JobFolder()
   folderDialog.value = true
 }
 ////////////////////////////////////////////
@@ -420,53 +406,25 @@ function addJob(folder: JobFolder) {
   setInitialJobFormValues()
 }
 
-const dateRangeSchema = z.object({
-  jobDateRange: z.array(z.date()).refine(
-    (data) => {
-      return data[1] > data[0]
-    },
-    {
-      message: 'Job date range requires a start and end date',
-      path: ['jobDateRange'],
-    },
-  ),
-})
-const resolver = zodResolver(
-  z.object({
-    jobFolder: z.string().min(1, 'Name is required'),
-    jobCode: z.string().nonempty({ message: 'Job code is required' }),
-    jobDescription: z.string().optional(),
-    jobDateRange: dateRangeSchema.shape.jobDateRange.optional(),
-  }),
-)
-// const resolver = ({ values }: any) => {
-//   const errors = {} as any
-
-//   if (!values.jobCode) {
-//     errors.jobCode = [{ message: 'Job Code is required.' }]
-//   }
-//   if (!values.jobDateRange) {
-//     errors.jobDateRange = [{ message: 'Job Date Range is required.' }]
-//   }
-//   if (values.jobDateRange && values.jobDateRange.length === 2) {
-//     if (values.jobDateRange[1] <= values.jobDateRange[0]) {
-//       errors.jobDateRange = [
-//         { message: 'Job Date Range must have an end date after the start date.' },
-//       ]
-//     }
-//   }
-
-//   return {
-//     values, // (Optional) Used to pass current form values to submit event.
-//     errors,
-//   }
-// }
-// function submitJobForm({ valid, values }: any) {
-//   // resolver.call(jobFormTemplateRef.value)
-//   if (valid) {
-//     saveJob()
-//   }
-// }
+// const dateRangeSchema = z.object({
+//   jobDateRange: z.array(z.date()).refine(
+//     (data) => {
+//       return data[1] > data[0]
+//     },
+//     {
+//       message: 'Job date range requires a start and end date',
+//       path: ['jobDateRange'],
+//     },
+//   ),
+// })
+// const resolver = zodResolver(
+//   z.object({
+//     jobFolder: z.string().min(1, 'Name is required'),
+//     jobCode: z.string().nonempty({ message: 'Job code is required' }),
+//     jobDescription: z.string().optional(),
+//     jobDateRange: dateRangeSchema.shape.jobDateRange.optional(),
+//   }),
+// )
 
 function setInitialJobFormValues() {
   const jobFormTemplateRef = useTemplateRef<FormInstance>('job-form')
@@ -478,13 +436,6 @@ function setInitialJobFormValues() {
   initialJobValues.value.jobFolderName = job.value.jobFolderName
   initialJobValues.value.brandId = job.value.brandId
   initialJobValues.value.jobDateRange = [job.value.dateFrom, job.value.dateTo]
-
-  // jobFormTemplateRef.value.setFieldValue('jobCode', initialJobValues.value.jobCode)
-  // jobFormTemplateRef.value.setFieldValue('jobDescription', initialJobValues.value.jobDescription)
-  // jobFormTemplateRef.value.setFieldValue('jobFolderId', initialJobValues.value.jobFolderId)
-  // jobFormTemplateRef.value.setFieldValue('jobFolderName', initialJobValues.value.jobFolderName)
-  // jobFormTemplateRef.value.setFieldValue('brandId', initialJobValues.value.brandId)
-  // jobFormTemplateRef.value.setFieldValue('jobDateRange', initialJobValues.value.jobDateRange)
 }
 </script>
 
@@ -651,7 +602,14 @@ function setInitialJobFormValues() {
       header="Job Folder Details"
       :modal="true"
     >
-      <div class="flex flex-col gap-6">
+      <JobFolderForm
+        :jobFolder="selectedJobFolder"
+        :regions="regions"
+        @save="saveJobFolder"
+        @cancel="folderDialog = false"
+        @clearCountryFilterSelection="clearCountryFilterSelection"
+      />
+      <!-- <div class="flex flex-col gap-6">
         <div>
           <label for="name" class="block font-bold mb-3">Name</label>
           <InputText
@@ -723,13 +681,6 @@ function setInitialJobFormValues() {
                     </div>
                   </template>
                 </MultiSelect>
-                <!-- <Message
-                  v-if="$form.countries?.invalid"
-                  severity="error"
-                  size="small"
-                  variant="simple"
-                  >{{ $form.countries.error?.message }}</Message
-                > -->
               </div>
               <div class="p-5 col-span-1">
                 <Button
@@ -744,15 +695,11 @@ function setInitialJobFormValues() {
             </div>
           </fieldset>
         </div>
-        <!-- <div>
-          <label for="name" class="block font-bold mb-3">Disabled</label>
-          <ToggleSwitch name="disabled" v-model="jobFolder.disabled" />
-        </div> -->
       </div>
       <template #footer>
         <Button label="Cancel" icon="pi pi-times" text @click="hideFolderDialog" />
         <Button label="Save" icon="pi pi-check" @click="saveFolder" />
-      </template>
+      </template> -->
     </Dialog>
 
     <Dialog
@@ -769,62 +716,6 @@ function setInitialJobFormValues() {
         @save="saveJob"
         @cancel="hideJobDialog"
       />
-      <!-- <Form v-slot="$form" @submit="submitJobForm" ref="job-form" :resolver>
-        <div class="flex flex-col gap-6">
-          <div>
-            <label for="JobFolder" class="block font-bold mb-3">JobFolder</label>
-            <InputText name="jobFolder" v-model.trim="job.jobFolderName" disabled fluid />
-          </div>
-          <div>
-            <label for="jobCode" class="block font-bold mb-3">Job Code</label>
-            <InputText name="jobCode" :value="job.jobCode" v-model="job.jobCode" autofocus fluid />
-            <Message v-if="$form.jobCode?.invalid" severity="error" size="small" variant="simple">{{
-              $form.jobCode.error?.message
-            }}</Message>
-          </div>
-          <div>
-            <label for="jobDescription" class="block font-bold mb-3">Description</label>
-            <InputText
-              name="jobDescription"
-              :value="initialJobValues.jobDescription"
-              autofocus
-              :invalid="submitted && !job.description"
-              fluid
-            />
-            <Message
-              v-if="$form.description?.invalid"
-              severity="error"
-              size="small"
-              variant="simple"
-              >{{ $form.description.error?.message }}</Message
-            >
-          </div>
-          <div>
-            <label for="jobDateRange" class="w-full block font-bold mb-3">Date Range</label>
-            <DatePicker
-              name="jobDateRange"
-              v-model="initialJobValues.jobDateRange"
-              v-tooltip="'Select the date range by selecting the start date, then the end date'"
-              selectionMode="range"
-              :manualInput="false"
-              dateFormat="dd/mm/yy"
-              class="w-full"
-              placeHolder="Select Date Range"
-            />
-            <Message
-              v-if="$form.jobDateRange?.invalid"
-              severity="error"
-              size="small"
-              variant="simple"
-              >{{ $form.jobDateRange.error?.message }}</Message
-            >
-          </div>
-        </div>
-        <div class="mt-4 justify-end flex">
-          <Button label="Cancel" icon="pi pi-times" text @click="hideJobDialog" />
-          <Button label="Save" icon="pi pi-check" type="submit" />
-        </div>
-      </Form> -->
       <template #footer> </template>
     </Dialog>
   </div>
