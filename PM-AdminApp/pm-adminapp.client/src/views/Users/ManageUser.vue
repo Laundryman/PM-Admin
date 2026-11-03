@@ -34,7 +34,8 @@ const brands = ref<Brand[]>([])
 const countries = ref<Country[]>([])
 const roles = ref<Role[]>([])
 const permissions = ref<Permission[]>([])
-const selectedPermissions = ref<string[]>([])
+const permissionKeys = ref<{ name: string; key: string }[]>([])
+const selectedPermissions = ref<{ name: string; key: string }[]>([])
 const ms_selectedCountries = ref<number[] | null>(null) // MultiSelect binding
 const selectAllCountries = ref(false)
 const regionSelectList = ref<Region[] | null>(null)
@@ -56,7 +57,7 @@ const currentBrandTabProperties = ref({
   countries: [] as Country[] | null,
   selectedCountries: [] as number[] | null,
 })
-
+const checkedAll = ref(false)
 const currentRegionProps = ref({
   regions: [] as Region[] | null,
   selectedRegions: [] as number[] | null,
@@ -140,11 +141,15 @@ onMounted(async () => {
   })
 
   await RoleService.getPermissions().then((data: Permission[]) => {
+    for (const permission of data) {
+      permissionKeys.value.push({ name: permission.name, key: permission.id.toString() })
+    }
     permissions.value = data
   })
 
   convertUserFKeys(userModel.value)
-  selectedPermissions.value = userModel.value.permissions?.map((p) => p.name) ?? []
+  selectedPermissions.value =
+    userModel.value.permissions?.map((p) => ({ name: p.name, key: p.id.toString() })) ?? []
   console.log('Initial User Model after FKey conversion', userModel.value)
 })
 async function onTabChanged2(evt: any) {
@@ -358,13 +363,23 @@ async function saveUser() {
       }
       userModel.value.password = newPassword.value
       await UserService.createUser(userModel.value)
-        .then((response) => {
+        .then(async (response) => {
+          var createdUser = response.data
           toast.add({
             severity: 'success',
             summary: 'Successful',
             detail: 'User Created',
             life: 4000,
           })
+          // await UserService.addAuthenticationMethod(
+          //   createdUser.id,
+          //   userModel.value.userEmailAddress,
+          // )
+          //   .then(() => {})
+          //   .catch((error) => {
+          //     console.log(error)
+          //   })
+
           router.push({ name: 'users' })
         })
         .catch((error) => {
@@ -525,6 +540,19 @@ function clearCountrySelection() {
 /////////////////////////////////////////////////////
 // Permissions Handlers
 /////////////////////////////////////////////////////
+function onRoleChange(event: any) {
+  // selectedCategories.value = ref([categories.value[2]])
+  if (event.value == roles.value.find((r) => r.name === 'Administrator')?.id) {
+    //select all permissions for admin
+    // console.log(permissioncheckboxes.value)
+    for (const permission of permissionKeys.value) {
+      selectedPermissions.value.push(permission)
+    }
+    userModel.value.permissions = [...permissions.value]
+    userModel.value.permissionIds = permissions.value.map((p) => p.id)
+  }
+}
+
 function onPermissionsChange(event: any) {
   var currPerms = event
   //reset permissions
@@ -555,54 +583,6 @@ const resolver = zodResolver(
     roleIds: z.array(z.number()).min(1, { message: 'At least one Role must be selected.' }),
   }),
 )
-// const resolver = ({ values }: any) => {
-//   const errors = {} as any
-
-//   if (!values.FirstName) {
-//     errors.FirstName = [{ message: 'First Name is required.' }]
-//   }
-//   if (!values.LastName) {
-//     errors.LastName = [{ message: 'Last Name is required.' }]
-//   }
-//   if (!values.userEmailAddress) {
-//     errors.userEmailAddress = [{ message: 'Email is required.' }]
-//   }
-//   if (!values.userName) {
-//     errors.userName = [{ message: 'User Name is required.' }]
-//   }
-//   if (!values.diamCountryId) {
-//     errors.diamCountryId = [{ message: 'User Country is required.' }]
-//   }
-//   if (values.brandIds == null || values.brandIds.length === 0) {
-//     errors.brandIds = [{ message: 'At least one Brand must be selected.' }]
-//   }
-//   if (values.roleIds == null || values.roleIds.length === 0) {
-//     errors.roleIds = [{ message: 'At least one Role must be selected.' }]
-//   }
-//   if (!values.id) {
-//     if (!newPassword.value) {
-//       errors.password = [{ message: 'Password is required for new users.' }]
-//     } else {
-//       //validate password complexity
-//       const password = newPassword.value
-//       const complexityRegex =
-//         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!?\-@#$£%^&*()_+])[A-Za-z\d!?\-@#$£%^&*()_+]{8,}$/
-//       if (!complexityRegex.test(password)) {
-//         errors.password = [
-//           {
-//             message:
-//               'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
-//           },
-//         ]
-//       }
-//     }
-//   }
-
-//   return {
-//     values, // (Optional) Used to pass current form values to submit event.
-//     errors,
-//   }
-// }
 
 async function onMFAChange(event: any) {
   if (hasMFA.value === true) {
@@ -658,7 +638,7 @@ async function onFormSubmit({ valid }: any) {
           </div>
           <div class="text-gray-500 text-sm">{{ userModel.userEmailAddress }}</div>
         </div>
-        <div class="flex-2">
+        <!-- <div class="flex-2">
           <div class="flex justify-center" v-if="!hasMFA">
             <div class="flex flex-col gap-1">
               <label for="hasMFA" class="font-semibold w-24 mb-3">Enable MFA?</label>
@@ -678,7 +658,7 @@ async function onFormSubmit({ valid }: any) {
               <p class="text-red-500 font-semibold w-24 mb-3">MFA Enabled</p>
             </div>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
     <div class="card grid grid-cols-1 gap-4 justify-center">
@@ -843,6 +823,7 @@ async function onFormSubmit({ valid }: any) {
                   optionLabel="name"
                   optionValue="id"
                   placeholder="Select Role"
+                  @change="onRoleChange($event)"
                 />
               </div>
               <div class="bg-gray-50 col-span-2 pt-10">
@@ -850,24 +831,19 @@ async function onFormSubmit({ valid }: any) {
               </div>
               <div class="flex flex-col-6 gap-1">
                 <div
-                  v-for="permission of permissions"
-                  :key="permission.id"
+                  v-for="permission of permissionKeys"
+                  :key="permission.key"
                   class="flex items-center gap-2 m-2"
                 >
-                  <CheckboxGroup
+                  <Checkbox
                     v-model="selectedPermissions"
-                    name="permissions"
+                    :inputId="permission.key"
+                    name="permission"
+                    :value="permission"
+                    class="mr-2"
                     v-on:update:model-value="onPermissionsChange"
-                  >
-                    <Checkbox
-                      v-model="selectedPermissions"
-                      :inputId="permission.id.toString()"
-                      name="permission"
-                      :value="permission.name"
-                      class="mr-2"
-                    />
-                    <label :for="permission.id.toString()">{{ permission.name }}</label>
-                  </CheckboxGroup>
+                  />
+                  <label :for="permission.key">{{ permission.name }}</label>
                 </div>
               </div>
             </div>

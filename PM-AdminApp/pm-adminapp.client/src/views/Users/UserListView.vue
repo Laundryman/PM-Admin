@@ -396,7 +396,7 @@ const getCountryName = (countryId: string) => {
       currentPageReportTemplate="Showing {first} to {last} of {totalRecords} users"
     >
       <template #header>
-        <div class="flex flex-wrap gap-2 align-items-center justify-content-between">
+        <div class="flex flex-wrap gap-2 items-center justify-between">
           <h4 class="m-0">Manage Users</h4>
           <IconField iconPosition="left">
             <InputIcon>
