@@ -10,7 +10,7 @@ export class ActionReportDto {
 
   planoName?: string
 
-  objectName?: string
+  // objectName?: string
 
   // roles?: string
 

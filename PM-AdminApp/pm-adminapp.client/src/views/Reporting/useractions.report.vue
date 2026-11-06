@@ -214,8 +214,8 @@ async function getUserActionsReport() {
 
 const exportCSV = () => {
   // dt.value.exportCSV()
-
-  var rows = reportData.value
+  // const rows = reportData.value.map(({ objectName, ...row }) => row)
+  const rows = reportData.value
   if (!rows || rows.length === 0) {
     toast.add({
       severity: 'warn',

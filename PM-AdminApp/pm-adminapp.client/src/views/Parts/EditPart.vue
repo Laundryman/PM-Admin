@@ -228,6 +228,7 @@ onMounted(async () => {
   let productFilter = new ProductFilter()
   productFilter.brandId = brandid
   productFilter.categoryId = partModel.value.categoryId || 0
+  productFilter.isPublished = true
   await productStore.getProductsByCategory(productFilter).then((response) => {
     ms_productList.value = response ?? null
     // console.log('Products loaded', ms_productList.value)

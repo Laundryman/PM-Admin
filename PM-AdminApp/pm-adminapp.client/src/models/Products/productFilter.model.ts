@@ -7,5 +7,6 @@ export class ProductFilter {
   partId!: number
   countriesList!: string
   // standTypeId!: number
+  isPublished!: boolean
   // searchText!: string
 }
