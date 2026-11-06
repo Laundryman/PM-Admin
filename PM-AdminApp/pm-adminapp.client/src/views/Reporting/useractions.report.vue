@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ActionReportDto } from '@/models/Reporting/ActionReportDto.model'
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, useTemplateRef, watch } from 'vue'
 // import UserService from '@/services/UserService.js'
 import { useLocationFilters } from '@/components/composables/locationFilters'
 import { regionFilter } from '@/models/Countries/regionFilter.model'
@@ -11,6 +11,7 @@ import { default as auditService } from '@/services/Reporting/AuditService'
 import { useBrandStore } from '@/stores/brandStore'
 import { useSystemStore } from '@/stores/systemStore'
 import { FilterMatchMode } from '@primevue/core/api/'
+import type { FormInstance } from '@primevue/forms'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
@@ -23,6 +24,7 @@ const { regions, countries } = useLocationFilters()
 const selectedRegion = ref()
 const selectedCountry = ref()
 const selectedAction = ref()
+const reportFilter = useTemplateRef<FormInstance>('reportFilter')
 const dt = ref()
 const actions = ref([
   { label: 'Create Planogram', value: ActionTypeEnum.CreatePlano },
@@ -61,14 +63,28 @@ const filters = ref({
   permissions: { value: null, matchMode: FilterMatchMode.EQUALS },
 })
 
-const resolver = ref(
-  zodResolver(
-    z.object({
-      startDate: z.date({ message: 'Start Date is required.' }),
-      endDate: z.date({ message: 'End Date is required.' }),
-    }),
-  ),
-)
+const baseSchema = z.object({
+  startDate: z.date({ message: 'Start Date is required.' }),
+  endDate: z.date({ message: 'End Date is required.' }),
+})
+
+// const startDateSchema = baseSchema.refine(
+//   (data) => {
+//     if (data.startDate != null && data.endDate == null) {
+//       return false
+//     }
+//     return true
+//   },
+//   {
+//     message: 'Job date range requires a start and end date',
+//     path: ['startDate'],
+//     when(payload) {
+//       return baseSchema.pick({ startDate: true }).safeParse(payload.value).success
+//     },
+//   },
+// )
+
+const resolver = ref(zodResolver(baseSchema))
 
 watch(brand, async (newBrand) => {
   if (newBrand) {
@@ -130,6 +146,15 @@ async function clearFilters() {
     regions.value = response
     console.log('Regions loaded', regions.value)
   })
+
+  const startDateField = reportFilter.value.fields?.['startDate']
+  const endDateField = reportFilter.value.fields?.['endDate']
+  startDateField.states.value = null
+  startDateField.states.invalid = false
+  startDateField.states.error = null
+  endDateField.states.value = null
+  endDateField.states.invalid = false
+  endDateField.states.error = null
 }
 
 function onActionChange() {
@@ -141,6 +166,15 @@ function onActionChange() {
 }
 
 async function getUserActionsReport() {
+  if (!reportFilter.value?.valid) {
+    toast.add({
+      severity: 'error',
+      summary: 'Invalid Filters',
+      detail: 'Please correct the filter errors before generating the report.',
+      life: 3000,
+    })
+    return
+  }
   let filter = new ReportingFilter()
   filter.brandId = brandStore.activeBrand?.id ?? 0
   filter.regionId = selectedRegion.value ?? null
@@ -153,7 +187,15 @@ async function getUserActionsReport() {
   const response = await auditService.getUserActionsReport(filter)
   reportData.value = response
   if (response) {
-    console.log('User Actions Report', response)
+    if (response.length === 0) {
+      toast.add({
+        severity: 'warn',
+        summary: 'No Data',
+        detail: 'No data available for the selected filters.',
+        life: 3000,
+      })
+      return
+    }
     toast.add({
       severity: 'success',
       summary: 'Report Generated',
@@ -196,6 +238,7 @@ const exportCSV = () => {
     <!-- Product list content goes here -->
     <Form
       v-slot="$form"
+      ref="reportFilter"
       :resolver="resolver"
       @submit="getUserActionsReport"
       class="grid grid-cols-4 gap-4 mb-10"

@@ -252,6 +252,11 @@ async function saveJobFolder(jobFolder: JobFolder) {
       await jobsService
         .updateJobFolder(jobFolder)
         .then((response) => {
+          //update the list to reflect the update
+          const jobFolder = jobFolders.value?.find((s) => s.id === response.id)
+          if (jobFolder !== undefined) {
+            Object.assign(jobFolder, response)
+          }
           toast.add({
             severity: 'success',
             summary: 'Successful',
@@ -260,7 +265,7 @@ async function saveJobFolder(jobFolder: JobFolder) {
           })
         })
         .catch((error) => {
-          console.error('Error updating job folder:', error)
+          console.log('Error updating job folder:', error)
         })
     } else {
       jobFolder.id = 0

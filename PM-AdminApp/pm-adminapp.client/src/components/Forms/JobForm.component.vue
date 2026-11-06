@@ -202,7 +202,7 @@ const resolver = ref(zodResolver(dateRangeSchema))
 
 function validateDateRange() {
   const dateRangeField = jobFormTemplateRef.value.fields?.['jobDateRange']
-  console.log(dateRangeField)
+  // console.log(dateRangeField)
   const dateRange = dateRangeField.states.value
 
   if (dateRange && dateRange.length === 2) {

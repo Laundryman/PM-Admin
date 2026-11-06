@@ -99,6 +99,9 @@ namespace PM_AdminApp.Server.Controllers
                     return BadRequest("Invalid JobFolder object");
                 }
 
+                //var jobFolder = new JobFolder();
+                //_mapper.Map(jobFolderDto, jobFolder);
+
                 var id = jobFolderDto.Id;
                 var jobFolderFilter = new JobFolderFilter() { Id = id };
                 jobFolderFilter.IncludeChildren = true; 
@@ -111,54 +114,37 @@ namespace PM_AdminApp.Server.Controllers
                     return NotFound();
                 }
 
+                if (jobFolderDto.Name != null)
+                    folderEdit.Name = jobFolderDto.Name;
+                if (jobFolderDto.Description != null)
+                    folderEdit.Description = jobFolderDto.Description;
+
+
+
+                await _jobFolderRepository.UpdateAsync(folderEdit);
                 //map updates to part
                 if (jobFolderDto.BrandId != 0)
                 {
                     folderEdit.BrandId = jobFolderDto.BrandId;
+                    folderEdit.Brand = null;
                 }
                 if (jobFolderDto.RegionId != null)
                 {
                     folderEdit.RegionId = jobFolderDto.RegionId;
                 }
 
-                if (jobFolderDto.Countries != null)
-                {
-                    var countriesToAdd = new List<Country>();
-                    var countriesToRemove = new List<Country>();
-
-                    foreach (var country in folderEdit.Countries.ToList())
-                    {       
-                        var keepCountry = jobFolderDto.Countries.FirstOrDefault(c => c.Id == country.Id);
-                        if (keepCountry == null)
-                        {
-                            folderEdit.Countries.Remove(country);
-                        }
-                    }
-
-                    foreach (var cntry in jobFolderDto.Countries)
-                    {
-                        var country = folderEdit.Countries.Where(c => c.Id == cntry.Id).FirstOrDefault();
-                        if (country == null)
-                        {
-                            var newCountry = await _countryRepository.GetByIdAsync(cntry.Id);
-                            if (newCountry != null)
-                            {
-                                folderEdit.Countries.Add(newCountry);
-                            }
-                        }
-                    }
-                }
-
-                    if (jobFolderDto.Name != null)
-                        folderEdit.Name = jobFolderDto.Name;
-                    if (jobFolderDto.Description != null)
-                        folderEdit.Description = jobFolderDto.Description;
-
-
-
+                await UpdateCountryCollection(folderEdit, jobFolderDto);
                 await _jobFolderRepository.UpdateAsync(folderEdit);
 
-                return Ok(folderEdit);
+
+
+                //var responseFilter = new JobFolderFilter();
+                //responseFilter.Id = folderEdit.Id;
+
+                //var responseFolderSpecification = new JobFolderSpecification(responseFilter);
+                //var responseFolder = await _jobFolderRepository.FirstAsync(responseFolderSpecification);
+                var responseFolder = _mapper.Map<JobFolderDto>(folderEdit);
+                return Ok(responseFolder);
             }
             catch (Exception ex)
             {

@@ -91,18 +91,21 @@ function clearCountryFilterSelection() {
   // emits('clearCountryFilterSelection')
   folder_selectedCountries.value = []
   jobFolder.value.countries = []
+  jobFolderEdit.value.countries = []
   jobFolder.value.region = new Region()
 }
-function setInitialJobFolderFormValues() {
+async function setInitialJobFolderFormValues() {
   // jobFolderEdit.value = Object.assign({}, props.jobFolder)
-  folderManagement.setRegionSelectList(props.regions ?? [])
-  folderManagement.onFolderRegionChange(props.jobFolder.regionId ?? null)
+  await folderManagement.setRegionSelectList(props.regions ?? [])
+  await folderManagement.onFolderRegionChange(props.jobFolder.regionId ?? null)
+
   folder_regionSelectList.value = props.regions ?? []
 
   if (props.jobFolder.id) {
     initialJobFolderValues.value.name = props.jobFolder.name ?? ''
     initialJobFolderValues.value.description = props.jobFolder.description ?? ''
     initialJobFolderValues.value.region = props.jobFolder.region.id ?? 0
+    folderSelectedRegion.value = props.jobFolder.region.id ?? 0
     initialJobFolderValues.value.countries = props.jobFolder.countries.map((c) => c.id) ?? []
     jobFolderFormTemplateRef.value?.setValues({ ...initialJobFolderValues.value })
     jobFolder.value.countries = props.jobFolder.countries ?? []
