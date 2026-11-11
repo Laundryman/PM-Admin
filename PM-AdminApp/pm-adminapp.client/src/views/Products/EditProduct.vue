@@ -23,11 +23,12 @@ import { useProductStore } from '@/stores/productStore'
 import { useSystemStore } from '@/stores/systemStore'
 import type { FormInstance } from '@primevue/forms'
 import { Form } from '@primevue/forms'
+import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
-
+import { z } from 'zod'
 
 const brandStore = useBrandStore()
 const partStore = usePartStore()
@@ -42,13 +43,32 @@ const partTypeComposable = usePartTypes()
 const standTypeComposable = useStandTypes()
 
 const { product } = storeToRefs(productStore)
-const productModel = ref<Product>(new Product())
+const productModel = ref<Product>(new Product({
+  name: "",
+  fullDescription: "",
+  shortDescription: "",
+  brandId: 0,
+  categoryId: 0,
+  parentCategoryId: 0,
+  categoryName: "",
+  parentCategoryName: "",
+  productImage: "",
+  dateCreated: new Date(),
+  dateUpdated: new Date(),
+  published: false,
+  discontinued: false,
+  countriesList: "",
+  regionsList: "",
+  regions: [],
+  countries: [],
+  shades: []
+}))
 
 
 const toast = useToast()
 const regionSelectList = ref<Region[] | null>(null)
 const selectedRegion = ref()
-const ms_selectedRegions = ref<number[] | null>(null) // MultiSelect binding
+const ms_selectedRegions = ref<number[]>([]) // MultiSelect binding
 const ms_selectedCountries = ref<number[]>([]) // MultiSelect binding
 const selectAllCountries = ref(false)
 const selectAllProducts = ref(false)
@@ -73,7 +93,6 @@ const imageFile = ref<File | null>(null)
 const tabId = ref('0')
 const productForm = useProductForm()
 const productFormTemplateRef = useTemplateRef<FormInstance>('product-form')
-const initialValues = ref(new Product())
 const newProduct = ref(false);
 const editProduct = ref(false)
 const copyProduct = ref(false)
@@ -90,6 +109,30 @@ const initialShadeValues = ref({
   shadeDescription: '',
   countries: [] as number[],
 })
+
+
+const initialProductValues = ref({
+  name: productModel.value.name,
+  fullDescription: productModel.value.fullDescription,
+  // brandId: productModel.value.brandId,
+  categoryId: productModel.value.categoryId,
+  parentCategoryId: productModel.value.parentCategoryId,
+
+  // categoryName: productModel.value.categoryName,
+  // parentCategoryName: productModel.value.parentCategoryName,
+  // productImage: productModel.value.productImage,
+  // dateCreated: productModel.value.dateCreated,
+  // dateUpdated: productModel.value.dateUpdated,
+  // published: productModel.value.published,
+  // discontinued: productModel.value.discontinued,
+  // countriesList: productModel.value.countriesList,
+  // regionsList: productModel.value.regionsList,
+  // regions: productModel.value.regions,
+  // countries: productModel.value.countries,
+  // shades: productModel.value.shades
+})
+
+
 
 /////////////////////////////////////////////////////
 // Lifecycle Hooks
@@ -129,6 +172,28 @@ onMounted(async () => {
 
       }
   }
+  else {
+    productModel.value = new Product({
+      name: "",
+      fullDescription: "",
+      shortDescription: "",
+      brandId: 0,
+      categoryId: 0,
+      parentCategoryId: 0,
+      categoryName: "",
+      parentCategoryName: "",
+      productImage: "",
+      dateCreated: new Date(),
+      dateUpdated: new Date(),
+      published: false,
+      discontinued: false,
+      countriesList: "",
+      regionsList: "",
+      regions: [],
+      countries: [],
+      shades: []
+    })
+  }
   if (productFilter.id != 0) {
     newProduct.value = false;
     await productStore.getShadesForProduct(productFilter.id).then((response) => {
@@ -139,12 +204,15 @@ onMounted(async () => {
   else {
     shades.value = []
   }
-  productModel.value = { ...product.value } as Product //clone(product.value)
+  if (router.currentRoute.value.name === 'editProduct' || router.currentRoute.value.name === 'copyProduct') {
+    productModel.value = { ...product.value } as Product //clone(product.value)
+  }
 
 
   if (router.currentRoute.value.name === 'newProduct') {
     shadeNotEditableMessage.value = 'Please save the product before adding shades'
     productModel.value.brandId = brandStore.activeBrand?.id ?? 0
+    productModel.value.fullDescription = ''
     newProduct.value = true
     shadeEditable.value = false
   }
@@ -209,6 +277,7 @@ onMounted(async () => {
 })
 
 function initialiseProductForm() {
+  // var fields = productFormTemplateRef.value?.fields() ?? []
   productFormTemplateRef.value?.setValues({ ...productModel.value })
 }
 
@@ -240,6 +309,38 @@ async function onRegionChange(evt: any) {
   productModel.value.regionsList = productModel.value.regions?.map((r) => r.id).join(',') || ''
 }
 
+async function onSelectAllRegionsChange() {
+  ms_selectedRegions.value = regionSelectList.value?.map((item) => item.id) ?? []
+  countrySelectList.value = await locationFilters.getCountriesForRegions(ms_selectedRegions.value)
+  //remove any countries no longer in the list
+  let newSelectList = ms_selectedCountries.value?.filter((countryId) =>
+    countrySelectList.value?.some((c) => c.id === countryId),
+  )
+  if (newSelectList) {
+    ms_selectedCountries.value = newSelectList
+  } else {
+    ms_selectedCountries.value = []
+  }
+  shademanagement.setCountrySelectList(countrySelectList.value, ms_selectedCountries.value) // pass country list to shade management composable - need to filter only selected contries on the product
+
+  multiSelectLists.manageSelectedValues(ms_selectedRegions.value, regionSelectList.value ?? [], productModel.value.regions ?? [])
+  multiSelectLists.manageSelectedValues(
+    ms_selectedCountries.value ?? [],
+    countrySelectList.value ?? [],
+    productModel.value.countries ?? [],
+  )
+
+  productModel.value.regions = ms_selectedRegions.value.map((regionId) => regionSelectList.value.find((r) => r.id === regionId)).filter((r) => r !== undefined)
+  productModel.value.regionsList = productModel.value.regions?.map((r) => r.id).join(',') || ''
+}
+
+function clearRegionSelection() {
+  ms_selectedRegions.value = []
+  productModel.value.regions = []
+  productModel.value.regionsList = ''
+  clearCountrySelection()
+}
+
 async function onCountryChange(evt: any) {
   // manageSelectedCountries(evt.value)
   multiSelectLists.manageSelectedValues(evt.value, countrySelectList.value ?? [], productModel.value.countries ?? [])
@@ -252,10 +353,8 @@ async function onCountryChange(evt: any) {
 }
 
 function onSelectAllCountriesChange(event: any) {
-  ms_selectedCountries.value = event.checked
-    ? (countrySelectList.value?.map((item) => item.id) ?? [])
-    : []
-  selectAllCountries.value = event.checked
+  ms_selectedCountries.value = (countrySelectList.value?.map((item) => item.id) ?? [])
+  selectAllCountries.value = true
   multiSelectLists.manageSelectedValues(
     ms_selectedCountries.value,
     countrySelectList.value ?? [],
@@ -266,13 +365,15 @@ function onSelectAllCountriesChange(event: any) {
     shadeEditable.value = ms_selectedCountries.value.length > 0
 }
 
+
 function clearCountrySelection() {
   ms_selectedCountries.value = []
   productModel.value.countries = []
   productModel.value.countriesList = ''
 }
 
-
+  const isRegionSelected = (region) => ms_selectedRegions.value.includes(region.id);
+const isCountrySelected = (country) => ms_selectedCountries.value.includes(country.id);
 
 //////////////////////////////////////////////////////
 // Image Handlers
@@ -326,28 +427,58 @@ async function onChildCategoryChange() {
 /////////////////////////////////////////////////////
 // Form Handlers
 /////////////////////////////////////////////////////
-const resolver = ({ values }: any) => {
-  const errors = {} as any
+// const resolver = ({ values }: any) => {
+//   const errors = {} as any
 
-  if (!values.name) {
-    errors.name = [{ message: 'Name is required.' }]
+//   if (!values.name) {
+//     errors.name = [{ message: 'Name is required.' }]
+//   }
+//   if (!values.fullDescription) {
+//     errors.fullDescription = [{ message: 'Description is required.' }]
+//   }
+//   if (!values.categoryId) {
+//     errors.categoryId = [{ message: 'Category is required.' }]
+//   }
+//   if (!values.parentCategoryId) {
+//     errors.parentCategoryId = [{ message: 'Parent Category is required.' }]
+//   }
+//   return {
+//     values, // (Optional) Used to pass current form values to submit event.
+//     errors,
+//   }
+// }
+
+
+const baseSchema = z.object({
+  name: z.string().regex(/^[a-zA-Z0-9 !@#$£&()\\-_`.+,"]+$/u, {
+    message: 'Name is required and can only contain alphanumeric characters plus some special characters.',
+  }),
+  fullDescription: z.string().regex(/^[a-zA-Z0-9 !@#$£&()\\-_`.+,"]+$/u, {
+    message: 'Description is required and can only contain alphanumeric characters plus some special characters..',
+  }),
+  msregions: z.array(z.number()).min(1, { message: 'At least one region is required.' }),
+  countries: z.array(z.number()).min(1, { message: 'At least one country is required.' }),
+  categoryId: z.number().min(1, { message: 'Category is required.' }),
+  parentCategoryId: z.number().min(1, { message: 'Parent Category is required.' }),
+
+})
+const resolver = ref(zodResolver(baseSchema))
+
+function validateCountrySelection() {
+  const countriesField = productFormTemplateRef.value.fields?.['countries']
+  if (!ms_selectedCountries || ms_selectedCountries.value.length === 0) {
+    countriesField.states.invalid = true
+    countriesField.states.error = { message: 'At least one country is required' }
+    return false
   }
-  if (!values.fullDescription) {
-    errors.fullDescription = [{ message: 'Description is required.' }]
-  }
-  if (!values.categoryId) {
-    errors.categoryId = [{ message: 'Category is required.' }]
-  }
-  if (!values.parentCategoryId) {
-    errors.parentCategoryId = [{ message: 'Parent Category is required.' }]
-  }
-  return {
-    values, // (Optional) Used to pass current form values to submit event.
-    errors,
-  }
+  return true
 }
 
+
 async function onFormSubmit({ valid }: any) {
+  if (!validateCountrySelection()) {
+    return
+  }
   if (valid) {
     let productData = productForm.createProductFormData(productModel)
     if (imageFile.value) {
@@ -492,6 +623,14 @@ async function saveShade(updateShade: Shade) {
   }
 }
 
+function onCancel() {
+  router.back()
+}
+
+const textFieldInputTooltip = `<div class="flex items-center">
+  <span>Text fields can only contain alphanumeric characters plus some special characters.</span>
+  <div class="ml-2">! @ # $ £ & ( ) - _ \` . + , </div>
+  </div>`
 </script>
 
 
@@ -544,7 +683,7 @@ async function saveShade(updateShade: Shade) {
       <Form
         ref="product-form"
         v-slot="$form"
-        :initialValues
+        :initialValues="initialProductValues"
         :resolver
         @submit="onFormSubmit"
         class="grid grid-cols-2 gap- w-full p-20 pt-0"
@@ -552,12 +691,24 @@ async function saveShade(updateShade: Shade) {
         <div class="bg-gray-50 col-span-2 p-10 mb-5">
           <fieldset legend="Part Details" class="col-span-2">
             <legend class="text-lg font-bold mb-2">Visibility</legend>
-            <div class="grid grid-cols-2 gap-10">
+            <div class="grid grid-cols-3 gap-10">
               <div class="flex flex-col gap-1">
                 <label for="published">Discontinued:</label>
                 <ToggleButton
                   name="published"
                   v-model="productModel.discontinued"
+                  onLabel="Yes"
+                  offLabel="No"
+                  onIcon="pi pi-check"
+                  offIcon="pi pi-times"
+                  class="w-24 mt-2"
+                ></ToggleButton>
+              </div>
+              <div class="flex flex-col gap-1">
+                <label for="published">Published:</label>
+                <ToggleButton
+                  name="published"
+                  v-model="productModel.published"
                   onLabel="Yes"
                   offLabel="No"
                   onIcon="pi pi-check"
@@ -595,9 +746,10 @@ async function saveShade(updateShade: Shade) {
               <div class="flex flex-col gap-1">
                 <label for="name">Product Name:</label>
                 <InputText
+                v-tooltip="{ value: textFieldInputTooltip, escape: false}"
                   v-model="productModel.name"
-                  name="name"
                   :value="productModel.name"
+                  name="name"
                   type="text"
                   length="255"
                   placeholder="Product Name"
@@ -612,21 +764,23 @@ async function saveShade(updateShade: Shade) {
                 >
               </div>
               <div class="flex flex-col gap-1">
-                <label for="description">Description:</label>
+                <label for="fullDescription">Description:</label>
                 <InputText
+                v-tooltip="{ value: textFieldInputTooltip, escape: false}"
                   v-model="productModel.fullDescription"
-                  name="description"
+                  :value="productModel.fullDescription"
+                  name="fullDescription"
                   type="text"
                   length="255"
                   placeholder="Description"
                   fluid
                 />
                 <Message
-                  v-if="$form.description?.invalid"
+                  v-if="$form.fullDescription?.invalid"
                   severity="error"
                   size="small"
                   variant="simple"
-                  >{{ $form.description.error?.message }}</Message
+                  >{{ $form.fullDescription.error?.message }}</Message
                 >
               </div>
             </div>
@@ -638,8 +792,9 @@ async function saveShade(updateShade: Shade) {
             <div class="grid grid-cols-3 gap-10">
               <div class="flex flex-col gap-2">
                 <label for="region">Region:</label>
-                <MultiSelect
+                <Select
                   name="region"
+                  multiple
                   v-model="ms_selectedRegions"
                   :options="regionSelectList ?? []"
                   id="region"
@@ -648,16 +803,52 @@ async function saveShade(updateShade: Shade) {
                   option-value="id"
                   @change="onRegionChange"
                 >
-                  <template #option="option">
-                    <div class="flex align-items-center">
-                      <span>{{ option.option.name }}</span>
-                    </div>
-                  </template>
-                </MultiSelect>
+                            <template #header>
+                <div class="flex items-center gap-1 px-3 pt-2">
+                    <Button variant="text" size="small" @click="onSelectAllRegionsChange()">Select All</Button>
+                    <Button variant="text" size="small" severity="secondary" @click="clearRegionSelection">Clear</Button>
+                </div>
+
+            </template>
+            <template #option="slotProps">
+                <div class="flex items-center gap-2">
+                    <Checkbox :modelValue="isRegionSelected(slotProps.option)" binary :tabindex="-1" readonly />
+                    <span>{{ slotProps.option.name }}</span>
+                </div>
+            </template>
+
+                </Select>
               </div>
               <div class="flex flex-col gap-2">
                 <label for="country">Country:</label>
-                <MultiSelect
+                <Select
+                  placeholder="Select a region first"
+                  multiple
+                  name="country"
+                  v-model="ms_selectedCountries"
+                  :options="countrySelectList ?? []"
+                  id="country"
+                  class="w-full"
+                  option-label="name"
+                  option-value="id"
+                  @change="onCountryChange"
+                >
+                            <template #header>
+                <div class="flex items-center gap-1 px-3 pt-2">
+                    <Button variant="text" size="small" @click="onSelectAllCountriesChange($event)">Select All</Button>
+                    <Button variant="text" size="small" severity="secondary" @click="clearCountrySelection">Clear</Button>
+                </div>
+
+            </template>
+            <template #option="slotProps">
+                <div class="flex items-center gap-2">
+                    <Checkbox :modelValue="isCountrySelected(slotProps.option)" binary :tabindex="-1" readonly />
+                    <span>{{ slotProps.option.name }}</span>
+                </div>
+            </template>
+                </Select>
+                <!-- <MultiSelect
+                  v-tooltip="'select a region first'"
                   name="countries"
                   v-model="ms_selectedCountries"
                   :options="countrySelectList ?? []"
@@ -674,7 +865,7 @@ async function saveShade(updateShade: Shade) {
                       <span>{{ option.option.name }}</span>
                     </div>
                   </template>
-                </MultiSelect>
+                </MultiSelect> -->
                 <Message
                   v-if="$form.countries?.invalid"
                   severity="error"
@@ -703,11 +894,11 @@ async function saveShade(updateShade: Shade) {
               <div class="flex flex-col gap-2">
                 <label for="parentCategory">Parent Category:</label>
                 <Select
-                  name="ParentCategory"
+                  name="parentCategoryId"
                   v-model="selectedParentCategoryId"
                   :options="parentCategories ?? []"
                   @change="onParentCategoryChange"
-                  id="parentCategory"
+                  id="parentCategoryId"
                   class="w-full"
                   option-label="name"
                   option-value="id"
@@ -731,8 +922,8 @@ async function saveShade(updateShade: Shade) {
                 <Select
                   v-model="selectedChildCategory"
                   :options="childCategories ?? []"
-                  name="childCategory"
-                  id="childCategory"
+                  name="categoryId"
+                  id="categoryId"
                   class="w-full"
                   option-label="name"
                   option-value="id"
@@ -745,11 +936,11 @@ async function saveShade(updateShade: Shade) {
                   </template>
                 </Select>
                 <Message
-                  v-if="$form.childCategoryId?.invalid"
+                  v-if="$form.categoryId?.invalid"
                   severity="error"
                   size="small"
                   variant="simple"
-                  >{{ $form.childCategoryId.error?.message }}</Message
+                  >{{ $form.categoryId.error?.message }}</Message
                 >
               </div>
             </div>
@@ -757,8 +948,15 @@ async function saveShade(updateShade: Shade) {
         </div>
 
 
-        <Button type="submit" severity="primary" label="Submit" />
-      </Form>
+                  <Button
+                    type="button"
+                    label="Cancel"
+                    severity="secondary"
+                    class="mr-2 w-1/2"
+                    @click="onCancel"
+                  />
+                  <Button type="submit" severity="primary" label="Submit" class="w-1/2 ml-2" />
+                </Form>
 
      </TabPanel>
      <TabPanel value="1">
@@ -844,9 +1042,9 @@ async function saveShade(updateShade: Shade) {
                   >
         </div>
                   <div>
-          <label for="description" class="block font-bold mb-3">Description</label>
+          <label for="shadeDescription" class="block font-bold mb-3">Description</label>
           <InputText
-            id="description"
+            id="shadeDescription"
             name="shadeDescription"
             v-model.trim="shade.shadeDescription"
             autofocus
@@ -905,9 +1103,18 @@ async function saveShade(updateShade: Shade) {
               </div>
             </div>
                 <div class="flex gap-2 justify-between">
-                  <Button type="submit" severity="primary" class="w-60" :fluid="false"
+                  <!-- <Button type="submit" severity="primary" class="w-60" :fluid="false"
                     >Save Shade</Button
-                  >
+                  > -->
+                  <Button
+                    type="button"
+                    label="Cancel"
+                    severity="secondary"
+                    class="ml-2 w-1/2"
+                    @click="shadeDialog = false"
+                  />
+                  <Button type="submit" severity="primary" label="Submit" :fluid="false" class="w-1/2 mr-2" />
+
                 </div>
       </div>
       </Form>

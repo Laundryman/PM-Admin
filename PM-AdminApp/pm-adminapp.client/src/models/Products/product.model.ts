@@ -23,8 +23,8 @@ export class Product {
   regions!: Region[]
   countries: Country[] = []
   shades: Shade[] = []
-  contstructor() {
-    this.id = 0
+  constructor(init?: Partial<Product>) {
+    Object.assign(this, init)
   }
 }
 

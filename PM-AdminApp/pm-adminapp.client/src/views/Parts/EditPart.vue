@@ -145,6 +145,8 @@ onMounted(async () => {
   if (router.currentRoute.value.name === 'newPart') {
     newPart.value = true
     partModel.value.brandId = brandStore.activeBrand?.id ?? 0
+    partModel.value.regions = new Array<Region>()
+    partModel.value.countries = new Array<Country>()
   }
   if (router.currentRoute.value.name === 'editPart') {
     editPart.value = true
@@ -335,27 +337,29 @@ async function onRegionChange(evt: any) {
   let newSelectList = ms_selectedCountries.value?.filter((countryId) =>
     countrySelectList.value?.some((c) => c.id === countryId),
   )
+  manageSelectedValues(evt.value, regionSelectList.value ?? [], partModel.value.regions ?? [])
+
+  console.log('Selected Regions after change', ms_selectedRegions.value)
+  console.log('Part Model Regions after change', partModel.value)
+
+  partModel.value.regionsList = partModel.value.regions?.map((r) => r.id).join(',') || ''
+  console.log('Part Model Regions List after change', partModel.value.regionsList)
+
   if (newSelectList) {
     ms_selectedCountries.value = newSelectList
   } else {
     ms_selectedCountries.value = []
   }
-  manageSelectedValues(evt.value, regionSelectList.value ?? [], partModel.value.regions ?? [])
   manageSelectedValues(
     ms_selectedCountries.value ?? [],
     countrySelectList.value ?? [],
     partModel.value.countries ?? [],
   )
-
-  partModel.value.regionsList = partModel.value.regions?.map((r) => r.id).join(',') || ''
 }
 
 async function onCountryChange(evt: any) {
   // manageSelectedCountries(evt.value)
   manageSelectedValues(evt.value, countrySelectList.value ?? [], partModel.value.countries ?? [])
-  console.log('Selected Countries after region change', ms_selectedCountries.value)
-  console.log('Part Model Countries after region change', partModel.value.countries)
-  let someArray = partModel.value.countries ?? []
   if (partModel.value.products != null && partModel.value.products.length > 0) {
     await getProducts()
   }
@@ -628,6 +632,9 @@ async function onFormSubmit({ valid }: any) {
         })
       })
   }
+}
+function onCancel() {
+  router.back()
 }
 </script>
 
@@ -1210,7 +1217,14 @@ async function onFormSubmit({ valid }: any) {
           </fieldset>
         </div>
 
-        <Button type="submit" severity="primary" label="Submit" />
+        <Button
+          type="button"
+          label="Cancel"
+          severity="secondary"
+          class="mr-2 w-1/2"
+          @click="onCancel"
+        />
+        <Button type="submit" severity="primary" label="Submit" class="w-1/2 ml-2" />
       </Form>
     </div>
   </div>

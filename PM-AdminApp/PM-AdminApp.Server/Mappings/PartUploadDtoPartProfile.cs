@@ -46,7 +46,7 @@ namespace PM_AdminApp.Server.Mappings
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.CategoryName))
                 .ForMember(dest => dest.ParentCategoryName, opt => opt.MapFrom(src => src.ParentCategoryName))
                 .ForMember(dest => dest.PartTypeName, opt => opt.MapFrom(src => src.PartTypeName))
-                .ForMember(dest => dest.RegionsList, opt => opt.MapFrom(src => src.RegionList))
+                .ForMember(dest => dest.RegionsList, opt => opt.MapFrom(src => src.RegionsList))
                 .ForMember(dest => dest.StandTypeList, opt => opt.MapFrom(src => src.StandTypeList))
                 .ForMember(dest => dest.ProductList, opt => opt.MapFrom(src => src.ProductList))
                 .ForMember(dest => dest.BrandId, opt => opt.MapFrom(src => src.BrandId))

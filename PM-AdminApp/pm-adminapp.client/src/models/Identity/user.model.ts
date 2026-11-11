@@ -4,6 +4,9 @@ import type { Region } from '../Countries/region.model'
 import { Permission } from './permission.model'
 import { Role } from './role.model'
 export class User {
+  constructor(init?: Partial<User>) {
+    Object.assign(this, init)
+  }
   password!: string
   id!: string
   countryId!: number

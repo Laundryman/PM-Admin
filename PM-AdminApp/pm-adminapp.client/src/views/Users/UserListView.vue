@@ -25,7 +25,7 @@ const users = ref<User[]>([])
 const brands = ref<Brand[]>([])
 const countries = ref<Country[]>([])
 const roles = ref<Role[]>([])
-const userDialog = ref()
+// const userDialog = ref()
 const passwordDialog = ref()
 const deleteUserDialog = ref()
 const deleteUsersDialog = ref()
@@ -145,7 +145,7 @@ function editUser(usr: User) {
 
   selectedCountry.value = currentUser.value.DiamCountryId ?? null
 
-  userDialog.value = true
+  // userDialog.value = true
 }
 
 function manageUser(usr: User) {
@@ -175,7 +175,7 @@ const changePassword = (usr: any) => {
 }
 
 const hideDialog = () => {
-  userDialog.value = false
+  // userDialog.value = false
   passwordDialog.value = false
   submitted.value = false
 }
@@ -246,7 +246,7 @@ async function saveUser() {
             detail: 'User Updated',
             life: 3000,
           })
-          userDialog.value = false
+          // userDialog.value = false
           submitted.value = false
           // currentUser.value = {}
           // selectedBrands.value = []
@@ -274,7 +274,7 @@ async function saveUser() {
             detail: 'User Created',
             life: 4000,
           })
-          userDialog.value = false
+          // userDialog.value = false
           submitted.value = false
           currentUser.value = {}
           selectedBrands.value = []
@@ -310,6 +310,7 @@ const showDeleteUserDialog = (usr: any) => {
 
 async function deleteSelectedUser(usr: any) {
   users.value = users.value.filter((val: any) => val.id !== usr.id)
+  const userName = usr.givenName + ' ' + usr.surname
   await UserService.deleteUser(usr.id)
     .then(() => {
       // User successfully deleted
@@ -318,7 +319,7 @@ async function deleteSelectedUser(usr: any) {
       toast.add({
         severity: 'success',
         summary: 'Successful',
-        detail: 'User ' + usr.name + ' Deleted',
+        detail: 'User: ' + userName + ' Deleted',
         life: 5000,
       })
     })
@@ -367,7 +368,7 @@ const getCountryName = (countryId: string) => {
   <div class="card">
     <Toolbar class="mb-4">
       <template #end>
-        <Button label="New" icon="pi pi-plus" severity="success" class="mr-2" @click="createUser" />
+        <Button label="New" icon="pi pi-plus" severity="primary" class="mr-2" @click="createUser" />
         <!-- <Button
           label="Delete"
           icon="pi pi-trash"
@@ -507,150 +508,6 @@ const getCountryName = (countryId: string) => {
       </Column>
     </DataTable>
   </div>
-
-  <Dialog v-model:visible="userDialog" :style="{ width: '50rem' }" :modal="true" class="p-fluid">
-    <template #header>
-      <div class="inline-flex items-center justify-center gap-2">
-        <span class="font-bold whitespace-nowrap">{{
-          currentUser.userName ?? currentUser.displayName
-        }}</span>
-      </div>
-    </template>
-    <span class="font-semibold block mb-8">Update user information.</span>
-    <div class="flex items-center gap-4 mb-4" v-if="currentUser.displayName">
-      <label for="name">User Name</label>
-      <InputText
-        id="name"
-        v-model.trim="currentUser.userName"
-        required="false"
-        autocomplete="one-time-code"
-        autofocus
-        disabled="true"
-      />
-      <small class="p-error" v-if="submitted && !currentUser.givenName">Name is required.</small>
-    </div>
-    <div class="flex items-center gap-4 mb-4" v-else>
-      <label for="username" class="font-semibold w-24">Username</label>
-      <InputText
-        id="name"
-        v-model.trim="currentUser.newUserName"
-        required="true"
-        autocomplete="one-time-code"
-        autofocus
-        class="w-3/4"
-      />
-      <small class="p-error" v-if="submitted && !currentUser.givenName">Name is required.</small>
-    </div>
-
-    <div class="flex items-center gap-4 mb-4">
-      <!-- <label for="DiamUserId">Diam User Id</label>
-      <Textarea
-        id="diamUserId"
-        v-model="currentUser.DiamUserId"
-        required="true"
-        rows="3"
-        cols="20"
-      /> -->
-    </div>
-    <div class="flex items-center gap-4 mb-4">
-      <label for="GivenName" class="font-semibold w-24">First Name</label>
-      <InputText id="givenName" v-model="currentUser.givenName" required="true" class="w-3/4" />
-    </div>
-    <div class="flex items-center gap-4 mb-4">
-      <label for="Surname" class="font-semibold w-24">Surname</label>
-      <InputText id="surname" v-model="currentUser.surname" required="true" class="w-3/4" />
-    </div>
-    <div class="flex items-center gap-4 mb-4">
-      <label for="UserEmailAddress" class="font-semibold w-24">Email</label>
-      <InputText
-        id="UserEmailAddress"
-        v-model="currentUser.userEmailAddress"
-        required="true"
-        class="w-3/4"
-      />
-    </div>
-    <div class="flex items-center gap-4 mb-4" v-if="!currentUser.id">
-      <label for="Password" class="font-semibold w-24">Password</label>
-      <div class="flex w-3/4 flex-column">
-        <Password
-          v-model="newPassword"
-          toggleMask
-          :inputProps="{ autocomplete: 'one-time-code' }"
-          :style="{ width: '100%' }"
-          :inputStyle="{ width: '100%' }"
-        >
-          <template #header>
-            <h6>Pick a password</h6>
-          </template>
-          <template #footer>
-            <Divider />
-            <p class="mt-2">Suggestions</p>
-            <ul class="pl-2 ml-2 mt-0" style="line-height: 1.5">
-              <li>At least one lowercase</li>
-              <li>At least one uppercase</li>
-              <li>At least one numeric</li>
-              <li>Minimum 8 characters</li>
-            </ul>
-          </template>
-        </Password>
-        <small class="p-error" v-if="submitted && !newPassword">Password is required.</small>
-      </div>
-    </div>
-
-    <div class="flex items-center gap-4 mb-4">
-      <label for="ddCountries" class="font-semibold w-24 mb-3">Selected Country</label>
-      <Select
-        id="ddCountries"
-        v-model="currentUser.diamCountryId"
-        :options="countries"
-        optionValue="id"
-        optionLabel="name"
-        placeholder="Select a Country"
-        :invalid="submitted && !currentUser.diamCountryId"
-      >
-        <!-- <template #value="slotProps">
-          <div v-if="slotProps.value">{{ getCountryName(slotProps.value) }}</div>
-          <span v-else>
-            {{ slotProps.placeholder }}
-          </span>
-        </template> -->
-      </Select>
-    </div>
-    <div class="flex items-center gap-4 mb-4">
-      <label for="ddBrands" class="font-semibold w-24 mb-3">Brands</label>
-
-      <MultiSelect
-        id="ddBrands"
-        v-model="currentUser.brandIds"
-        :options="brands"
-        optionLabel="name"
-        optionValue="id"
-        placeholder="Select Brands"
-        :maxSelectedLabels="3"
-        class="w-3/4"
-      >
-      </MultiSelect>
-    </div>
-    <div class="flex items-center gap-4 mb-4 w-full">
-      <label for="ddRoles" class="font-semibold w-24 mb-3">Roles</label>
-
-      <MultiSelect
-        id="ddRoles"
-        v-model="currentUser.roleIds"
-        :options="roles"
-        optionLabel="name"
-        optionValue="id"
-        placeholder="Select Roles"
-        :maxSelectedLabels="3"
-        class="flex w-3/4"
-      />
-    </div>
-
-    <template #footer>
-      <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
-      <Button label="Save" icon="pi pi-check" text @click="saveUser" />
-    </template>
-  </Dialog>
 
   <Dialog
     v-model:visible="passwordDialog"

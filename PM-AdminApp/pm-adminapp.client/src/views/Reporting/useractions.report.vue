@@ -225,8 +225,21 @@ const exportCSV = () => {
     })
     return
   }
+
+  //format dates
+  rows.map((row) => {
+    if (row.date) {
+      row.date = new Date(row.date)
+    }
+  })
   const worksheet = utils.json_to_sheet(rows)
   const workbook = utils.book_new()
+  worksheet['!cols'] = Object.keys(rows[0]).map(() => ({ wch: 20 }))
+  for (let i = 0; i <= rows.length; i++) {
+    let cell = worksheet[`A${i + 1}`]
+    worksheet[`A${i + 1}`].z = 'yyyy-mm-dd'
+  }
+
   utils.book_append_sheet(workbook, worksheet, 'UserActionsReport')
   writeFileXLSX(workbook, `UserActionsReport.xlsx`)
 }

@@ -65,7 +65,13 @@ const standLayoutStylesList = ref([
   { name: 'Column + Pitch', id: 3 },
 ])
 const baseSchema = z.object({
-  name: z.string().nonempty({ message: 'Name is required.' }),
+  name: z.string().regex(/^[a-zA-Z0-9]+$/, {
+    message: 'Name is required and can only contain alphanumeric characters.',
+  }),
+  standAssemblynumber: z.string().regex(/^[a-zA-Z0-9]+$/, {
+    message: 'Name is required and can only contain alphanumeric characters.',
+  }),
+
   // description: z.string().nonempty({ message: 'Description is required.' }),
   // categoryId: z.number().nonnegative({ message: 'Category is required.' }),
   // parentCategoryId: z.number().nonnegative({ message: 'Parent Category is required.' }),
@@ -613,6 +619,10 @@ async function updateUprightWidth(newUpright: Upright, columnPosition: number) {
     }
   }
 }
+
+function onCancel() {
+  router.back()
+}
 </script>
 
 <template>
@@ -1063,7 +1073,16 @@ async function updateUprightWidth(newUpright: Upright, columnPosition: number) {
                     </fieldset>
                   </div>
 
-                  <Button type="submit" severity="primary" label="Submit" />
+                  <div class="flex justify-start">
+                    <Button
+                      type="button"
+                      label="Cancel"
+                      severity="secondary"
+                      class="mr-2 w-1/4"
+                      @click="onCancel"
+                    />
+                    <Button type="submit" severity="primary" label="Submit" class="w-1/4 ml-2" />
+                  </div>
                 </TabPanel>
                 <TabPanel value="1">
                   <div class="card grid grid-cols-2 gap-4">
@@ -1330,7 +1349,16 @@ async function updateUprightWidth(newUpright: Upright, columnPosition: number) {
                       </fieldset>
                     </div>
                   </div>
-                  <Button type="submit" severity="primary" label="Submit" />
+                  <div class="flex justify-start">
+                    <Button
+                      type="button"
+                      label="Cancel"
+                      severity="secondary"
+                      class="mr-2 w-1/4"
+                      @click="onCancel"
+                    />
+                    <Button type="submit" severity="primary" label="Submit" class="w-1/4 ml-2" />
+                  </div>
                 </TabPanel>
               </TabPanels>
             </Tabs>

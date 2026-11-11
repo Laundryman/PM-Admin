@@ -605,6 +605,13 @@ async function saveLayout({ valid }: any) {
                 </div>
 
                 <div class="flex gap-2 justify-between">
+                  <Button
+                    type="button"
+                    label="Cancel"
+                    severity="secondary"
+                    class="mr-2 w-1/2"
+                    @click="showManageClusterDialog = false"
+                  />
                   <Button type="submit" severity="primary" class="w-60" :fluid="false"
                     >Save Cluster</Button
                   >

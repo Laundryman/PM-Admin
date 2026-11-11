@@ -46,8 +46,16 @@ const selectedBrands = ref<number[]>([])
 const loading = ref(true)
 const submitted = ref(false)
 const newPassword = ref(null)
-const initialValues = ref(new User())
-const userModel = ref<User>(new User())
+const userModel = ref<User>(
+  new User({
+    brandIds: [],
+    roleId: 0,
+    userEmailAddress: '',
+    givenName: '',
+    surname: '',
+    userName: '',
+  }),
+)
 const brandTabIndex = ref('0')
 const brandTabs = ref([] as { title: string; content: string; value: string }[])
 const hasMFA = ref(false)
@@ -64,6 +72,48 @@ const currentRegionProps = ref({
 })
 const tabComponent = defineAsyncComponent(() => import('@/components/userBrandTab.vue'))
 const userFormTemplateRef = useTemplateRef<FormInstance>('user-form')
+const initialValues = ref({
+  givenName: userModel.value.givenName,
+  surname: userModel.value.surname,
+  userEmailAddress: userModel.value.userEmailAddress,
+  userName: userModel.value.userName,
+  brandIds: userModel.value.brandIds,
+  roleId: userModel.value.roleId,
+  countryId: userModel.value.countryId == undefined ? 0 : userModel.value.countryId,
+  password: '',
+})
+
+const resolver = zodResolver(
+  z.object({
+    givenName: z.string().nonempty({ message: 'First Name is required.' }),
+    surname: z.string().nonempty({ message: 'Last Name is required.' }),
+    userEmailAddress: z
+      .email({ error: 'Invalid email address.' })
+      .nonempty({ message: 'Email is required.' }),
+    userName: z.string().nonempty({ message: 'User Name is required.' }),
+    countryId: z.number().min(1, { message: 'User Country is required.' }),
+    brandIds: z.array(z.number()).min(1, { message: 'At least one Brand must be selected.' }),
+    roleId: z.number().min(1, { message: 'At least one Role must be selected.' }),
+    permissions: z
+      .array(z.number())
+      .min(1, { message: 'At least one Permission must be selected.' }),
+    // password: z
+    //   .string()
+    //   .min(8, { message: 'Minimum 8 characters.' })
+    //   .refine((value) => /[a-z]/.test(value), {
+    //     message: 'Must have a lowercase letter.',
+    //   })
+    //   .refine((value) => /[A-Z]/.test(value), {
+    //     message: 'Must have an uppercase letter.',
+    //   })
+    //   .refine((value) => /\d/.test(value), {
+    //     message: 'Must have a number.',
+    //   })
+    //   .refine((value) => /[!?-@#$£%^&*()_+]/.test(value), {
+    //     message: 'Must have a special character.',
+    //   }),
+  }),
+)
 
 onMounted(async () => {
   loading.value = true
@@ -78,7 +128,15 @@ onMounted(async () => {
 
   if (!userId.value) {
     //creating new user
-    userModel.value = new User()
+    userModel.value = new User({
+      brandIds: [],
+      roleIds: [],
+      userEmailAddress: '',
+      givenName: '',
+      surname: '',
+      userName: '',
+    })
+
     loading.value = false
   } else {
     await UserService.getUser(userId.value)
@@ -90,24 +148,23 @@ onMounted(async () => {
         console.log(error)
       })
   }
-  userFormTemplateRef.value?.setValues({ ...userModel.value })
   //get user's authentication method - check if they have been setup with mfa
-  if (userId.value && userId.value !== '') {
-    try {
-      const authMethods = await UserService.getAuthenticationMethods(userId.value)
-      if (authMethods && authMethods.length > 0) {
-        if (
-          authMethods.some((m) => m['@odata.type'] === '#microsoft.graph.emailAuthenticationMethod')
-        ) {
-          hasMFA.value = true
-        } else {
-          hasMFA.value = false
-        }
-      }
-    } catch (error) {
-      console.log(error)
-    }
-  }
+  // if (userId.value && userId.value !== '') {
+  //   try {
+  //     const authMethods = await UserService.getAuthenticationMethods(userId.value)
+  //     if (authMethods && authMethods.length > 0) {
+  //       if (
+  //         authMethods.some((m) => m['@odata.type'] === '#microsoft.graph.emailAuthenticationMethod')
+  //       ) {
+  //         hasMFA.value = true
+  //       } else {
+  //         hasMFA.value = false
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.log(error)
+  //   }
+  // }
 
   //setup brand tabs
   for (const brand of brandStore.brands) {
@@ -148,10 +205,19 @@ onMounted(async () => {
   })
 
   convertUserFKeys(userModel.value)
+  // userFormTemplateRef.value?.setValues({ ...userModel.value })
+  if (!newUser.value) userFormTemplateRef.value?.setValues({ ...userModel.value })
+
   selectedPermissions.value =
     userModel.value.permissions?.map((p) => ({ name: p.name, key: p.id.toString() })) ?? []
+
   console.log('Initial User Model after FKey conversion', userModel.value)
 })
+
+function initialiseForm() {
+  // Any form initialisation logic can go here
+}
+
 async function onTabChanged2(evt: any) {
   alert('changed' + evt)
 }
@@ -291,7 +357,7 @@ async function convertUserFKeys(usr: User) {
       }
     }
   }
-  console.log('Converted User FKeys', usr)
+  // console.log('Converted User FKeys', usr)
 }
 
 async function saveUser() {
@@ -343,22 +409,36 @@ async function saveUser() {
         const complexityRegex =
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!?\-@#$£%^&*()_+])[A-Za-z\d!?\-@#$£%^&*()_+]{8,}$/
         if (!complexityRegex.test(newPassword.value)) {
-          toast.add({
-            severity: 'error',
-            summary: 'Validation Error',
-            detail:
+          const fields = userFormTemplateRef.value.fields
+          const passwordField = fields['password']
+          passwordField.states.invalid = true
+          passwordField.states.error = {
+            message:
               'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
-            life: 4000,
-          })
-          return
+          }
+          // toast.add({
+          //   severity: 'error',
+          //   summary: 'Validation Error',
+          //   detail:
+          //     'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
+          //   life: 4000,
+          // })
+          return Promise.reject('Password does not meet complexity requirements.')
         }
       } else {
-        toast.add({
-          severity: 'error',
-          summary: 'Validation Error',
-          detail: 'Password is required for new users.',
-          life: 4000,
-        })
+        const fields = userFormTemplateRef.value.fields
+        const passwordField = fields['password']
+        passwordField.states.invalid = true
+        passwordField.states.error = {
+          message:
+            'Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.',
+        }
+        // toast.add({
+        //   severity: 'error',
+        //   summary: 'Validation Error',
+        //   detail: 'Password is required for new users.',
+        //   life: 4000,
+        // })
         return Promise.reject()
       }
       userModel.value.password = newPassword.value
@@ -512,8 +592,8 @@ async function onCountryChange(evt: any) {
   //add back the countries to keep that were removed in the manageSelectedValues function
   userModel.value.countries.splice(0, 0, ...(countriesToKeep ?? []))
   userModel.value.countryList = userModel.value.countries?.map((c) => c.id).join(',') || ''
-  console.log('Selected Countries after region change', ms_selectedCountries.value)
-  console.log('Part Model Countries after region change', userModel.value.countries)
+  // console.log('Selected Countries after region change', ms_selectedCountries.value)
+  // console.log('Part Model Countries after region change', userModel.value.countries)
 
   userModel.value.countryList = userModel.value.countries?.map((c) => c.id).join(',') || ''
 }
@@ -561,7 +641,7 @@ function onPermissionsChange(event: any) {
 
   //add selected permissions back in
   for (const permissionName of currPerms) {
-    let permission = permissions.value.find((p) => p.name === permissionName)
+    let permission = permissions.value.find((p) => p.name === permissionName.name)
     userModel.value.permissions.push(permission as Permission)
     userModel.value.permissionIds.push(permission?.id ?? 0)
   }
@@ -570,19 +650,6 @@ function onPermissionsChange(event: any) {
 /////////////////////////////////////////////////////
 // Form Handlers
 /////////////////////////////////////////////////////
-const resolver = zodResolver(
-  z.object({
-    FirstName: z.string().nonempty({ message: 'First Name is required.' }),
-    LastName: z.string().nonempty({ message: 'Last Name is required.' }),
-    userEmailAddress: z
-      .email({ error: 'Invalid email address.' })
-      .nonempty({ message: 'Email is required.' }),
-    userName: z.string().nonempty({ message: 'User Name is required.' }),
-    diamCountryId: z.number().min(1, { message: 'User Country is required.' }),
-    brandIds: z.array(z.number()).min(1, { message: 'At least one Brand must be selected.' }),
-    roleIds: z.array(z.number()).min(1, { message: 'At least one Role must be selected.' }),
-  }),
-)
 
 async function onMFAChange(event: any) {
   if (hasMFA.value === true) {
@@ -607,6 +674,10 @@ async function onMFAChange(event: any) {
         })
       })
   }
+}
+
+function onCancel() {
+  router.back()
 }
 
 async function onFormSubmit({ valid }: any) {
@@ -667,6 +738,7 @@ async function onFormSubmit({ valid }: any) {
         v-slot="$form"
         :initialValues
         :resolver
+        :validateOnSubmit="true"
         @submit="onFormSubmit"
         class="grid grid-cols-2 gap- w-full p-20 pt-0"
       >
@@ -677,9 +749,7 @@ async function onFormSubmit({ valid }: any) {
               <div class="flex flex-col gap-1">
                 <label for="name">First Name:</label>
                 <InputText
-                  v-model="userModel.givenName"
                   name="givenName"
-                  :value="userModel.givenName"
                   type="text"
                   length="255"
                   placeholder="First Name"
@@ -751,21 +821,29 @@ async function onFormSubmit({ valid }: any) {
                 <label for="ddCountries" class="font-semibold">User Country</label>
                 <Select
                   id="ddCountries"
+                  name="countryId"
                   v-model="userModel.countryId"
                   :options="countries"
                   optionValue="id"
                   optionLabel="name"
                   placeholder="Select a Country"
-                  :invalid="submitted && !userModel.countryId"
                 >
                 </Select>
+                <Message
+                  v-if="$form.countryId?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.countryId.error?.message }}</Message
+                >
               </div>
 
               <div class="flex flex-col gap-1" v-if="!userModel.id">
-                <label for="Password" class="font-semibold w-24">Password</label>
+                <label for="password" class="font-semibold w-24">Password</label>
                 <div class="flex w-3/4 flex-column">
                   <Password
                     v-model="newPassword"
+                    name="password"
                     toggleMask
                     :inputProps="{ autocomplete: 'one-time-code' }"
                     :style="{ width: '100%' }"
@@ -786,8 +864,14 @@ async function onFormSubmit({ valid }: any) {
                       </ul>
                     </template>
                   </Password>
-                  <small class="p-error" v-if="submitted && !newPassword"
-                    >Password is required.</small
+                </div>
+                <div>
+                  <Message
+                    v-if="$form.password?.invalid"
+                    severity="error"
+                    size="small"
+                    variant="simple"
+                    >{{ $form.password.error?.message }}</Message
                   >
                 </div>
               </div>
@@ -803,6 +887,7 @@ async function onFormSubmit({ valid }: any) {
 
                 <MultiSelect
                   id="ddBrands"
+                  name="brandIds"
                   v-model="userModel.brandIds"
                   :options="brands"
                   optionLabel="name"
@@ -812,12 +897,20 @@ async function onFormSubmit({ valid }: any) {
                   @change="onBrandChange($event)"
                 >
                 </MultiSelect>
+                <Message
+                  v-if="$form.brandIds?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.brandIds.error?.message }}</Message
+                >
               </div>
               <div class="flex flex-col gap-1">
-                <label for="ddRoles" class="font-semibold w-24 mb-3">Roles</label>
+                <label for="ddRoles" class="font-semibold w-24 mb-3">Role</label>
 
                 <Select
                   id="ddRoles"
+                  name="roleId"
                   v-model="userModel.roleId"
                   :options="roles"
                   optionLabel="name"
@@ -825,6 +918,13 @@ async function onFormSubmit({ valid }: any) {
                   placeholder="Select Role"
                   @change="onRoleChange($event)"
                 />
+                <Message
+                  v-if="$form.roleId?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.roleId.error?.message }}</Message
+                >
               </div>
               <div class="bg-gray-50 col-span-2 pt-10">
                 <legend class="text-lg font-bold">Permissions</legend>
@@ -838,13 +938,22 @@ async function onFormSubmit({ valid }: any) {
                   <Checkbox
                     v-model="selectedPermissions"
                     :inputId="permission.key"
-                    name="permission"
+                    name="permissions"
                     :value="permission"
                     class="mr-2"
                     v-on:update:model-value="onPermissionsChange"
                   />
                   <label :for="permission.key">{{ permission.name }}</label>
                 </div>
+              </div>
+              <div class="bg-gray-50 col-span-2 pt-10">
+                <Message
+                  v-if="$form.permissions?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.permissions.error?.message }}</Message
+                >
               </div>
             </div>
           </fieldset>
@@ -881,7 +990,14 @@ async function onFormSubmit({ valid }: any) {
             </TabPanels>
           </Tabs>
         </div>
-        <Button type="submit" label="Save" />
+        <Button
+          type="button"
+          label="Cancel"
+          severity="secondary"
+          class="mr-2 w-1/2"
+          @click="onCancel"
+        />
+        <Button type="submit" label="Save" class="ml-2 w-1/2" />
       </Form>
     </div>
   </div>
