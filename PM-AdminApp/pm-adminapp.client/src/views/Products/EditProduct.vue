@@ -450,10 +450,10 @@ async function onChildCategoryChange() {
 
 
 const baseSchema = z.object({
-  name: z.string().regex(/^[a-zA-Z0-9 !@#$£&()\\-_`.+,"]+$/u, {
+  name: z.string().regex(/^[\p{L}0-9 !@#$£&()\-_`.+,"]+$/u, {
     message: 'Name is required and can only contain alphanumeric characters plus some special characters.',
   }),
-  fullDescription: z.string().regex(/^[a-zA-Z0-9 !@#$£&()\\-_`.+,"]+$/u, {
+  fullDescription: z.string().regex(/^[\p{L}0-9 !@#$£&()\-_`.+,"]+$/u, {
     message: 'Description is required and can only contain alphanumeric characters plus some special characters..',
   }),
   msregions: z.array(z.number()).min(1, { message: 'At least one region is required.' }),
