@@ -21,10 +21,13 @@ import { useProductStore } from '@/stores/productStore'
 import { useSystemStore } from '@/stores/systemStore'
 import type { FormInstance } from '@primevue/forms'
 import { Form } from '@primevue/forms'
+import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
 import { onMounted, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
+import { z } from 'zod'
+
 const cassetteRenderUrl = import.meta.env.VITE_APP_CASSETTERENDER_URL
 const cassettePhotoUrl = import.meta.env.VITE_APP_CASSETTEPHOTO_URL
 const cassetteIconUrl = import.meta.env.VITE_APP_CASSETTEICON_URL
@@ -49,8 +52,8 @@ const editPart = ref(false)
 const toast = useToast()
 const regionSelectList = ref<Region[] | null>(null)
 const selectedRegion = ref()
-const ms_selectedRegions = ref<number[] | null>(null) // MultiSelect binding
-const ms_selectedCountries = ref<number[] | null>(null) // MultiSelect binding
+const ms_selectedRegions = ref<number[]>([]) // MultiSelect binding
+const ms_selectedCountries = ref<number[]>([]) // MultiSelect binding
 const selectAllCountries = ref(false)
 const selectAllProducts = ref(false)
 const selectAllStandTypes = ref(false)
@@ -64,9 +67,9 @@ const selectedParentCategory = ref<number | null>(null)
 const selectedParentCategoryId = ref<number | null>(null)
 const selectedChildCategory = ref<number | null>(null)
 const ms_productList = ref<Product[] | null>(null)
-const selectedProducts = ref<number[] | null>(null)
+const selectedProducts = ref<number[]>([])
 const standTypesList = ref<StandType[] | null>(null)
-const selectedStandTypes = ref<number[] | null>(null)
+const selectedStandTypes = ref<number[]>([])
 
 const dateCreated = ref()
 // const packShot = ref<string | null>(null)
@@ -78,10 +81,75 @@ const iconFile = ref<File | null>(null)
 
 const partFormTemplateRef = useTemplateRef<FormInstance>('part-form')
 const { part } = storeToRefs(partStore)
-const partModel = ref<Part>(new Part())
+const partModel = ref<Part>(
+  new Part({
+    name: '',
+    description: '',
+    partNumber: '',
+    altPartNumber: '',
+    customerRefNo: '',
+    published: false,
+    discontinued: false,
+    status: 0,
+    facings: 0,
+    height: 0,
+    width: 0,
+    depth: 0,
+    stock: 0,
+    regionsList: '',
+    countriesList: '',
+    categoryId: 0,
+    parentCategoryId: 0,
+    categoryName: '',
+    parentCategoryName: '',
+    partTypeId: 0,
+    partTypeName: '',
+    shoppingHeight: 0,
+    dateCreated: new Date(),
+    dateUpdated: new Date(),
+    shoppable: false,
+    packShotImageSrc: '',
+    render2dImage: '',
+    svgLineGraphic: '',
+    unitCost: 0,
+    launchPrice: 0,
+    launchDate: new Date(),
+    presentation: '',
+    productList: '',
+    cassetteBio: '',
+    manufacturingProcess: '',
+    standTypeList: '',
+    testingType: '',
+    internationalPart: false,
+    dmiReco: false,
+    hidePrices: false,
+    regions: [],
+    countries: [],
+    products: [],
+    partType: {} as PartType,
+    standTypes: [],
+  }),
+)
 
-const initialValues = ref(new Part())
 const loading = ref(true)
+
+const initialValues = ref({
+  name: partModel.value.name,
+  description: partModel.value.description,
+  // brandId: partModel.value.brandId,
+  categoryId: partModel.value.categoryId,
+  parentCategoryId: partModel.value.parentCategoryId,
+  partTypeId: partModel.value.partTypeId,
+  standTypeList: partModel.value.standTypeList,
+  facings: partModel.value.facings,
+  height: partModel.value.height,
+  width: partModel.value.width,
+  stock: partModel.value.stock,
+  depth: partModel.value.depth,
+  unitCost: partModel.value.unitCost,
+  products: partModel.value.products,
+  standTypes: partModel.value.standTypes,
+})
 
 onMounted(async () => {
   layout.toggleLoading()
@@ -330,6 +398,42 @@ function manageSelectedValues(
 ////////////////////////////////////////////////////
 // Location Handlers
 ////////////////////////////////////////////////////
+async function onSelectAllRegionsChange() {
+  ms_selectedRegions.value = regionSelectList.value?.map((item) => item.id) ?? []
+  countrySelectList.value = await locationFilters.getCountriesForRegions(ms_selectedRegions.value)
+  //remove any countries no longer in the list
+  let newSelectList = ms_selectedCountries.value?.filter((countryId) =>
+    countrySelectList.value?.some((c) => c.id === countryId),
+  )
+  if (newSelectList) {
+    ms_selectedCountries.value = newSelectList
+  } else {
+    ms_selectedCountries.value = []
+  }
+
+  manageSelectedValues(
+    ms_selectedRegions.value,
+    regionSelectList.value ?? [],
+    partModel.value.regions ?? [],
+  )
+  manageSelectedValues(
+    ms_selectedCountries.value ?? [],
+    countrySelectList.value ?? [],
+    partModel.value.countries ?? [],
+  )
+
+  partModel.value.regions = ms_selectedRegions.value
+    .map((regionId) => regionSelectList.value.find((r) => r.id === regionId))
+    .filter((r) => r !== undefined)
+  partModel.value.regionsList = partModel.value.regions?.map((r) => r.id).join(',') || ''
+}
+
+function clearRegionSelection() {
+  ms_selectedRegions.value = []
+  partModel.value.regions = []
+  partModel.value.regionsList = ''
+  clearCountrySelection()
+}
 
 async function onRegionChange(evt: any) {
   countrySelectList.value = await locationFilters.getCountriesForRegions(ms_selectedRegions.value)
@@ -386,9 +490,13 @@ function onSelectAllCountriesChange(event: any) {
 
 function clearCountrySelection() {
   ms_selectedCountries.value = []
+  countrySelectList.value = []
   partModel.value.countries = []
   partModel.value.countriesList = ''
 }
+
+const isRegionSelected = (region) => ms_selectedRegions.value.includes(region.id)
+const isCountrySelected = (country) => ms_selectedCountries.value.includes(country.id)
 
 ////////////////////////////////////////////////////
 // Image Handlers
@@ -494,8 +602,10 @@ async function onProductChange(evt: any) {
 }
 
 function onSelectAllProductsChange(event: any) {
-  selectedProducts.value = event.checked ? (ms_productList.value?.map((p) => p.id) ?? []) : []
-  selectAllProducts.value = event.checked
+  selectedProducts.value = ms_productList.value?.map((item) => item.id) ?? []
+
+  // selectedProducts.value = event.checked ? (ms_productList.value?.map((p) => p.id) ?? []) : []
+  // selectAllProducts.value = event.checked
   // manageSelectedProducts(selectedProducts.value)
   manageSelectedValues(
     selectedProducts.value,
@@ -507,8 +617,12 @@ function onSelectAllProductsChange(event: any) {
 
 function clearProductSelection() {
   partModel.value.products = []
+  partModel.value.productList = ''
   selectedProducts.value = []
+  partFormTemplateRef.value.fields['products'].states.value = []
 }
+
+const isProductSelected = (product) => selectedProducts.value.includes(product.id)
 
 /////////////////////////////////////////////////////
 // Part Type Handlers
@@ -533,8 +647,7 @@ function onStandTypeChange(evt: any) {
 }
 
 function onSelectAllStandTypesChange(event: any) {
-  selectedStandTypes.value = event.checked ? (standTypesList.value?.map((st) => st.id) ?? []) : []
-  selectAllStandTypes.value = event.checked
+  selectedStandTypes.value = standTypesList.value?.map((st) => st.id) ?? []
   manageSelectedValues(
     selectedStandTypes.value,
     standTypesList.value ?? [],
@@ -545,8 +658,12 @@ function onSelectAllStandTypesChange(event: any) {
 
 function clearStandTypeSelection() {
   partModel.value.standTypes = []
+  partModel.value.standTypeList = ''
   selectedStandTypes.value = []
+  partFormTemplateRef.value.fields['standTypes'].states.value = []
 }
+
+const isStandTypeSelected = (standType) => selectedStandTypes.value.includes(standType.id)
 
 /////////////////////////////////////////////////////
 // Date Handlers
@@ -558,49 +675,72 @@ function updateDateCreated(evnt: any) {
 /////////////////////////////////////////////////////
 // Form Handlers
 /////////////////////////////////////////////////////
-const resolver = ({ values }: any) => {
-  const errors = {} as any
 
-  if (!values.name) {
-    errors.name = [{ message: 'Name is required.' }]
+const baseSchema = z.object({
+  name: z.string().regex(/^[\p{L}0-9 !@#$£&()\-_`.+,"]+$/u, {
+    message:
+      'Name is required and can only contain alphanumeric characters plus some special characters.',
+  }),
+  description: z.string().regex(/^[\p{L}0-9 !@#$£&()\-_`.+,"]+$/u, {
+    message:
+      'Description is required and can only contain alphanumeric characters plus some special characters..',
+  }),
+
+  partNumber: z.string().regex(/^[\p{L}0-9 !@#$£&()\-_`.+,"]+$/u, {
+    message:
+      'Part Number is required and can only contain alphanumeric characters plus some special characters..',
+  }),
+  altPartNumber: z.optional(
+    z
+      .string()
+      .regex(/^[\p{L}0-9 !@#$£&()\-_`.+,"]*$/u, {
+        message:
+          'Alt Part Number can only contain alphanumeric characters plus some special characters..',
+      })
+      .nullable(),
+  ),
+  customerReference: z.optional(
+    z
+      .string()
+      .regex(/^[\p{L}0-9 !@#$£&()\-_`.+,"]*$/u, {
+        message:
+          'Customer Reference can only contain alphanumeric characters plus some special characters..',
+      })
+      .nullable(),
+  ),
+
+  categoryId: z.number().min(1, { message: 'Category is required.' }),
+  parentCategoryId: z.number().min(1, { message: 'Parent Category is required.' }),
+  partTypeId: z.number().min(1, { message: 'Part Type is required.' }),
+  facings: z.number().min(1, { message: 'Facings is required.' }),
+  height: z.number().min(1, { message: 'Height is required.' }),
+  width: z.number().min(1, { message: 'Width is required.' }),
+  stock: z.number().min(1, { message: 'Stock is required.' }),
+  products: z.array(z.number()).min(1, { message: 'At least one product is required.' }),
+  standTypes: z.array(z.number()).min(1, { message: 'At least one stand type is required.' }),
+  // shoppingHeight: z.number().min(0, { message: 'Shopping Height is required.' }),
+  // depth: z.number().min(0, { message: 'Depth is required.' }),
+  // unitCost: z.number().min(0, { message: 'Unit Cost is required.' }),
+
+  // msregions: z.array(z.number()).min(1, { message: 'At least one region is required.' }),
+  // countries: z.array(z.number()).min(1, { message: 'At least one country is required.' }),
+})
+
+function validateCountrySelection() {
+  const countriesField = partFormTemplateRef.value.fields?.['countries']
+  if (!ms_selectedCountries || ms_selectedCountries.value.length === 0) {
+    countriesField.states.invalid = true
+    countriesField.states.error = { message: 'At least one country is required' }
+    return false
   }
-  if (!values.partNumber) {
-    errors.partNumber = [{ message: 'Part Number is required.' }]
-  }
-  if (!values.description) {
-    errors.description = [{ message: 'Description is required.' }]
-  }
-  if (!values.categoryId) {
-    errors.categoryId = [{ message: 'Category is required.' }]
-  }
-  if (!values.parentCategoryId) {
-    errors.parentCategoryId = [{ message: 'Parent Category is required.' }]
-  }
-  if (!values.facings && values.facings !== 0) {
-    errors.facings = [{ message: 'Facings is required.' }]
-  }
-  if (!values.height && values.height !== 0) {
-    errors.height = [{ message: 'Height is required.' }]
-  }
-  if (!values.width && values.width !== 0) {
-    errors.width = [{ message: 'Width is required.' }]
-  }
-  if (!values.stock && values.stock !== 0) {
-    errors.stock = [{ message: 'Stock is required.' }]
-  }
-  if (!values.depth && values.depth !== 0) {
-    errors.depth = [{ message: 'Depth is required.' }]
-  }
-  if (!values.unitCost && values.unitCost !== 0) {
-    errors.unitCost = [{ message: 'Unit Cost is required.' }]
-  }
-  return {
-    values, // (Optional) Used to pass current form values to submit event.
-    errors,
-  }
+  return true
 }
+const resolver = ref(zodResolver(baseSchema))
 
 async function onFormSubmit({ valid }: any) {
+  if (!validateCountrySelection()) {
+    return
+  }
   if (valid) {
     //manage file uploads
     let partData = partForm.createPartFormData(partModel)
@@ -636,8 +776,11 @@ async function onFormSubmit({ valid }: any) {
 function onCancel() {
   router.back()
 }
+const textFieldInputTooltip = `<div class="flex items-center">
+  <span>Text fields can only contain alphanumeric characters plus some special characters.</span>
+  <div class="ml-2">! @ # $ £ & ( ) - _ \` . + , </div>
+  </div>`
 </script>
-
 <style>
 .cassette-icon svg {
   max-width: 100%;
@@ -717,6 +860,7 @@ function onCancel() {
               <div class="flex flex-col gap-1">
                 <label for="name">Part Name:</label>
                 <InputText
+                  v-tooltip="{ value: textFieldInputTooltip, escape: false }"
                   v-model="partModel.name"
                   name="name"
                   :value="partModel.name"
@@ -736,6 +880,7 @@ function onCancel() {
               <div class="flex flex-col gap-1">
                 <label for="customerReference">Customer Reference:</label>
                 <InputText
+                  v-tooltip.bottom="{ value: textFieldInputTooltip, escape: false }"
                   v-model="partModel.customerRefNo"
                   name="customerReference"
                   type="text"
@@ -754,6 +899,7 @@ function onCancel() {
               <div class="flex flex-col gap-1">
                 <label for="partNumber">Part Number:</label>
                 <InputText
+                  v-tooltip="{ value: textFieldInputTooltip, escape: false }"
                   v-model="partModel.partNumber"
                   name="partNumber"
                   type="text"
@@ -761,10 +907,18 @@ function onCancel() {
                   fluid
                   length="255"
                 />
+                <Message
+                  v-if="$form.partNumber?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.partNumber.error?.message }}</Message
+                >
               </div>
               <div class="flex flex-col gap-1">
                 <label for="altPartNumber">Alt Part Number:</label>
                 <InputText
+                  v-tooltip.bottom="{ value: textFieldInputTooltip, escape: false }"
                   v-model="partModel.altPartNumber"
                   name="altPartNumber"
                   type="text"
@@ -772,11 +926,19 @@ function onCancel() {
                   fluid
                   length="255"
                 />
+                <Message
+                  v-if="$form.altPartNumber?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.altPartNumber.error?.message }}</Message
+                >
               </div>
 
               <div class="flex flex-col gap-1">
                 <label for="description">Description:</label>
                 <InputText
+                  v-tooltip="{ value: textFieldInputTooltip, escape: false }"
                   v-model="partModel.description"
                   name="description"
                   type="text"
@@ -889,8 +1051,9 @@ function onCancel() {
             <div class="grid grid-cols-3 gap-10">
               <div class="flex flex-col gap-2">
                 <label for="region">Region:</label>
-                <MultiSelect
+                <Select
                   name="region"
+                  multiple
                   v-model="ms_selectedRegions"
                   :options="regionSelectList ?? []"
                   id="region"
@@ -899,16 +1062,38 @@ function onCancel() {
                   option-value="id"
                   @change="onRegionChange"
                 >
-                  <template #option="option">
-                    <div class="flex align-items-center">
-                      <span>{{ option.option.name }}</span>
+                  <template #header>
+                    <div class="flex items-center gap-1 px-3 pt-2">
+                      <Button variant="text" size="small" @click="onSelectAllRegionsChange()"
+                        >Select All</Button
+                      >
+                      <Button
+                        variant="text"
+                        size="small"
+                        severity="secondary"
+                        @click="clearRegionSelection"
+                        >Clear</Button
+                      >
                     </div>
                   </template>
-                </MultiSelect>
+                  <template #option="slotProps">
+                    <div class="flex items-center gap-2">
+                      <Checkbox
+                        :modelValue="isRegionSelected(slotProps.option)"
+                        binary
+                        :tabindex="-1"
+                        readonly
+                      />
+                      <span>{{ slotProps.option.name }}</span>
+                    </div>
+                  </template>
+                </Select>
               </div>
               <div class="flex flex-col gap-2">
                 <label for="country">Country:</label>
-                <MultiSelect
+                <Select
+                  placeholder="Select a region first"
+                  multiple
                   name="countries"
                   v-model="ms_selectedCountries"
                   :options="countrySelectList ?? []"
@@ -917,15 +1102,36 @@ function onCancel() {
                   option-label="name"
                   option-value="id"
                   @change="onCountryChange"
-                  :selectAll="selectAllCountries"
-                  @selectall-change="onSelectAllCountriesChange($event)"
                 >
-                  <template #option="option">
-                    <div class="">
-                      <span>{{ option.option.name }}</span>
+                  <template #header>
+                    <div class="flex items-center gap-1 px-3 pt-2">
+                      <Button
+                        variant="text"
+                        size="small"
+                        @click="onSelectAllCountriesChange($event)"
+                        >Select All</Button
+                      >
+                      <Button
+                        variant="text"
+                        size="small"
+                        severity="secondary"
+                        @click="clearCountrySelection"
+                        >Clear</Button
+                      >
                     </div>
                   </template>
-                </MultiSelect>
+                  <template #option="slotProps">
+                    <div class="flex items-center gap-2">
+                      <Checkbox
+                        :modelValue="isCountrySelected(slotProps.option)"
+                        binary
+                        :tabindex="-1"
+                        readonly
+                      />
+                      <span>{{ slotProps.option.name }}</span>
+                    </div>
+                  </template>
+                </Select>
                 <Message
                   v-if="$form.countries?.invalid"
                   severity="error"
@@ -1038,7 +1244,51 @@ function onCancel() {
             <div class="grid grid-cols-2 gap-10">
               <div class="flex flex-col gap-2">
                 <label for="products">Products:</label>
-                <MultiSelect
+                <Select
+                  multiple
+                  name="products"
+                  v-model="selectedProducts"
+                  :options="ms_productList ?? []"
+                  id="products"
+                  class="w-full"
+                  option-label="name"
+                  option-value="id"
+                  @change="onProductChange"
+                >
+                  <template #header>
+                    <div class="flex items-center gap-1 px-3 pt-2">
+                      <Button variant="text" size="small" @click="onSelectAllProductsChange($event)"
+                        >Select All</Button
+                      >
+                      <Button
+                        variant="text"
+                        size="small"
+                        severity="secondary"
+                        @click="clearProductSelection"
+                        >Clear</Button
+                      >
+                    </div>
+                  </template>
+                  <template #option="slotProps">
+                    <div class="flex items-center gap-2">
+                      <Checkbox
+                        :modelValue="isProductSelected(slotProps.option)"
+                        binary
+                        :tabindex="-1"
+                        readonly
+                      />
+                      <span>{{ slotProps.option.name }}</span>
+                    </div>
+                  </template>
+                </Select>
+                <Message
+                  v-if="$form.products?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.products.error?.message }}</Message
+                >
+                <!-- <MultiSelect
                   v-model="selectedProducts"
                   :options="ms_productList ?? []"
                   id="products"
@@ -1046,7 +1296,7 @@ function onCancel() {
                   class="w-full"
                   option-label="name"
                   option-value="id"
-                  @change="onProductChange($event)"
+
                   @show="onShowProducts()"
                   :selectAll="selectAllProducts"
                   @selectall-change="onSelectAllProductsChange($event)"
@@ -1056,7 +1306,7 @@ function onCancel() {
                       <span>{{ option.option.name }}</span>
                     </div>
                   </template>
-                </MultiSelect>
+                </MultiSelect> -->
               </div>
               <div class="flex gap-2 flex-wrap max-h-40 overflow-y-auto pt-1">
                 <Button
@@ -1085,7 +1335,54 @@ function onCancel() {
             <div class="grid grid-cols-2 gap-10">
               <div class="flex flex-col gap-2">
                 <label for="standType">Stand Type:</label>
-                <MultiSelect
+                <Select
+                  multiple
+                  name="standTypes"
+                  v-model="selectedStandTypes"
+                  :options="standTypesList ?? []"
+                  id="standTypes"
+                  class="w-full"
+                  option-label="name"
+                  option-value="id"
+                  @change="onStandTypeChange"
+                >
+                  <template #header>
+                    <div class="flex items-center gap-1 px-3 pt-2">
+                      <Button
+                        variant="text"
+                        size="small"
+                        @click="onSelectAllStandTypesChange($event)"
+                        >Select All</Button
+                      >
+                      <Button
+                        variant="text"
+                        size="small"
+                        severity="secondary"
+                        @click="clearStandTypeSelection"
+                        >Clear</Button
+                      >
+                    </div>
+                  </template>
+                  <template #option="slotProps">
+                    <div class="flex items-center gap-2">
+                      <Checkbox
+                        :modelValue="isStandTypeSelected(slotProps.option)"
+                        binary
+                        :tabindex="-1"
+                        readonly
+                      />
+                      <span>{{ slotProps.option.name }}</span>
+                    </div>
+                  </template>
+                </Select>
+                <Message
+                  v-if="$form.standTypes?.invalid"
+                  severity="error"
+                  size="small"
+                  variant="simple"
+                  >{{ $form.standTypes.error?.message }}</Message
+                >
+                <!-- <MultiSelect
                   v-model="selectedStandTypes"
                   :options="standTypesList ?? []"
                   id="standType"
@@ -1102,7 +1399,7 @@ function onCancel() {
                       <span>{{ option.option.name }}</span>
                     </div>
                   </template>
-                </MultiSelect>
+                </MultiSelect> -->
               </div>
               <div class="flex gap-2 flex-wrap max-h-40 overflow-y-auto pt-1">
                 <label class="w-full font-bold mb-2">Selected Stand Types:</label>

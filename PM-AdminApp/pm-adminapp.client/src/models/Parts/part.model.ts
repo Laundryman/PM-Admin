@@ -60,10 +60,7 @@ export class Part {
   // countryList!: string
   // shadeSelectByFacing: any
 
-  contstructor() {
-    this.id = 0
-    this.facings = 0
-    this.partNumber = ''
-    this.products = []
+  constructor(init?: Partial<Part>) {
+    Object.assign(this, init)
   }
 }
