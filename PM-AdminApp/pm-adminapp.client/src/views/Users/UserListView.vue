@@ -42,6 +42,7 @@ const newPassword = ref(null)
 onMounted(async () => {
   loading.value = true
   systemStore.layoutState.disableBrandSelect = false
+  userStore.selectedUser = null
   await UserService.initialise()
   await UserService.getPMUsers()
     .then((response: User[]) => {

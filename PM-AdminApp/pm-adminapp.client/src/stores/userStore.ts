@@ -6,7 +6,7 @@ import { acceptHMRUpdate, defineStore, skipHydrate } from 'pinia'
 import { ref } from 'vue'
 
 export const useUserStore = defineStore('userStore', () => {
-  const selectedUser = ref<User>(new User())
+  const selectedUser = useLocalStorage<User>('selectedUser', new User())
   const userLoaded = ref<boolean>(false)
   const loadingUsers = ref<boolean>(true)
   const activeUser = useLocalStorage('activeUser', {} as User)

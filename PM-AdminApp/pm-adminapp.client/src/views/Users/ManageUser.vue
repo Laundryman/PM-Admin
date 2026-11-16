@@ -79,8 +79,11 @@ const initialValues = ref({
   userName: userModel.value.userName,
   brandIds: userModel.value.brandIds,
   roleId: userModel.value.roleId,
+
   countryId: userModel.value.countryId == undefined ? 0 : userModel.value.countryId,
   password: '',
+  permissions:
+    userModel.value.permissions?.map((p) => ({ name: p.name, key: p.id.toString() })) ?? [],
 })
 
 const resolver = zodResolver(
@@ -95,28 +98,13 @@ const resolver = zodResolver(
     brandIds: z.array(z.number()).min(1, { message: 'At least one Brand must be selected.' }),
     roleId: z.number().min(1, { message: 'At least one Role must be selected.' }),
     permissions: z
-      .array(z.number())
+      .array(z.object())
       .min(1, { message: 'At least one Permission must be selected.' }),
-    // password: z
-    //   .string()
-    //   .min(8, { message: 'Minimum 8 characters.' })
-    //   .refine((value) => /[a-z]/.test(value), {
-    //     message: 'Must have a lowercase letter.',
-    //   })
-    //   .refine((value) => /[A-Z]/.test(value), {
-    //     message: 'Must have an uppercase letter.',
-    //   })
-    //   .refine((value) => /\d/.test(value), {
-    //     message: 'Must have a number.',
-    //   })
-    //   .refine((value) => /[!?-@#$£%^&*()_+]/.test(value), {
-    //     message: 'Must have a special character.',
-    //   }),
   }),
 )
 
 onMounted(async () => {
-  loading.value = true
+  systemStore.toggleLoading()
   systemStore.layoutState.disableBrandSelect = false
   userId.value = userStore.selectedUser.id || ''
   if (router.currentRoute.value.name === 'newUser') {
@@ -128,6 +116,11 @@ onMounted(async () => {
 
   if (!userId.value) {
     //creating new user
+    if (router.currentRoute.value.name === 'editUser') {
+      router.push({ name: 'newUser' })
+      editUser.value = false
+      newUser.value = true
+    }
     userModel.value = new User({
       brandIds: [],
       roleIds: [],
@@ -208,10 +201,28 @@ onMounted(async () => {
   // userFormTemplateRef.value?.setValues({ ...userModel.value })
   if (!newUser.value) userFormTemplateRef.value?.setValues({ ...userModel.value })
 
+  var userRole = roles.value.find((r) => r.id === userModel.value.roleId)
+  if (userRole?.name == 'Administrator') {
+    if (userModel.value.permissions.length != permissions.value.length) {
+      for (const permission of permissions.value) {
+        if (!userModel.value.permissions.some((p) => p.id === permission.id)) {
+          userModel.value.permissions.push(permission)
+        }
+      }
+      // userModel.value.permissions = [...permissions.value]
+      userModel.value.permissionIds = permissions.value.map((p) => p.id)
+      // selectedPermissions.value =
+      //   userModel.value.permissions?.map((p) => ({ name: p.name, key: p.id.toString() })) ?? []
+    } else {
+      // selectedPermissions.value =
+      //   userModel.value.permissions?.map((p) => ({ name: p.name, key: p.id.toString() })) ?? []
+    }
+  }
+
   selectedPermissions.value =
     userModel.value.permissions?.map((p) => ({ name: p.name, key: p.id.toString() })) ?? []
 
-  console.log('Initial User Model after FKey conversion', userModel.value)
+  systemStore.toggleLoading()
 })
 
 function initialiseForm() {
@@ -279,6 +290,26 @@ async function onBrandChange(evt: any) {
       value: brandId.toString(),
     })
   }
+}
+
+async function onSelectAllBrandsChange(evt: any) {
+  selectedBrands.value = brands.value.map((b) => b.id)
+  //clear brandTabs
+  brandTabs.value = []
+  for (const brandId of selectedBrands.value) {
+    brandTabs.value.push({
+      title: brands.value.find((b) => b.id === brandId)?.name ?? '',
+      content: `Content for ${brands.value.find((b) => b.id === brandId)?.name ?? ''}`,
+      value: brandId.toString(),
+    })
+  }
+}
+const isBrandSelected = (brand) => selectedBrands.value.includes(brand.id)
+
+function clearBrandSelection() {
+  selectedBrands.value = []
+  brandTabs.value = []
+  userModel.value.brandIds = []
 }
 
 async function convertUserFKeys(usr: User) {
@@ -358,6 +389,17 @@ async function convertUserFKeys(usr: User) {
     }
   }
   // console.log('Converted User FKeys', usr)
+}
+
+function getValuesFromForm() {
+  // Implement form value extraction logic here
+  userModel.value.givenName = userFormTemplateRef.value.fields['givenName'].states.value
+  userModel.value.surname = userFormTemplateRef.value.fields['surname'].states.value
+  userModel.value.userEmailAddress =
+    userFormTemplateRef.value.fields['userEmailAddress'].states.value
+  userModel.value.newUserName = userFormTemplateRef.value.fields['newUserName'].states.value
+
+  // userModel.value.password = userFormTemplateRef.value.fields['password'].states.value
 }
 
 async function saveUser() {
@@ -749,6 +791,7 @@ async function onFormSubmit({ valid }: any) {
               <div class="flex flex-col gap-1">
                 <label for="name">First Name:</label>
                 <InputText
+                  v-model="userModel.givenName"
                   name="givenName"
                   type="text"
                   length="255"
@@ -884,8 +927,44 @@ async function onFormSubmit({ valid }: any) {
             <div class="grid grid-cols-2 gap-x-10">
               <div class="flex flex-col gap-1">
                 <label for="ddBrands" class="font-semibold w-24 mb-3">Brands</label>
-
-                <MultiSelect
+                <Select
+                  name="brandIds"
+                  multiple
+                  v-model="userModel.brandIds"
+                  :options="brands ?? []"
+                  id="ddBrands"
+                  class="w-full"
+                  option-label="name"
+                  option-value="id"
+                  @change="onBrandChange"
+                >
+                  <template #header>
+                    <div class="flex items-center gap-1 px-3 pt-2">
+                      <Button variant="text" size="small" @click="onSelectAllBrandsChange($event)"
+                        >Select All</Button
+                      >
+                      <Button
+                        variant="text"
+                        size="small"
+                        severity="secondary"
+                        @click="clearBrandSelection"
+                        >Clear</Button
+                      >
+                    </div>
+                  </template>
+                  <template #option="slotProps">
+                    <div class="flex items-center gap-2">
+                      <Checkbox
+                        :modelValue="isBrandSelected(slotProps.option)"
+                        binary
+                        :tabindex="-1"
+                        readonly
+                      />
+                      <span>{{ slotProps.option.name }}</span>
+                    </div>
+                  </template>
+                </Select>
+                <!-- <MultiSelect
                   id="ddBrands"
                   name="brandIds"
                   v-model="userModel.brandIds"
@@ -896,7 +975,7 @@ async function onFormSubmit({ valid }: any) {
                   :maxSelectedLabels="3"
                   @change="onBrandChange($event)"
                 >
-                </MultiSelect>
+                </MultiSelect> -->
                 <Message
                   v-if="$form.brandIds?.invalid"
                   severity="error"
@@ -997,7 +1076,7 @@ async function onFormSubmit({ valid }: any) {
           class="mr-2 w-1/2"
           @click="onCancel"
         />
-        <Button type="submit" label="Save" class="ml-2 w-1/2" />
+        <Button type="submit" label="Submit" class="ml-2 w-1/2" />
       </Form>
     </div>
   </div>

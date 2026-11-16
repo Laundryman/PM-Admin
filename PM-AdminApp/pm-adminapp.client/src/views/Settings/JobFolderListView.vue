@@ -393,7 +393,7 @@ function editJob(jobModel: Job) {
   }
   job.value.dateFrom = jobModel.dateFrom
   job.value.dateTo = jobModel.dateTo
-  job.value.jobFolderId = jobModel.id ?? 0
+  job.value.jobFolderId = jobModel.jobFolderId ?? 0
   job.value.jobFolderName = jobFolder?.name ?? ''
   jobDialog.value = true
 }

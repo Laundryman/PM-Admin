@@ -65,11 +65,13 @@ const standLayoutStylesList = ref([
   { name: 'Column + Pitch', id: 3 },
 ])
 const baseSchema = z.object({
-  name: z.string().regex(/^[a-zA-Z0-9]+$/, {
-    message: 'Name is required and can only contain alphanumeric characters.',
+  name: z.string().regex(/^[\p{L}0-9 !@#$£&()\-_`.+,"]+$/u, {
+    message:
+      'Name is required and can only contain alphanumeric characters plus some special characters..',
   }),
-  standAssemblynumber: z.string().regex(/^[a-zA-Z0-9]+$/, {
-    message: 'Name is required and can only contain alphanumeric characters.',
+  standAssemblynumber: z.string().regex(/^[\p{L}0-9 !@#$£&()\-_`.+,"]+$/u, {
+    message:
+      'Stand Assembly Number is required and can only contain alphanumeric characters plus some special characters..',
   }),
 
   // description: z.string().nonempty({ message: 'Description is required.' }),

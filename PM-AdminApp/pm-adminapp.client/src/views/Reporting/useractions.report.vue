@@ -225,7 +225,9 @@ const exportCSV = () => {
     })
     return
   }
-
+  rows.forEach((row) => {
+    delete row.message
+  })
   //format dates
   rows.map((row) => {
     if (row.date) {
@@ -417,6 +419,13 @@ const exportCSV = () => {
             {{ new Date(slotProps.data.date).toLocaleDateString() }}
           </template>
         </Column>
+        <!-- <Column
+          filterField="message"
+          field="message"
+          header="Message"
+          sortable
+          style="min-width: 12rem"
+        ></Column> -->
         <Column
           filterField="roleName"
           field="roleName"
@@ -459,4 +468,3 @@ const exportCSV = () => {
     </div>
   </div>
 </template>
-47474/777

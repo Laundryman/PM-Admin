@@ -62,7 +62,13 @@ const resolver = ref(
   zodResolver(
     z.object({
       country: z.array(z.number(), { message: 'Country is required.' }),
-      clusterName: z.string().min(1, { message: 'Cluster name is required.' }),
+      clusterName: z
+        .string()
+        .regex(/^[\p{L}0-9 !@#$£&()\-_`.+,"]+$/u, {
+          message:
+            'Cluster name is required and can only contain alphanumeric characters plus some special characters..',
+        }),
+
       // layoutPartNumber: z.string().min(1, { message: 'Layout part number is required.' }),
       region: z.array(z.number(), { message: 'Region is required.' }),
       standType: z.number({ message: 'Stand type is required.' }),
