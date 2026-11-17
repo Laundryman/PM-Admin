@@ -124,13 +124,19 @@ namespace PM_AdminApp.Server.Controllers
             {
                 var category = _mapper.Map<Category>(categoryCreateDto);
                 var newCategory = await _categoryRepository.AddAsync(category);
+                
                 if (newCategory.ParentCategoryId != null)
                 {
                     var parentCategory = await _categoryRepository.GetByIdAsync((int)newCategory.ParentCategoryId);
                     newCategory.ParentCategory = parentCategory;
+                    var createdCategory = _mapper.Map<CategoryDto>(newCategory);
+                    return Ok(createdCategory);
                 }
-                var createdCategory = _mapper.Map<CategoryDto>(newCategory);
-                return Ok(createdCategory);
+                else
+                {
+                    var createdCategory = _mapper.Map<ParentCategoryDto>(newCategory);
+                    return Ok(createdCategory);
+                }
             }
             catch (Exception ex)
             {

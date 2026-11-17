@@ -114,7 +114,7 @@ async function saveCategory(cat: Category) {
             categories.value.push(newCat)
           } else {
             categories.value
-              .find((c: Category) => c.id === newCat.parentCategoryId)
+              .find((c) => c.id === newCat.parentCategoryId)
               ?.subCategories?.push(newCat)
           }
 
