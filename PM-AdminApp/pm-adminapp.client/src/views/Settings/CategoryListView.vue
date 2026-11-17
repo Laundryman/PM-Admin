@@ -100,20 +100,26 @@ async function saveCategory(cat: Category) {
         life: 3000,
       })
     } else {
-      cat.id = 0
+      // cat.id = 0
+      if (cat.parentCategoryId == 0) {
+        cat.parentCategoryId = null
+      }
       await categoryService
         .addCategory(cat)
         .then((newCat) => {
-          categories.value
-            .find((c: Category) => c.id === newCat.parentCategoryId)
-            ?.subCategories?.push(newCat)
+          if (newCat.parentCategoryId == null) {
+            categories.value.push(newCat)
+          } else {
+            categories.value
+              .find((c: Category) => c.id === newCat.parentCategoryId)
+              ?.subCategories?.push(newCat)
+          }
 
           // console.log(response.data)
         })
         .catch((error) => {
           console.error('Error creating category:', error)
         })
-      categories.value.push(cat)
       toast.add({
         severity: 'success',
         summary: 'Successful',
@@ -330,12 +336,15 @@ const confirm1 = (event) => {
               table-class="category-expanded bg-emerald-50"
               :loading="loading"
             >
-              <Column
+              <template #header>
+                <h5 class="m-0">Sub Categories</h5>
+              </template>
+              <!-- <Column
                 field="parentCategory.name"
                 header="Parent Category"
                 sortable
                 style="min-width: 16rem"
-              ></Column>
+              ></Column> -->
               <Column field="name" header="Name" sortable></Column>
               <Column header="Actions" :exportable="false" style="min-width: 12rem">
                 <template #body="childSlotProps">

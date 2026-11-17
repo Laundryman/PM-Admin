@@ -48,7 +48,7 @@ namespace PM_AdminApp.Server.Controllers
                 foreach (var cat in categories)
                 {
                     // Do something with each category
-                    if (cat.ParentCategoryId == 0)
+                    if (cat.ParentCategoryId == 0 || cat.ParentCategory == null)
                     {
                         cat.ParentCategoryName = "1 PARENT CATEGORIES";
                     }
@@ -94,7 +94,11 @@ namespace PM_AdminApp.Server.Controllers
         {
             try
             {
-                var category = await _categoryRepository.GetByIdAsync(categoryUpdateDto.Id);
+                if (categoryUpdateDto.Id == null)
+                {
+                    return BadRequest("Category ID is required for update.");
+                }
+                var category = await _categoryRepository.GetByIdAsync((int)categoryUpdateDto.Id);
                 if (category == null)
                 {
                     return NotFound();
