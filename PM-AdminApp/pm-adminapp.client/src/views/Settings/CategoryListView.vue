@@ -103,6 +103,9 @@ async function saveCategory(cat: Category) {
       // cat.id = 0
       if (cat.parentCategoryId == 0) {
         cat.parentCategoryId = null
+      } else {
+        cat.parentCategoryName =
+          categories.value.find((c: Category) => c.id === cat.parentCategoryId)?.name ?? ''
       }
       await categoryService
         .addCategory(cat)

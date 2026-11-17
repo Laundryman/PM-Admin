@@ -7,11 +7,6 @@ using PMApplication.Entities;
 using PMApplication.Interfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
-using PMInfrastructure.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace PM_AdminApp.Server.Controllers
 {
