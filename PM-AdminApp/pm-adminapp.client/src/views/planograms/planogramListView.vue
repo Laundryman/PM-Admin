@@ -262,9 +262,18 @@ function restore(planogram: searchPlanogramInfo) {
         .then(() => {
           // console.log('Planogram restored', planogram)
           // Refresh the planogram list after restoring
+          var today = new Date(Date.now())
           planograms.value = planograms.value.map((p) =>
-            p.id === planogram.id ? { ...p, statusId: 1, statusName: 'Editing' } : p,
+            p.id === planogram.id
+              ? {
+                  ...p,
+                  statusId: 4,
+                  statusName: 'Deleted',
+                  dateUpdated: today.toISOString(),
+                }
+              : p,
           )
+
           toast.add({
             severity: 'success',
             summary: 'Success',
@@ -272,6 +281,8 @@ function restore(planogram: searchPlanogramInfo) {
             group: 'center',
             life: 3000,
           })
+
+          clearFilters()
         })
         .catch((error) => {
           console.log('Error restoring planogram', error)
@@ -289,7 +300,17 @@ function deletePlanogram(planogram: searchPlanogramInfo) {
     .then(() => {
       console.log('Planogram deleted', planogram)
       // Refresh the planogram list after deleting
-      planograms.value = planograms.value.filter((p) => p.id !== planogram.id)
+      var today = new Date(Date.now())
+      planograms.value = planograms.value.map((p) =>
+        p.id === planogram.id
+          ? {
+              ...p,
+              statusId: 4,
+              statusName: 'Deleted',
+              dateUpdated: today.toISOString(),
+            }
+          : p,
+      )
       toast.add({
         severity: 'success',
         summary: 'Success',

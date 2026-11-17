@@ -149,9 +149,9 @@ function editUser(usr: User) {
   // userDialog.value = true
 }
 
-function manageUser(usr: User) {
+async function manageUser(usr: User) {
   // Navigate to edit page
-  userStore.loadUser(usr.id)
+  await userStore.loadUser(usr.id)
   router.push({ name: 'editUser' })
 }
 

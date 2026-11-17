@@ -120,6 +120,11 @@ export const Auth = {
           if (error instanceof InteractionRequiredAuthError) {
             return msal.acquireTokenPopup(request)
           }
+          // if (error instanceof BrowserAuthError && error.errorCode === 'interaction_in_progress') {
+          //   // this.reset()
+          //   // this.logout()
+          //   return this.login()
+          // }
           throw error
         })
         .then((result: AuthenticationResult) => {

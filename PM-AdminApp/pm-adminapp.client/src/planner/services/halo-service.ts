@@ -32,7 +32,7 @@ export class HaloService {
           var msgContent = '<b>Are you sure you want to remove this item?</b>'
           if (self.options.cellView.model.attributes.shapeType == 'Shelf') {
             msgContent =
-              "<b>Are you sure you want to remove this shelf? Clicking remove will remove the shelf and it's contents.</b>"
+              '<b>Are you sure you want to remove this shelf? Clicking yes will remove the shelf and its contents.</b>'
           }
           var dialog = new ui.Dialog({
             width: 400,

@@ -17,10 +17,10 @@ export class searchPlanogramInfo {
   standWidth!: number
   userId!: number
   legacyUserId!: number
-  dateCreated!: Date
-  dateUpdated!: Date
+  dateCreated!: string
+  dateUpdated!: string
   formattedDateUpdated!: string
-  dateSubmitted!: Date
+  dateSubmitted!: string
   currentVersion!: number
   template!: string
   lastUpdatedBy!: number
