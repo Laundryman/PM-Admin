@@ -71,7 +71,7 @@ export const Auth = {
         } else {
           if (result.account.idTokenClaims?.roles) {
             if (result.account.idTokenClaims?.roles.includes('System.Admin')) {
-              console.log('User has System.Admin role')
+              // console.log('User has System.Admin role')
               return this.setAccount(result.account)
             }
             await msal.logoutRedirect({ account: result.account })
@@ -97,10 +97,14 @@ export const Auth = {
    * Logout
    */
   async logout() {
-    return msal.logoutPopup({
+    const currentAccount = msal.getActiveAccount() || undefined
+    var response = await msal.logoutPopup({
       // required to make the application return to the home page
+      account: currentAccount,
       mainWindowRedirectUri: '/',
+      // postLogoutRedirectUri: '/'
     })
+    return response
   },
 
   /**
