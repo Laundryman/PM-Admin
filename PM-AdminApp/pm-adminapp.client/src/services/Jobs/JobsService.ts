@@ -10,6 +10,8 @@ import { ref } from 'vue'
 await msal.initialize()
 
 const token = ref()
+const idToken = ref()
+
 const initialized = ref(false)
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_APP_SERVER_URL + '/api/jobs',
@@ -104,6 +106,7 @@ export default {
     if (initialized.value !== false) {
       if (token.value) {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+        apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
       }
       apiClient.defaults.headers['Content-Type'] = 'application/json'
       await apiClient
@@ -123,6 +126,7 @@ export default {
     if (initialized.value !== false) {
       if (token.value) {
         apiClient.defaults.headers.Authorization = `Bearer ${token.value}`
+        apiClient.defaults.headers['ClaimsAuth'] = idToken.value || ''
       }
       apiClient.defaults.headers['Content-Type'] = 'application/json'
       let response = await apiClient
@@ -146,7 +150,9 @@ export default {
     }
     const t = await Auth.getToken()
     token.value = t
-    console.log('BrandService initialized with token:', token.value)
+    initialized.value = true
+    const idT = await Auth.getIdToken()
+    idToken.value = idT
     initialized.value = true
   },
 }

@@ -321,6 +321,7 @@ async function saveJob(currentJob: Job) {
   if (currentJob.jobCode?.trim()) {
     currentJob.uploadedBy = 0 // Replace with actual user info
     currentJob.uploadedOn = new Date()
+    currentJob.dateUpdated = new Date()
     currentJob.brandId = brandStore.activeBrand?.id ?? 0
     currentJob.brandName = brandStore.activeBrand?.name ?? ''
 
@@ -338,6 +339,7 @@ async function saveJob(currentJob: Job) {
             updateJob.dateFrom = currentJob.dateFrom
             updateJob.dateTo = currentJob.dateTo
             updateJob.uploadedOn = currentJob.uploadedOn
+            updateJob.dateUpdated = currentJob.dateUpdated
           }
 
           toast.add({
@@ -580,7 +582,7 @@ function setInitialJobFormValues() {
               </Column>
               <Column field="uploadedOn" header="Date Added" sortable>
                 <template #body="slotProps">
-                  {{ formatDate(slotProps.data.uploadedOn) }}
+                  {{ formatDate(slotProps.data.dateUpdated) }}
                 </template>
               </Column>
 

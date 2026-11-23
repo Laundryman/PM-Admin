@@ -15,4 +15,7 @@ export class Job {
   uploadedOn!: Date
   dateFrom!: Date
   dateTo!: Date
+  dateUpdated!: Date
+  updatedById!: string
+  updatedByName!: string
 }

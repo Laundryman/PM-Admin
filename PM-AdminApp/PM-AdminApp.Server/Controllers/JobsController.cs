@@ -2,6 +2,7 @@
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PM_AdminApp.Server.Extensions;
 using PMApplication.Dtos;
 using PMApplication.Dtos.Filters;
 using PMApplication.Entities;
@@ -9,11 +10,11 @@ using PMApplication.Entities.CountriesAggregate;
 using PMApplication.Entities.JobsAggregate;
 using PMApplication.Entities.ProductAggregate;
 using PMApplication.Interfaces;
+using PMApplication.Interfaces.RepositoryInterfaces;
 using PMApplication.Specifications;
 using PMApplication.Specifications.Filters;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using PMApplication.Interfaces.RepositoryInterfaces;
 
 namespace PM_AdminApp.Server.Controllers
 {
@@ -207,6 +208,9 @@ namespace PM_AdminApp.Server.Controllers
                     _logger.LogError("Invalid Job object sent from client.");
                     return BadRequest("Invalid Job object");
                 }
+                var userProfile = await this.MappedUser();
+                string? userId = userProfile?.Id;
+                string? userName = userProfile.GivenName + " " + userProfile.Surname;
 
                 var id = jobDto.Id;
 
@@ -248,6 +252,9 @@ namespace PM_AdminApp.Server.Controllers
                 if (jobDto.Description != null)
                     jobEdit.Description = jobDto.Description;
 
+                jobEdit.DateUpdated = DateTime.Now;
+                jobEdit.UpdatedById = userId;
+                jobEdit.UpdatedByName = userName;
 
                 await _jobRepository.UpdateAsync(jobEdit);
 
@@ -266,9 +273,16 @@ namespace PM_AdminApp.Server.Controllers
         {
             try
             {
+                var userProfile = await this.MappedUser();
+                string? userId = userProfile?.Id;
+                string? userName = userProfile?.GivenName + " " + userProfile?.Surname; 
+
                 var job = new Job();
                 _mapper.Map(jobDto, job);
                 job.UploadedOn = DateTime.Now;
+                job.DateUpdated = job.UploadedOn;
+                job.UpdatedById = userId;
+                job.UpdatedByName = userName;
                 var createdJob = await _jobRepository.AddAsync(job);
                 return Ok(createdJob);
             }
