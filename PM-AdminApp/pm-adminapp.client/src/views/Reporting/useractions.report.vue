@@ -215,7 +215,7 @@ async function getUserActionsReport() {
 const exportCSV = () => {
   // dt.value.exportCSV()
   // const rows = reportData.value.map(({ objectName, ...row }) => row)
-  const rows = reportData.value
+  const rows = JSON.parse(JSON.stringify(reportData.value))
   if (!rows || rows.length === 0) {
     toast.add({
       severity: 'warn',
@@ -234,16 +234,69 @@ const exportCSV = () => {
       row.date = new Date(row.date)
     }
   })
-  const worksheet = utils.json_to_sheet(rows)
+
+  const newRowNames = {
+    date: 'Timestamp',
+    message: 'message',
+    brandName: 'Brand Name',
+    userName: 'User Name',
+    actionName: 'Action Name',
+    planoName: 'Plano Name',
+    roleName: 'Role Name',
+    regionName: 'Region Name',
+    countryName: 'Country Name',
+    permissions: 'Permissions',
+  }
+
+  Object.entries(newRowNames).forEach(([oldKey, newKey]) => {
+    renameObjectKey(rows, oldKey, newKey)
+  })
+
+  // change order of columns if needed
+
+  const newRowOrder = [
+    'Brand Name',
+    'User Name',
+    'Action Name',
+    'Timestamp',
+    'Role Name',
+    'Region Name',
+    'Country Name',
+    'Permissions',
+    'Plano Name',
+  ]
+
+  // const rowsOrdered = Object.assign(newRowOrder, rows)
+  const rowsOrdered = rows.map((row) => {
+    const orderedRow: any = {}
+    newRowOrder.forEach((key) => {
+      orderedRow[key] = row[key]
+    })
+    return orderedRow
+  })
+  const worksheet = utils.json_to_sheet(rowsOrdered)
   const workbook = utils.book_new()
-  worksheet['!cols'] = Object.keys(rows[0]).map(() => ({ wch: 20 }))
-  for (let i = 0; i <= rows.length; i++) {
-    let cell = worksheet[`A${i + 1}`]
-    worksheet[`A${i + 1}`].z = 'yyyy-mm-dd'
+  worksheet['!cols'] = Object.keys(rowsOrdered[0]).map(() => ({ wch: 20 }))
+  for (let i = 0; i <= rowsOrdered.length; i++) {
+    let cell = worksheet[`D${i + 1}`]
+    worksheet[`D${i + 1}`].z = 'yyyy-mm-dd'
   }
 
   utils.book_append_sheet(workbook, worksheet, 'UserActionsReport')
   writeFileXLSX(workbook, `UserActionsReport.xlsx`)
+}
+
+function renameObjectKey(rows: any[], oldKey: string, newKey: string) {
+  rows = rows.map(function (obj) {
+    // Assign new key
+    obj[newKey] = obj[oldKey]
+
+    // Delete old key
+    delete obj[oldKey]
+
+    return obj
+  })
+  console.log(rows)
 }
 </script>
 
