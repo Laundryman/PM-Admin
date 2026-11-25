@@ -424,30 +424,6 @@ async function onChildCategoryChange() {
   }
 }
 
-/////////////////////////////////////////////////////
-// Form Handlers
-/////////////////////////////////////////////////////
-// const resolver = ({ values }: any) => {
-//   const errors = {} as any
-
-//   if (!values.name) {
-//     errors.name = [{ message: 'Name is required.' }]
-//   }
-//   if (!values.fullDescription) {
-//     errors.fullDescription = [{ message: 'Description is required.' }]
-//   }
-//   if (!values.categoryId) {
-//     errors.categoryId = [{ message: 'Category is required.' }]
-//   }
-//   if (!values.parentCategoryId) {
-//     errors.parentCategoryId = [{ message: 'Parent Category is required.' }]
-//   }
-//   return {
-//     values, // (Optional) Used to pass current form values to submit event.
-//     errors,
-//   }
-// }
-
 
 const baseSchema = z.object({
   name: z.string().regex(/^[\p{L}0-9 !@#$£&()\-_`.+,"]+$/u, {
@@ -518,6 +494,12 @@ const addShade = () => {
   submitted.value = false
   shademanagement.setCountrySelectList(countrySelectList.value, ms_selectedCountries.value) // pass country list to shade management composable - need to filter only selected contries on the product
   shademanagement.setSelectedCountries([]) // clear selected countries for new shade
+
+  initialShadeValues.value = {
+    shadeNumber: shade.value.shadeNumber ?? '',
+    shadeDescription: shade.value.shadeDescription ?? '',
+    countries: shade.value.countries?.map((c) => c.id) ?? [],
+  }
 
   shadeDialog.value = true
 }
@@ -1000,13 +982,13 @@ const textFieldInputTooltip = `<div class="flex items-center">
                           class="mr-2"
                           @click="editShade(slotProps.data)"
                         />
-                                                <Button
+                                                <!-- <Button
                           icon="pi pi-plus"
                           variant="outlined"
                           rounded
                           class="mr-2"
                           @click="addShade()"
-                        />
+                        /> -->
                       </template>
                     </Column>
                 </DataTable>

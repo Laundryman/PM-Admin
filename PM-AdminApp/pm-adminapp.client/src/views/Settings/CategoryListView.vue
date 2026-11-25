@@ -274,8 +274,10 @@ const confirm1 = (event) => {
       <DataTable
         v-model:expandedRows="expandedRows"
         v-model:selection="selectedCategory"
+        v-model:filters="filters"
         selectionMode="single"
         :loading="loading"
+        :globalFilterFields="['name']"
         ref="dt"
         :value="categories"
         dataKey="id"

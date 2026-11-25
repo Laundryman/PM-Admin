@@ -380,6 +380,7 @@ watch(
       for (let i = colsCount.value; i < (newValue ?? 0); i++) {
         var col = new Column()
         col.position = i + 1
+        col.width = 0
         colsTable.value.push(col)
       }
       standModel.value.columnList = colsTable.value
@@ -489,8 +490,10 @@ async function changeTab(tab: string) {
     standModel.value.cols = 1
   }
   if (standModel.value.rows > 0) {
-    if (standform.value.fields['rows'].states.value == 0) {
-      standform.value.setFieldValue('rows', standModel.value.rows)
+    if (standform.value.fields['rows']) {
+      if (standform.value.fields['rows'].states.value == 0) {
+        standform.value.setFieldValue('rows', standModel.value.rows)
+      }
     }
   } else {
     standform.value.setFieldValue('rows', 1)
@@ -1159,13 +1162,13 @@ function onCancel() {
                           <div class="flex gap-2 flex-wrap pt-1">
                             <Card v-if="!standModel.equalCols">
                               <template #content>
-                                <template v-for="col in colsTable">
+                                <template v-for="(col, index) in colsTable" :key="index">
                                   <div class="flex flex-row flex-wrap gap-2 items-center mb-2">
                                     <div class="p-2 shrink">
                                       <FloatLabel variant="in">
                                         <InputNumber
                                           type="number"
-                                          v-model="col.position"
+                                          v-model="colsTable[index].position"
                                           inputId="col"
                                           fluid
                                         />
@@ -1176,14 +1179,14 @@ function onCancel() {
                                     <div class="p-2 shrink">
                                       <FloatLabel variant="in" class="w-50">
                                         <InputNumber
-                                          name="col-width{{ col.position }}"
+                                          :name="'col-width-' + index"
                                           type="number"
-                                          v-model="col.width"
-                                          inputId="col-w"
+                                          v-model="colsTable[index].width"
+                                          :id="'col-w-' + index"
                                           class=""
                                           fluid
                                         />
-                                        <label for="col-w">Width</label>
+                                        <label :for="'col-w-' + index">Width</label>
                                       </FloatLabel>
                                     </div>
                                     <div class="ml-5 p-2">
