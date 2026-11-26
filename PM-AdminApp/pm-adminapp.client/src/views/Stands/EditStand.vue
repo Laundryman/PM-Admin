@@ -259,6 +259,26 @@ onMounted(async () => {
       countrySelectList.value?.map((item) => item.id) ?? [],
     )
   }
+
+  // set up the cols and rows tables for the stand
+  if (standModel.value.cols > 0) {
+    if (standform.value.fields['cols'].states.value == 0) {
+      standform.value.setFieldValue('cols', standModel.value.cols)
+    }
+  } else {
+    standform.value.setFieldValue('cols', 1)
+    standModel.value.cols = 1
+  }
+  if (standModel.value.rows > 0) {
+    if (standform.value.fields['rows']) {
+      if (standform.value.fields['rows'].states.value == 0) {
+        standform.value.setFieldValue('rows', standModel.value.rows)
+      }
+    }
+  } else {
+    standform.value.setFieldValue('rows', 1)
+    standModel.value.rows = 1
+  }
   loading.value = false
 })
 
@@ -275,7 +295,42 @@ function initialiseStandForm() {
 ////////////////////////////////////////////////////
 // Location Handlers
 ////////////////////////////////////////////////////
+async function onSelectAllRegionsChange() {
+  ms_selectedRegions.value = regionSelectList.value?.map((item) => item.id) ?? []
+  countrySelectList.value = await locationFilters.getCountriesForRegions(ms_selectedRegions.value)
+  //remove any countries no longer in the list
+  let newSelectList = ms_selectedCountries.value?.filter((countryId) =>
+    countrySelectList.value?.some((c) => c.id === countryId),
+  )
+  if (newSelectList) {
+    ms_selectedCountries.value = newSelectList
+  } else {
+    ms_selectedCountries.value = []
+  }
 
+  multiSelectLists.manageSelectedValues(
+    ms_selectedRegions.value,
+    regionSelectList.value ?? [],
+    standModel.value.regions ?? [],
+  )
+  multiSelectLists.manageSelectedValues(
+    ms_selectedCountries.value ?? [],
+    countrySelectList.value ?? [],
+    standModel.value.countries ?? [],
+  )
+
+  standModel.value.regions = ms_selectedRegions.value
+    .map((regionId) => regionSelectList.value.find((r) => r.id === regionId))
+    .filter((r) => r !== undefined)
+  standModel.value.regionsList = standModel.value.regions?.map((r) => r.id).join(',') || ''
+}
+
+function clearRegionSelection() {
+  ms_selectedRegions.value = []
+  standModel.value.regions = []
+  standModel.value.regionsList = ''
+  clearCountrySelection()
+}
 async function onRegionChange(evt: any) {
   countrySelectList.value = await locationFilters.getCountriesForRegions(ms_selectedRegions.value)
   //remove any countries no longer in the list
@@ -320,15 +375,9 @@ async function onCountryChange(evt: any) {
 }
 
 function onSelectAllCountriesChange(event: any) {
-  if (event.checked) {
-    standform.value?.setFieldValue(
-      'countries',
-      countrySelectList.value?.map((item) => item.id) ?? [],
-    )
-    ms_selectedCountries.value = countrySelectList.value?.map((item) => item.id) ?? []
-  } else {
-    ms_selectedCountries.value = []
-  }
+  standform.value?.setFieldValue('countries', countrySelectList.value?.map((item) => item.id) ?? [])
+  ms_selectedCountries.value = countrySelectList.value?.map((item) => item.id) ?? []
+
   selectAllCountries.value = event.checked
   multiSelectLists.manageSelectedValues(
     ms_selectedCountries.value,
@@ -342,11 +391,28 @@ function onSelectAllCountriesChange(event: any) {
     countrySelectList.value?.filter((c) => ms_selectedCountries.value?.includes(c.id)) || []
 }
 
+// function onSelectAllCountriesChange(event: any) {
+//   ms_selectedCountries.value = (countrySelectList.value?.map((item) => item.id) ?? [])
+//   selectAllCountries.value = true
+//   multiSelectLists.manageSelectedValues(
+//     ms_selectedCountries.value,
+//     countrySelectList.value ?? [],
+//     productModel.value.countries ?? [],
+//   )
+//   productModel.value.countriesList = productModel.value.countries?.map((c) => c.id).join(',') || ''
+//     //enable shade management if at least one country is selected
+//     shadeEditable.value = ms_selectedCountries.value.length > 0
+// }
+
 function clearCountrySelection() {
   ms_selectedCountries.value = []
   standModel.value.countries = []
   standModel.value.countriesList = ''
 }
+
+const isRegionSelected = (region) => ms_selectedRegions.value.includes(region.id)
+const isCountrySelected = (country) => ms_selectedCountries.value.includes(country.id)
+
 function onLayoutStyleChange(evt: any) {
   standModel.value.layoutStyle = evt.value
   standModel.value.cols = 0
@@ -837,6 +903,49 @@ function onCancel() {
                       <legend class="text-lg font-bold mb-2">Location</legend>
                       <div class="grid grid-cols-3 gap-10">
                         <div class="flex flex-col gap-2">
+                          <label for="region">Region:</label>
+                          <Select
+                            name="region"
+                            multiple
+                            v-model="ms_selectedRegions"
+                            :options="regionSelectList ?? []"
+                            id="region"
+                            class="w-full"
+                            option-label="name"
+                            option-value="id"
+                            @change="onRegionChange"
+                          >
+                            <template #header>
+                              <div class="flex items-center gap-1 px-3 pt-2">
+                                <Button
+                                  variant="text"
+                                  size="small"
+                                  @click="onSelectAllRegionsChange()"
+                                  >Select All</Button
+                                >
+                                <Button
+                                  variant="text"
+                                  size="small"
+                                  severity="secondary"
+                                  @click="clearRegionSelection"
+                                  >Clear</Button
+                                >
+                              </div>
+                            </template>
+                            <template #option="slotProps">
+                              <div class="flex items-center gap-2">
+                                <Checkbox
+                                  :modelValue="isRegionSelected(slotProps.option)"
+                                  binary
+                                  :tabindex="-1"
+                                  readonly
+                                />
+                                <span>{{ slotProps.option.name }}</span>
+                              </div>
+                            </template>
+                          </Select>
+                        </div>
+                        <!-- <div class="flex flex-col gap-2">
                           <label for="msregions">Region:</label>
                           <MultiSelect
                             name="msregions"
@@ -861,8 +970,60 @@ function onCancel() {
                             variant="simple"
                             >{{ $form.msregions.error?.message }}
                           </Message>
-                        </div>
+                        </div> -->
                         <div class="flex flex-col gap-2">
+                          <label for="country">Country:</label>
+                          <Select
+                            placeholder="Select a region first"
+                            multiple
+                            name="countries"
+                            v-model="ms_selectedCountries"
+                            :options="countrySelectList ?? []"
+                            id="country"
+                            class="w-full"
+                            option-label="name"
+                            option-value="id"
+                            @change="onCountryChange"
+                          >
+                            <template #header>
+                              <div class="flex items-center gap-1 px-3 pt-2">
+                                <Button
+                                  variant="text"
+                                  size="small"
+                                  @click="onSelectAllCountriesChange($event)"
+                                  >Select All</Button
+                                >
+                                <Button
+                                  variant="text"
+                                  size="small"
+                                  severity="secondary"
+                                  @click="clearCountrySelection"
+                                  >Clear</Button
+                                >
+                              </div>
+                            </template>
+                            <template #option="slotProps">
+                              <div class="flex items-center gap-2">
+                                <Checkbox
+                                  :modelValue="isCountrySelected(slotProps.option)"
+                                  binary
+                                  :tabindex="-1"
+                                  readonly
+                                />
+                                <span>{{ slotProps.option.name }}</span>
+                              </div>
+                            </template>
+                          </Select>
+                          <Message
+                            v-if="$form.countries?.invalid"
+                            severity="error"
+                            size="small"
+                            variant="simple"
+                            >{{ $form.countries.error?.message }}</Message
+                          >
+                        </div>
+
+                        <!-- <div class="flex flex-col gap-2">
                           <label for="country">Country:</label>
                           <MultiSelect
                             name="countries"
@@ -889,7 +1050,7 @@ function onCancel() {
                             variant="simple"
                             >{{ $form.countries.error?.message }}</Message
                           >
-                        </div>
+                        </div> -->
                         <div class="flex gap-2 flex-wrap max-h-40 overflow-auto">
                           <Button
                             label="Clear Selection"

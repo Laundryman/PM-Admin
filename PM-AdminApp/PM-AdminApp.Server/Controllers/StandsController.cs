@@ -393,6 +393,8 @@ namespace PM_AdminApp.Server.Controllers
                 {
                     currUpright.Position = upright.Position;
                     currUpright.Height = upright.Height;
+                    currUpright.Width = upright.Width;
+                    currUpright.StandId = editCol.StandId;
                 }
                 else
                 {
@@ -401,7 +403,7 @@ namespace PM_AdminApp.Server.Controllers
                         Height = upright.Height,
                         Position = upright.Position,
                         Width = upright.Width,
-                        StandId = upright.StandId
+                        StandId = editCol.StandId
 
                     };
                     newUprightList.Add(newUpright);

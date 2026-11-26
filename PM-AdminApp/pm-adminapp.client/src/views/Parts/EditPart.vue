@@ -472,9 +472,7 @@ async function onCountryChange(evt: any) {
 }
 
 function onSelectAllCountriesChange(event: any) {
-  ms_selectedCountries.value = event.checked
-    ? (countrySelectList.value?.map((item) => item.id) ?? [])
-    : []
+  ms_selectedCountries.value = countrySelectList.value?.map((item) => item.id)
   selectAllCountries.value = event.checked
   //reset the product selection
   clearProductSelection()
