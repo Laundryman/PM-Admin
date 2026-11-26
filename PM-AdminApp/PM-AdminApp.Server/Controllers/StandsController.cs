@@ -414,7 +414,7 @@ namespace PM_AdminApp.Server.Controllers
             var urToRemove = new List<StandColumnUpright>();
             foreach (var ur in origCol.StandColumnUprights)
             {
-                var existUR = editCol.ColumnUprightList.First(c => c.Id == ur.Id);
+                var existUR = editCol.ColumnUprightList.FirstOrDefault(c => c.Id == ur.Id);
                 if (existUR == null)
                 {
                     urToRemove.Add(ur);
@@ -424,6 +424,7 @@ namespace PM_AdminApp.Server.Controllers
             foreach (var ur in urToRemove)
             {
                 origCol.StandColumnUprights.Remove(ur);
+                await _standColumnUprightRepository.DeleteAsync(ur);
             }
 
             //reset the upright list

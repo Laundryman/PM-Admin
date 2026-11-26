@@ -290,7 +290,7 @@ function copyStand(stand: searchStandInfo) {
           //'categoryName',
           'name',
           'description',
-          'partNumber',
+          'standAssemblyNumber',
           'partTypeName',
           'facings',
           'stock',
