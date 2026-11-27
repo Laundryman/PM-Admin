@@ -49,7 +49,7 @@ export default {
         return response
       })
       .catch((err) => {
-        console.error('Error fetching stand:', err)
+        console.log('Error fetching stand:', err)
         throw err
       })
     return response.data

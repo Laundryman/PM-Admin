@@ -5,7 +5,7 @@ import { useStandTypes } from '@/components/composables/standTypes.composable'
 import { Country } from '@/models/Countries/country.model'
 import { Region } from '@/models/Countries/region.model'
 import { StandType } from '@/models/StandTypes/standType.model'
-import type { FormInstance } from '@primevue/forms'
+import type { FormInstance, FormSubmitEvent } from '@primevue/forms'
 
 import { regionFilter } from '@/models/Countries/regionFilter.model'
 import { Column, Row, Upright } from '@/models/Stands/columns.model'
@@ -19,7 +19,7 @@ import { Form } from '@primevue/forms'
 import { zodResolver } from '@primevue/forms/resolvers/zod'
 import { storeToRefs } from 'pinia'
 import { useToast } from 'primevue/usetoast'
-import { onMounted, ref, useTemplateRef, watch } from 'vue'
+import { nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { z } from 'zod'
 /// consider this selector -> https://codepen.io/jmhmd/pen/JdPGgW
@@ -57,6 +57,7 @@ const headerGraphicUrl = import.meta.env.VITE_APP_HEADERGRAPHIC_URL
 const headerGraphicSrc = ref()
 const imageFile = ref<File | null>(null)
 const standform = useTemplateRef<FormInstance>('stand-form')
+const standTabs = useTemplateRef<HTMLDivElement>('stand-tabs')
 const initialValues = ref(new Stand())
 const tabId = ref('0')
 const standLayoutStylesList = ref([
@@ -65,7 +66,7 @@ const standLayoutStylesList = ref([
   { name: 'Column + Pitch', id: 3 },
 ])
 const baseSchema = z.object({
-  name: z.string().regex(/^[\p{L}0-9 !@#$£&()\-_`.+,"]+$/u, {
+  name: z.string().regex(/^[\p{L}0-9 !@#$£&()\-_`.+',"]+$/u, {
     message:
       'Name is required and can only contain alphanumeric characters plus some special characters..',
   }),
@@ -88,9 +89,25 @@ const baseSchema = z.object({
   msregions: z.array(z.number()).min(1, { message: 'At least one region is required.' }),
   countries: z.array(z.number()).min(1, { message: 'At least one country is required.' }),
   cols: z.number().min(0, { message: 'Columns must be greater than or equal to 0.' }),
+  rows: z.number().min(0, { message: 'Rows must be greater than or equal to 0.' }),
+  //   horizontalPitchSize: z
+  //     .number()
+  //     .min(1, { message: 'Default pitch size must be greater than or equal to 1.' }),
 })
 
-const schema = baseSchema
+const preprocessedSchema = z.preprocess((data: unknown) => {
+  if (
+    data !== null &&
+    typeof data === 'object' &&
+    'horizontalPitchSize' in data &&
+    data.horizontalPitchSize == null
+  ) {
+    return { ...data, horizontalPitchSize: 0 }
+  }
+  return data
+}, baseSchema)
+
+const schema = preprocessedSchema
   .refine((data) => data.merchWidth <= data.width, {
     message: 'Merch width must be less than or equal to stand width.',
     path: ['merchWidth'],
@@ -109,7 +126,6 @@ const schema = baseSchema
   })
   .refine(
     (data) => {
-      console.log(data)
       if (data.layoutStyle != 2 && data.cols == 0) return false
       return true
     },
@@ -121,6 +137,26 @@ const schema = baseSchema
       },
     },
   )
+// .refine(
+//   (data) => {
+//     console.log(data)
+//     if (
+//       (data.layoutStyle == 2 || data.layoutStyle == 3) &&
+//       (data.horizontalPitchSize == 0 || data.horizontalPitchSize == null)
+//     )
+//       return false
+//     return true
+//   },
+//   {
+//     message: 'Default pitch size must be greater than 0 when layout style is Pitch.',
+//     path: ['horizontalPitchSize'],
+//     when(payload) {
+//       return baseSchema
+//         .pick({ layoutStyle: true, horizontalPitchSize: true })
+//         .safeParse(payload.value).success
+//     },
+//   },
+// )
 const resolver = ref(zodResolver(schema))
 
 // const resolver = ({ values }: any) => {
@@ -199,6 +235,7 @@ onMounted(async () => {
     standform.value.setFieldValue('headerHeight', standStore.stand.headerHeight)
     standform.value.setFieldValue('cols', standStore.stand.cols)
     standform.value.setFieldValue('rows', standStore.stand.rows)
+    standform.value.setFieldValue('horizontalPitchSize', standStore.stand.horizontalPitchSize)
     colsCount.value = standStore.stand.cols ?? 0
     rowsCount.value = standStore.stand.rows ?? 0
   }
@@ -223,9 +260,11 @@ onMounted(async () => {
     standform.value?.setFieldValue('rows', standModel.value.rows)
   }
 
-  if (router.currentRoute.value.name !== 'newStand')
+  if (router.currentRoute.value.name !== 'newStand') {
     colsTable.value = standModel.value.columnList ?? []
+  }
   rowsTable.value = standModel.value.rowList ?? []
+
   let brandid = brandStore.activeBrand?.id ?? 0
   let rFilter = new regionFilter()
   rFilter.brandId = brandid
@@ -244,6 +283,8 @@ onMounted(async () => {
 
   if (router.currentRoute.value.name === 'newStand') {
     standModel.value.brandId = brandStore.activeBrand?.id ?? 0
+    ms_selectedRegions.value = []
+    ms_selectedCountries.value = []
   }
 
   if (standModel.value.headerGraphic != null && standModel.value.headerGraphic.length > 0) {
@@ -261,23 +302,25 @@ onMounted(async () => {
   }
 
   // set up the cols and rows tables for the stand
-  if (standModel.value.cols > 0) {
-    if (standform.value.fields['cols'].states.value == 0) {
-      standform.value.setFieldValue('cols', standModel.value.cols)
-    }
-  } else {
-    standform.value.setFieldValue('cols', 1)
-    standModel.value.cols = 1
-  }
-  if (standModel.value.rows > 0) {
-    if (standform.value.fields['rows']) {
-      if (standform.value.fields['rows'].states.value == 0) {
-        standform.value.setFieldValue('rows', standModel.value.rows)
+  if (router.currentRoute.value.name === 'newStand') {
+    if (standModel.value.cols > 0) {
+      if (standform.value.fields['cols'].states.value == 0) {
+        standform.value.setFieldValue('cols', standModel.value.cols)
       }
+    } else {
+      standform.value.setFieldValue('cols', 1)
+      standModel.value.cols = 1
     }
-  } else {
-    standform.value.setFieldValue('rows', 1)
-    standModel.value.rows = 1
+    if (standModel.value.rows > 0) {
+      if (standform.value.fields['rows']) {
+        if (standform.value.fields['rows'].states.value == 0) {
+          standform.value.setFieldValue('rows', standModel.value.rows)
+        }
+      }
+    } else {
+      standform.value.setFieldValue('rows', 1)
+      standModel.value.rows = 1
+    }
   }
   loading.value = false
 })
@@ -568,10 +611,20 @@ async function changeTab(tab: string) {
   const valid = await standform.value?.validate()
   if (valid.values) {
     tabId.value = tab
+    await scrollToFirstError()
   }
 }
 
-async function validateColumnWidths() {
+async function scrollToFirstError() {
+  await nextTick()
+  const activePanel = standTabs.value?.querySelector('[role="tabpanel"][data-p-active="true"]')
+  const invalidField = activePanel?.querySelector<HTMLElement>('.p-invalid, [aria-invalid="true"]')
+  const target = invalidField?.closest<HTMLElement>('.flex.flex-col') ?? invalidField
+  target?.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' })
+}
+
+async function validateLayout() {
+  //col validation
   const cols = colsTable.value ?? []
   for (const col of cols) {
     if (!col.width || col.width == 0) {
@@ -589,12 +642,50 @@ async function validateColumnWidths() {
       return false
     }
   }
+
+  //row validation
+  if (standModel.value.layoutStyle == 1) {
+    const rows = rowsTable.value ?? []
+    for (const row of rows) {
+      if (!row.height || row.height == 0) {
+        let rowField = standform.value.fields['rows']
+        rowField.states.invalid = true
+        rowField.states.valid = false
+        rowField.states.error = {
+          message: `Row at position ${row.position} must have a height greater than 0.`,
+        }
+
+        return false
+      }
+    }
+  }
+
+  if (
+    (standModel.value.layoutStyle == 2 || standModel.value.layoutStyle == 3) &&
+    (standModel.value.shelfIncrement == 0 || standModel.value.shelfIncrement == null)
+  ) {
+    let shelfIncrementField = standform.value.fields['shelfIncrement']
+    shelfIncrementField.states.invalid = true
+    shelfIncrementField.states.error = {
+      message: `Pitch size must be greater than 0 for the selected layout style.`,
+    }
+
+    return false
+  }
   return true
 }
-async function onFormSubmit({ valid }: any) {
+async function onFormSubmit({ valid, states }: FormSubmitEvent) {
   // await AddColumnsAndRowsToModel()
   //need to validate the cols have proper widths
-  const colsValid = await validateColumnWidths()
+  const colsValid = await validateLayout()
+  if (!valid || !colsValid) {
+    const layoutFields = new Set(['cols', 'rows', 'shelfIncrement'])
+    const detailsInvalid = Object.entries(states).some(
+      ([field, state]) => !layoutFields.has(field) && state.invalid,
+    )
+    tabId.value = detailsInvalid ? '0' : '1'
+    await scrollToFirstError()
+  }
   if (valid && colsValid) {
     standModel.value.brandId = brandStore.activeBrand?.id ?? 0
     standModel.value.standTypeId = selectedStandType.value ?? 0
@@ -762,7 +853,7 @@ function onCancel() {
           </div>
         </div>
 
-        <div class="card grid grid-cols-1 gap-4 justify-center">
+        <div ref="stand-tabs" class="card grid grid-cols-1 gap-4 justify-center">
           <Form
             ref="stand-form"
             v-slot="$form"
@@ -945,32 +1036,6 @@ function onCancel() {
                             </template>
                           </Select>
                         </div>
-                        <!-- <div class="flex flex-col gap-2">
-                          <label for="msregions">Region:</label>
-                          <MultiSelect
-                            name="msregions"
-                            id="msregions"
-                            v-model="ms_selectedRegions"
-                            :options="regionSelectList ?? []"
-                            class="w-full"
-                            option-label="name"
-                            option-value="id"
-                            @change="onRegionChange"
-                          >
-                            <template #option="option">
-                              <div class="flex align-items-center">
-                                <span>{{ option.option.name }}</span>
-                              </div>
-                            </template>
-                          </MultiSelect>
-                          <Message
-                            v-if="$form.msregions?.invalid"
-                            severity="error"
-                            size="small"
-                            variant="simple"
-                            >{{ $form.msregions.error?.message }}
-                          </Message>
-                        </div> -->
                         <div class="flex flex-col gap-2">
                           <label for="country">Country:</label>
                           <Select
@@ -1022,35 +1087,6 @@ function onCancel() {
                             >{{ $form.countries.error?.message }}</Message
                           >
                         </div>
-
-                        <!-- <div class="flex flex-col gap-2">
-                          <label for="country">Country:</label>
-                          <MultiSelect
-                            name="countries"
-                            v-model="ms_selectedCountries"
-                            :options="countrySelectList ?? []"
-                            id="country"
-                            class="w-full"
-                            option-label="name"
-                            option-value="id"
-                            @change="onCountryChange"
-                            :selectAll="selectAllCountries"
-                            @selectall-change="onSelectAllCountriesChange($event)"
-                          >
-                            <template #option="option">
-                              <div class="">
-                                <span>{{ option.option.name }}</span>
-                              </div>
-                            </template>
-                          </MultiSelect>
-                          <Message
-                            v-if="$form.countries?.invalid"
-                            severity="error"
-                            size="small"
-                            variant="simple"
-                            >{{ $form.countries.error?.message }}</Message
-                          >
-                        </div> -->
                         <div class="flex gap-2 flex-wrap max-h-40 overflow-auto">
                           <Button
                             label="Clear Selection"
@@ -1420,9 +1456,9 @@ function onCancel() {
                             </div>
 
                             <div class="flex flex-col gap-1">
-                              <label for="defaultPitchSize">Pitch Size:</label>
+                              <label for="horizontalPitchSize">Pitch Size:</label>
                               <InputNumber
-                                name="defaultPitchSize"
+                                name="horizontalPitchSize"
                                 placeholder="Pitch Size"
                                 fluid
                                 v-model="standModel.horizontalPitchSize"
@@ -1467,20 +1503,31 @@ function onCancel() {
                                 v-model="standModel.defaultRowHeight"
                               />
                             </div>
+                            <div class="col-span-4">
+                              <Message
+                                v-if="$form.rows?.invalid"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                                >{{ $form.rows.error?.message }}</Message
+                              >
+                            </div>
                           </div>
                           <div class="flex gap-2 flex-wrap pt-1">
                             <Card v-if="!standModel.equalRows">
                               <template #content>
-                                <template v-for="row in rowsTable">
+                                <template v-for="(row, index) in rowsTable" :key="index">
                                   <div class="flex flex-wrap flex-row gap-2 items-center mb-2">
                                     <div class="p-5 shrink">
                                       <FloatLabel variant="in">
                                         <InputNumber
                                           type="number"
                                           v-model="row.position"
-                                          inputId="row"
+                                          inputId="row-"
+                                          +
+                                          index
                                         />
-                                        <label for="row">Row</label>
+                                        <label for="row-" + index>Row</label>
                                       </FloatLabel>
                                     </div>
                                     <div class="p-5 shrink">
@@ -1488,9 +1535,11 @@ function onCancel() {
                                         <InputNumber
                                           type="number"
                                           v-model="row.height"
-                                          inputId="row-h"
+                                          inputId="row-h-"
+                                          +
+                                          index
                                         />
-                                        <label for="row-h">Height</label>
+                                        <label for="row-h-" + index>Height</label>
                                       </FloatLabel>
                                     </div>
                                   </div>
@@ -1502,13 +1551,22 @@ function onCancel() {
                         <div v-if="standModel.layoutStyle == 2 || standModel.layoutStyle == 3">
                           <div class="grid grid-cols-4 gap-10">
                             <div class="flex flex-col gap-1">
-                              <label for="defaultPitchSize">Vertical Pitch:</label>
+                              <label for="shelfIncrement">Vertical Pitch:</label>
                               <InputNumber
-                                name="defaultPitchSize"
+                                name="shelfIncrement"
                                 placeholder="Vertical Pitch"
                                 fluid
                                 v-model="standModel.shelfIncrement"
                               />
+                            </div>
+                            <div class="col-span-4">
+                              <Message
+                                v-if="$form.shelfIncrement?.invalid"
+                                severity="error"
+                                size="small"
+                                variant="simple"
+                                >{{ $form.shelfIncrement.error?.message }}</Message
+                              >
                             </div>
                           </div>
                         </div>
